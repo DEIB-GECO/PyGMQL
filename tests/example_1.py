@@ -8,5 +8,6 @@ dataset = GMQLDataset()
 bed_parser = BedParser()
 
 print('starting reading bed file')
-bed_rdd = dataset.load_from_path(path=bed_path, parser=bed_parser)
-bed_rdd.take(10).collect
+bed_dataset = dataset.load_from_path(path=bed_path, parser=bed_parser)
+
+S = bed_dataset.meta_select(lambda sample: "tumor" in )
