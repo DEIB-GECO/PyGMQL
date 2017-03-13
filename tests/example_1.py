@@ -10,4 +10,6 @@ bed_parser = BedParser()
 print('starting reading bed file')
 bed_dataset = dataset.load_from_path(path=bed_path, parser=bed_parser)
 
-S = bed_dataset.meta_select(lambda sample: "tumor" in )
+# Select only the lines with 'id' = 'id-2'
+only_id2_lines_dataset = bed_dataset.meta_select(lambda row: row['name'] == 'id-2')
+
