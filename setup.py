@@ -8,5 +8,5 @@ setup(name='gmql',
       author_email='luca.nanni@mail.polimi.it',
       license='MIT',
       packages=['gmql'],
-      requires=['findspark'],
+      requires=['findspark', 'pandas'],
       zip_safe=False)

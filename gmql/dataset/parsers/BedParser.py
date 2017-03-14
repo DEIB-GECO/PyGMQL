@@ -15,6 +15,9 @@ class BedParser(Parser):
             dict_row[self.header[i]] = elems[i]
         return dict_row
 
+    def get_attributes(self):
+        return self.header
+
 
 def parse_to_dataframe(self, file_path):
     bed_file = BedTool(file_path)

@@ -1,6 +1,7 @@
 """
 Setting up the pyspark environment
 """
+
 spark_home = '/home/luca/spark-2.1.0-bin-hadoop2.7'
 
 import findspark
@@ -9,5 +10,14 @@ import pyspark
 
 app_name = 'gmql_spark'
 
-# getting the Spark context
-sc = pyspark.SparkContext(appName=app_name)
+conf = pyspark.SparkConf() \
+    .setMaster('local[*]') \
+    .setAppName(app_name)
+
+# # getting the Spark context
+# sc = pyspark.SparkContext(conf=conf)
+#
+# # setting the logger level
+# sc.setLogLevel("ERROR")
+
+
