@@ -6,10 +6,17 @@
 """
 
 
+def apply_function(fun, row):
+    result = fun(row)
+    if type(result) is not list:
+        result = [result]
+    return result
+
+
 def meta_project(meta_dataset, attr_list, new_attr_list):
     meta = meta_dataset[attr_list]
     if new_attr_list is not None:
         for new_attr in new_attr_list.keys():
-            meta[new_attr] = meta.apply(new_attr_list[new_attr], 1)
+            meta[new_attr] = meta.apply(lambda row : apply_function(new_attr_list[new_attr], row), 1)
 
     return meta
