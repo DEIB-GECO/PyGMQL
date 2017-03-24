@@ -19,14 +19,17 @@ class BedParser(Parser):
         :param otherPos:
         """
         self.delimiter = delimiter
+        self.chrPos = chrPos
+        self.startPos = startPos
+        self.stopPos = startPos
+        self.strandPos = strandPos
+
+        # managing extra fields
 
     def parse_line_reg(self, id_record, line):
         elems = line.split(self.delimiter)
-        n_fields = len(elems)
-        dict_row = {}
-        for i in range(n_fields):
-            dict_row[self.header[i]] = elems[i]
-        return dict_row
+
+        return None
 
     def parse_line_meta(self, id_record, line):
         elems = line.split(self.delimiter)

@@ -6,21 +6,23 @@ import logging
 """
     Loading functons for Metadata
 """
-
+from . import inputFormatClass, keyFormatClass, valueFormatClass, conf
 logger = logging.getLogger('gmql_logger')
 
-inputFormatClass = 'it.polimi.genomics.spark.implementation.loaders.Loaders$CombineTextFileWithPathInputFormat'
-keyFormatClass = 'org.apache.hadoop.io.LongWritable'
-valueFormatClass = 'org.apache.hadoop.io.Text'
+# inputFormatClass = 'it.polimi.genomics.spark.implementation.loaders.Loaders$CombineTextFileWithPathInputFormat'
+# keyFormatClass = 'org.apache.hadoop.io.LongWritable'
+# valueFormatClass = 'org.apache.hadoop.io.Text'
 
 
 def load_meta_from_path(path, parser):
-    conf = {"textinputformat.record.delimiter": "\n",
-            "mapreduce.input.fileinputformat.input.dir.recursive": "true",
-            "mapred.input.dir": path + '/*.meta'}
+    # conf = {"textinputformat.record.delimiter": "\n",
+    #         "mapreduce.input.fileinputformat.input.dir.recursive": "true",
+    #         "mapred.input.dir": path + '/*.meta'}
+    conf_meta = conf.copy()
+    conf_meta["mapred.input.dir"] = path + '/*.meta'
     sc = pyspark.SparkContext.getOrCreate()
     logger.info("loading metadata")
-    files = sc.newAPIHadoopRDD(inputFormatClass, keyFormatClass, valueFormatClass, conf=conf)
+    files = sc.newAPIHadoopRDD(inputFormatClass, keyFormatClass, valueFormatClass, conf=conf_meta)
     logger.info("parsing metadata")
     files = files.map(lambda x: parser.parse_line_meta(id_record=x[0], line=x[1]))
 
