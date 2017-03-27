@@ -1,10 +1,14 @@
 import gmql as gl
-import numpy as np
-import pandas as pd
 
-input_path = "/home/luca/Scrivania/GMQL-Python/resources/metaData_repl"
+path = "/home/luca/Scrivania/GMQL-Python/resources/np_single"
 
-bed_parser = gl.parsers.BedParser(delimiter="\t", chrPos=None, startPos=None, stopPos=None)
-dataset = gl.GMQLDataset(parser=bed_parser)
+parser = gl.parsers.NarrowPeakParser()
 
-dataset = dataset.load_from_path(path=input_path)
+dataset = gl.GMQLDataset(parser=parser)
+dataset = dataset.load_from_path(path)
+
+print("Metadata")
+print(dataset.meta_dataset)
+
+print("Regions")
+print(dataset.get_reg_attributes())
