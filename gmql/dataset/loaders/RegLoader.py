@@ -17,12 +17,12 @@ def load_reg_from_path(path, parser):
     meta_files = set(glob(pathname=path + '/*.meta'))
 
     only_region_files = all_files - meta_files
-    only_region_files = ', '.join(only_region_files)
+    only_region_files = ','.join(only_region_files)
 
     conf_meta = conf.copy()
     conf_meta["mapred.input.dir"] = only_region_files
     sc = pyspark.SparkContext.getOrCreate()
-
+    
     logger.info("loading region data")
     files = sc.newAPIHadoopRDD(inputFormatClass, keyFormatClass, valueFormatClass, conf=conf_meta)
     logger.info("parsing region data")

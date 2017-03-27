@@ -10,5 +10,4 @@ valueFormatClass = 'org.apache.hadoop.io.Text'
 
 # configuration of the Hadoop loader used by spark
 conf = {"textinputformat.record.delimiter": "\n",
-        "mapreduce.input.fileinputformat.input.dir.recursive": "true"
-        }
+        "mapreduce.input.fileinputformat.input.dir.recursive": "true"}

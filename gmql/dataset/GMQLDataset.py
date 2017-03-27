@@ -1,6 +1,6 @@
-import pandas as pd
 from .loaders import MetaLoader, RegLoader
 import gmql.operators as op
+import pandas as pd
 
 
 class GMQLDataset:
@@ -28,7 +28,7 @@ class GMQLDataset:
         self.meta_dataset = MetaLoader.load_meta_from_path(path, self.parser)
 
         # load region data
-        # self.reg_dataset = RegLoader.load_reg_from_path(path, self.parser)
+        self.reg_dataset = RegLoader.load_reg_from_path(path, self.parser)
 
         return GMQLDataset(reg_dataset=self.reg_dataset, meta_dataset=self.meta_dataset, parser=self.parser)
 
@@ -38,6 +38,9 @@ class GMQLDataset:
         """
         return self.meta_dataset.columns.tolist()
 
+    def get_reg_attributes(self):
+        return self.parser.get_attributes()
+
     def meta_select(self, predicate):
         """
         Select the rows of the metadata dataset based on a logical predicate
@@ -46,9 +49,11 @@ class GMQLDataset:
         """
         meta = op.meta_select(self.meta_dataset, predicate)
 
-        # TODO : filter the regions
+        # get all the regions corresponding to the selected samples
+        id_samples = meta.index.tolist()
+        reg = self.reg_dataset.filter(lambda sample: sample['id_sample'] in id_samples)
 
-        return GMQLDataset(reg_dataset=self.reg_dataset, meta_dataset=meta)
+        return GMQLDataset(reg_dataset=reg, meta_dataset=meta)
 
     def meta_project(self, attr_list, new_attr_dict=None):
         """
@@ -71,6 +76,16 @@ class GMQLDataset:
         new_attr_dict = {attr_name : lambda row : value}
         return self.meta_project(self.get_meta_attributes(), new_attr_dict)
 
-
+    """
+    Region operations
+    """
+    def get_reg_sample(self, n):
+        """
+        Materialize n samples of regions from the RDD
+        :param n: number of samples to materialize
+        :return: a pandas dataframe
+        """
+        regs = self.reg_dataset.take(n)
+        return pd.DataFrame.from_dict(regs)
 
 

@@ -2,25 +2,20 @@ import pyspark
 import pandas as pd
 from tqdm import tqdm
 import logging
+from . import inputFormatClass, keyFormatClass, valueFormatClass, conf
 
 """
     Loading functons for Metadata
 """
-from . import inputFormatClass, keyFormatClass, valueFormatClass, conf
-logger = logging.getLogger('gmql_logger')
 
-# inputFormatClass = 'it.polimi.genomics.spark.implementation.loaders.Loaders$CombineTextFileWithPathInputFormat'
-# keyFormatClass = 'org.apache.hadoop.io.LongWritable'
-# valueFormatClass = 'org.apache.hadoop.io.Text'
+logger = logging.getLogger('gmql_logger')
 
 
 def load_meta_from_path(path, parser):
-    # conf = {"textinputformat.record.delimiter": "\n",
-    #         "mapreduce.input.fileinputformat.input.dir.recursive": "true",
-    #         "mapred.input.dir": path + '/*.meta'}
     conf_meta = conf.copy()
     conf_meta["mapred.input.dir"] = path + '/*.meta'
     sc = pyspark.SparkContext.getOrCreate()
+    
     logger.info("loading metadata")
     files = sc.newAPIHadoopRDD(inputFormatClass, keyFormatClass, valueFormatClass, conf=conf_meta)
     logger.info("parsing metadata")
