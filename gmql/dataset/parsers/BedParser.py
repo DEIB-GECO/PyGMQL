@@ -43,7 +43,6 @@ class BedParser(Parser):
             strand = '*'
 
         d = {
-            "id_sample": id_record,
             "chr": chr,
             "start": start,
             "stop": stop,
@@ -51,12 +50,14 @@ class BedParser(Parser):
         }
 
         # other attributes
-        other = ()
+
         for op in self.otherPos:
             v = op[2](elems[op[0]])
             d[op[1]] = v
 
-        return d
+        res = (id_record, d)
+
+        return res
 
     def parse_line_meta(self, id_record, line):
         elems = line.split(self.delimiter)
