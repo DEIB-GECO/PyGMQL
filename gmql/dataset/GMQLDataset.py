@@ -86,6 +86,50 @@ class GMQLDataset:
         :return: a pandas dataframe
         """
         regs = self.reg_dataset.take(n)
+        regs = list(map(from_tuple_to_dict, regs))
         return pd.DataFrame.from_dict(regs)
 
+    def reg_select(self, predicate):
+        """
+        Select only the regions in the dataset that satisfy the predicate
+        :param predicate: logical predicate on the values of the regions
+        :return: a new GMQLDataset
+        """
+        regs = op.reg_select(self.reg_dataset, predicate)
+        return GMQLDataset(reg_dataset=regs, meta_dataset=self.meta_dataset)
 
+    def reg_project(self, field_list, new_field_dict=None):
+        """
+        Project the region data based on a list of field names
+        :param field_list: list of the fields to select
+        :param new_field_dict: an optional dictionary of the form {'new_field_1': function1, ...}
+                                in which every function computes the new field based on the values 
+                                of the others
+        :return: a new GMQLDataset
+        """
+        regs = op.reg_project(self.reg_dataset, field_list, new_field_dict)
+        return GMQLDataset(reg_dataset=regs, meta_dataset=self.meta_dataset)
+
+    """
+    Mixed operations
+    """
+
+    def extend(self, new_attr_dict):
+        """
+        Extend the metadata based on aggregations on regions
+        :param new_attr_dict: dictionary of the form {'new_attribute_1': function1, ...}
+                                in which every function takes a dictionary of the type
+                                {
+                                    'field1' : [value1, value2, ...],
+                                    'field2' : [value1, ...],
+                                    ...
+                                    'fieldN' : [value1, ...]
+                                }
+        :return: a new GMQLDataset
+        """
+        
+
+
+def from_tuple_to_dict(tuple):
+    tuple[1]['id_sample'] = tuple[0]
+    return tuple[1]

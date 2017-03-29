@@ -1,7 +1,6 @@
 """
 Setting up the pyspark environment
 """
-
 import spylon.spark as ss
 import logging
 from sys import stdout
@@ -9,7 +8,7 @@ from sys import stdout
 c = ss.SparkConfiguration()
 c.master = ['local[*]']
 c._spark_home = "/home/luca/spark-2.1.0-bin-hadoop2.7"
-
+c.conf.set('spark.serializer', 'org.apache.spark.serializer.KryoSerializer')
 
 # I add the GMQL jar files for accessing them from pyspark
 c.jars = ["/home/luca/Scrivania/GMQL/GMQL-Core/target/GMQL-Core-2.0.jar",
