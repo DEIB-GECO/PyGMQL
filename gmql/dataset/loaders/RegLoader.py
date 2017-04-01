@@ -27,5 +27,4 @@ def load_reg_from_path(path, parser):
     files = sc.newAPIHadoopRDD(inputFormatClass, keyFormatClass, valueFormatClass, conf=conf_meta)
     logger.info("parsing region data")
     files = files.map(lambda x: parser.parse_line_reg(id_record=x[0], line=x[1]))
-
     return files

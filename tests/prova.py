@@ -1,20 +1,23 @@
-import spylon.spark as ss
+import pandas as pd
 
-c = ss.SparkConfiguration()
-c.master = 'local[*]'
-c._spark_home = "/home/luca/spark-2.1.0-bin-hadoop2.7"
+df1 = [
+    {'index': 1, 'c1': 1, 'c2': 2, 'c3': 3},
+    {'index': 2, 'c1': 1, 'c2': 6, 'c3': 7},
+    {'index': 3, 'c1': 3, 'c2': 8, 'c3': 3},
+]
 
-# I add the GMQL jar files for accessing them from pyspark
-c.jars = ["/home/luca/Scrivania/GMQL/GMQL-Core/target/GMQL-Core-2.0.jar",
-          "/home/luca/Scrivania/GMQL/GMQL-Server/target/GMQL-Server-2.0.jar",
-          "/home/luca/Scrivania/GMQL/GMQL-Spark/target/GMQL-Spark-4.0.jar"]
+df1 = pd.DataFrame.from_dict(df1)
+df1 = df1.set_index('index')
 
-app_name = 'gmql_spark'
+df2 = [
+    {'index': 1, 'c4': 2, 'c5': 2, 'c6': 4},
+    {'index': 2, 'c4': 3, 'c5': 5, 'c6': 5}
+]
 
-sc = c.spark_context(app_name)
+df2 = pd.DataFrame.from_dict(df2)
+df2= df2.set_index('index')
 
-path = "/home/luca/Scrivania/GMQL-Python/resources/hg_narrowPeaks"
+df_tot = pd.concat(objs=[df1, df2], axis=1, join='inner')
 
-t = sc.textFile(path)
+print(df_tot)
 
-print(t.take(10))

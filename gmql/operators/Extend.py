@@ -6,6 +6,7 @@
     the sample. Sample number and their genomic regions, with their attributes and values,
     remain unchanged in the output dataset.  
 """
+import pandas as pd
 
 
 def apply_aggregations(tuple, aggregate_fun):
@@ -36,12 +37,7 @@ def extend(reg_dataset, aggregate_fun):
     # apply every function
     regs = regs.map(lambda x : apply_aggregations(x, aggregate_fun))
     # each row is {'id_sample': id, 'new_attr': value, ...}
-
-    # collecting
-    regs = regs.collect()
-
-    # TODO: transformation into metadata pandas dataframe
-
+    return regs
 
 
 
