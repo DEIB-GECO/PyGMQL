@@ -114,7 +114,7 @@ class GMQLDataset:
     Mixed operations
     """
 
-    def extend(self, new_attr_dict):
+    def extend(self, new_attr_dict, n):
         """
         Extend the metadata based on aggregations on regions
         :param new_attr_dict: dictionary of the form {'new_attribute_1': function1, ...}
@@ -127,7 +127,17 @@ class GMQLDataset:
                                 }
         :return: a new GMQLDataset
         """
-        
+        regs = op.extend(self.reg_dataset, new_attr_dict)
+
+        # collecting
+        regs = regs.take(n)
+
+        # transformation into metadata pandas dataframe
+        df = pd.DataFrame.from_dict(regs)
+        df = df.set_index('id_sample')
+
+        new_meta = pd.concat(objs=[self.meta_dataset, df], axis=1, join='inner')
+        return GMQLDataset(reg_dataset=self.reg_dataset, meta_dataset=new_meta)
 
 
 def from_tuple_to_dict(tuple):

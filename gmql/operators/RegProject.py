@@ -12,8 +12,8 @@ def project_sample(reg,field_list, new_field_dict):
     if new_field_dict is not None:
         for k in new_field_dict.keys():
             fun = new_field_dict[k]
-            reg[k] = fun(reg)
-    return {k: v for k, v in reg.items() if k in field_list}
+            reg[1][k] = fun(reg[1])
+    return reg[0], {k: v for k, v in reg[1].items() if k in field_list}
 
 
 def reg_project(reg_dataset, field_list, new_field_dict):
