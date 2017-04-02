@@ -1,13 +1,24 @@
 from . import inputFormatClass, keyFormatClass, valueFormatClass, conf
 import logging
 from glob import glob
-
 import pyspark
+
 """
     Loading functions for region data
 """
 # global logger
 logger = logging.getLogger('gmql_logger')
+
+n_partitions = 100
+
+
+def partition_by_key(k):
+    return k % n_partitions
+
+
+def put_in_dictionary(tuple):
+    tuple[1]['id_sample'] = tuple[0]
+    return tuple[1]
 
 
 def load_reg_from_path(path, parser):
@@ -24,7 +35,11 @@ def load_reg_from_path(path, parser):
     sc = pyspark.SparkContext.getOrCreate()
     
     logger.info("loading region data")
-    files = sc.newAPIHadoopRDD(inputFormatClass, keyFormatClass, valueFormatClass, conf=conf_meta)
+    files = sc.newAPIHadoopRDD(inputFormatClass,
+                               keyFormatClass,
+                               valueFormatClass,
+                               conf=conf_meta)  # files = RDD(id, string)
     logger.info("parsing region data")
-    files = files.map(lambda x: parser.parse_line_reg(id_record=x[0], line=x[1]))
+    files = files.map(lambda x: parser.parse_line_reg(id_record=x[0], line=x[1]))   # files = RDD(id, dict)
+
     return files
