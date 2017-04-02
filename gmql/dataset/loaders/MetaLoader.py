@@ -20,8 +20,9 @@ def load_meta_from_path(path, parser):
     files = sc.newAPIHadoopRDD(inputFormatClass, keyFormatClass, valueFormatClass, conf=conf_meta)
     logger.info("parsing metadata")
     files = files.map(lambda x: parser.parse_line_meta(id_record=x[0], line=x[1]))
+    df = rdd_to_dataframe(files)
 
-    return rdd_to_dataframe(files)
+    return df
 
 
 def to_list(x):

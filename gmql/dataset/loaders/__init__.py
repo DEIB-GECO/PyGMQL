@@ -12,4 +12,5 @@ defaultCombineSize = 64
 # configuration of the Hadoop loader used by spark
 conf = {"textinputformat.record.delimiter": "\n",
         "mapreduce.input.fileinputformat.input.dir.recursive": "true",
-        "mapred.max.split.size": str(defaultCombineSize*1024*1024)}
+        "mapred.max.split.size": str(defaultCombineSize*1024*1024)
+        }
