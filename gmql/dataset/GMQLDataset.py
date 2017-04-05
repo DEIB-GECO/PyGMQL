@@ -1,4 +1,4 @@
-from .loaders import MetaLoader, RegLoader
+from .loaders import MetaLoader, RegLoader, MetaSampleCreation, RegSampleCreation
 import gmql.operators as op
 import pandas as pd
 
@@ -12,9 +12,13 @@ class GMQLDataset:
     A region sample is composed by
     """
 
-    def __init__(self, reg_dataset=None, meta_dataset=None, parser=None):
-        self.reg_dataset = reg_dataset
-        self.meta_dataset = meta_dataset
+    def __init__(self, reg_dataset=None, reg_attributes=None,
+                 meta_dataset=None, meta_attributes=None,
+                 parser=None):
+        self._reg_dataset = reg_dataset
+        self._reg_attributes = reg_attributes
+        self._meta_dataset = meta_dataset
+        self._meta_attributes = meta_attributes
         self.parser = parser
 
     def load_from_path(self, path):
@@ -24,22 +28,22 @@ class GMQLDataset:
         :return: a new GMQLDataset
         """
 
-        # load metadata
-        self.meta_dataset = MetaLoader.load_meta_from_path(path, self.parser)
+        # load metadata: RDD[(id, MetaRecord)]
+        self._meta_dataset, self._meta_attributes = MetaLoader.load_meta_from_path(path, self.parser)
 
-        # load region data
-        self.reg_dataset = RegLoader.load_reg_from_path(path, self.parser)
+        # load region data: RDD[(id, RegRecord)]
+        self._reg_dataset, self._reg_attributes = RegLoader.load_reg_from_path(path, self.parser)
 
-        return GMQLDataset(reg_dataset=self.reg_dataset, meta_dataset=self.meta_dataset, parser=self.parser)
+        return GMQLDataset(reg_dataset=self._reg_dataset, meta_dataset=self._meta_dataset, parser=self.parser)
 
     def get_meta_attributes(self):
         """
         :return: the set of attributes of the metadata dataset
         """
-        return self.meta_dataset.columns.tolist()
+        return self._meta_attributes
 
     def get_reg_attributes(self):
-        return self.parser.get_attributes()
+        return self._reg_attributes
 
     def meta_select(self, predicate):
         """
@@ -47,13 +51,13 @@ class GMQLDataset:
         :param predicate: logical predicate on the values of the rows
         :return: a new GMQLDataset
         """
-        meta = op.meta_select(self.meta_dataset, predicate)
+        meta = op.meta_select(self._meta_dataset, predicate)
 
         # get all the regions corresponding to the selected samples
-        id_samples = meta.index.tolist()
-        reg = self.reg_dataset.filter(lambda sample: sample['id_sample'] in id_samples)
+        regs = self._reg_dataset.join(meta.map(lambda x: (x[0], 0)))  # RDD[(id, (RegRecord, 0))]
+        regs = regs.map(lambda x: (x[0], x[1][0]))  # RDD[(id, RegRecord)]
 
-        return GMQLDataset(reg_dataset=reg, meta_dataset=meta)
+        return GMQLDataset(reg_dataset=regs, meta_dataset=meta)
 
     def meta_project(self, attr_list, new_attr_dict=None):
         """
@@ -63,8 +67,8 @@ class GMQLDataset:
                                 in which every function computes the new column based on the values of the others
         :return: a new GMQLDataset
         """
-        meta = op.meta_project(self.meta_dataset, attr_list, new_attr_dict)
-        return GMQLDataset(reg_dataset=self.reg_dataset, meta_dataset=meta)
+        meta = op.meta_project(self._meta_dataset, attr_list, new_attr_dict)
+        return GMQLDataset(reg_dataset=self._reg_dataset, meta_dataset=meta)
 
     def add_meta(self, attr_name, value):
         """
@@ -85,7 +89,7 @@ class GMQLDataset:
         :param n: number of samples to materialize
         :return: a pandas dataframe
         """
-        regs = self.reg_dataset.take(n)
+        regs = self._reg_dataset.take(n)
         regs = list(map(from_tuple_to_dict, regs))
         return pd.DataFrame.from_dict(regs)
 
@@ -95,8 +99,8 @@ class GMQLDataset:
         :param predicate: logical predicate on the values of the regions
         :return: a new GMQLDataset
         """
-        regs = op.reg_select(self.reg_dataset, predicate)
-        return GMQLDataset(reg_dataset=regs, meta_dataset=self.meta_dataset)
+        regs = op.reg_select(self._reg_dataset, predicate)
+        return GMQLDataset(reg_dataset=regs, meta_dataset=self._meta_dataset)
 
     def reg_project(self, field_list, new_field_dict=None):
         """
@@ -107,14 +111,14 @@ class GMQLDataset:
                                 of the others
         :return: a new GMQLDataset
         """
-        regs = op.reg_project(self.reg_dataset, field_list, new_field_dict)
-        return GMQLDataset(reg_dataset=regs, meta_dataset=self.meta_dataset)
+        regs = op.reg_project(self._reg_dataset, field_list, new_field_dict)
+        return GMQLDataset(reg_dataset=regs, meta_dataset=self._meta_dataset)
 
     """
     Mixed operations
     """
 
-    def extend(self, new_attr_dict, n):
+    def extend(self, new_attr_dict):
         """
         Extend the metadata based on aggregations on regions
         :param new_attr_dict: dictionary of the form {'new_attribute_1': function1, ...}
@@ -127,17 +131,17 @@ class GMQLDataset:
                                 }
         :return: a new GMQLDataset
         """
-        regs = op.extend(self.reg_dataset, new_attr_dict)
+        regs = op.extend(self._reg_dataset, new_attr_dict)
 
         # collecting
-        regs = regs.take(n)
+        regs = regs.collect()
 
         # transformation into metadata pandas dataframe
         df = pd.DataFrame.from_dict(regs)
         df = df.set_index('id_sample')
 
-        new_meta = pd.concat(objs=[self.meta_dataset, df], axis=1, join='inner')
-        return GMQLDataset(reg_dataset=self.reg_dataset, meta_dataset=new_meta)
+        new_meta = pd.concat(objs=[self._meta_dataset, df], axis=1, join='inner')
+        return GMQLDataset(reg_dataset=self._reg_dataset, meta_dataset=new_meta)
 
 
 def from_tuple_to_dict(tuple):
