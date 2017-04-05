@@ -7,17 +7,6 @@ df1 = [
 ]
 
 df1 = pd.DataFrame.from_dict(df1)
-df1 = df1.set_index('index')
 
-df2 = [
-    {'index': 1, 'c4': 2, 'c5': 2, 'c6': 4},
-    {'index': 2, 'c4': 3, 'c5': 5, 'c6': 5}
-]
 
-df2 = pd.DataFrame.from_dict(df2)
-df2= df2.set_index('index')
-
-df_tot = pd.concat(objs=[df1, df2], axis=1, join='inner')
-
-print(df_tot)
 

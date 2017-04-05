@@ -42,4 +42,4 @@ def load_reg_from_path(path, parser):
     logger.info("parsing region data")
     files = files.map(lambda x: parser.parse_line_reg(id_record=x[0], line=x[1]))   # files = RDD(id, dict)
 
-    return files
+    return files, parser.get_attributes()    # RDD[(id_sample, RegRecord)]

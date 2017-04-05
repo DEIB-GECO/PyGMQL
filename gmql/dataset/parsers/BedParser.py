@@ -1,5 +1,6 @@
 from .Parser import Parser
-import numpy as np
+from ..DataStructures.RegRecord import RegRecord
+
 
 class BedParser(Parser):
     """
@@ -42,26 +43,21 @@ class BedParser(Parser):
         else:
             strand = '*'
 
-        d = {
-            "chr": chr,
-            "start": start,
-            "stop": stop,
-            "strand": strand
-        }
-
+        reg_record = RegRecord(chr=chr, start=start, stop=stop,
+                               strand=strand)
         # other attributes
 
         for op in self.otherPos:
             v = op[2](elems[op[0]])
-            d[op[1]] = v
+            reg_record.__setattr__(name=op[1], value=v)
 
-        res = (id_record, d)
+        res = (id_record, reg_record)
 
         return res
 
     def parse_line_meta(self, id_record, line):
         elems = line.split(self.delimiter)
-        return {"id_sample": id_record, elems[0]: elems[1]}
+        return id_record, (elems[0], elems[1])
 
     def get_attributes(self):
         attr = ['chr', 'start', 'stop', 'strand']
