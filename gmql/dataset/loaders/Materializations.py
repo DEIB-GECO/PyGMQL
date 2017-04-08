@@ -9,7 +9,7 @@ logger = logging.getLogger('gmql_logger')
 
 def meta_rdd_to_pandas(meta):
     # make an rdd of dictionaries
-    meta = meta.map(lambda t: {'id_sample': t[0], t[1]: t[2]})
+    meta = meta.map(lambda t: {'id_sample': t[0], t[1][0]: t[1][1]})
 
     # collect everything
     meta = meta.collect()   # [{'id_sample': id, attr_name: value}, ...]
@@ -38,8 +38,10 @@ def to_list(x):
 def pandas_to_rdd(df):
     sc = pyspark.SparkContext.getOrCreate()
     d = df.to_dict('index')
-    items = d.items     # [(id, {attr_name: value, ...})]
-    items = list(map(lambda x: (x[0], create_meta_record(x[1])), items))
+    items = d.items()     # [(id, {attr_name: value, ...})]
+    items = list(
+        map(lambda x: (x[0], create_meta_record(x[1])), items)
+    )
     rdd = sc.parallelize(items)   # RDD[(id, MetaRecord)]
     return rdd
 

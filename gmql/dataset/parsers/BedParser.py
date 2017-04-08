@@ -49,7 +49,7 @@ class BedParser(Parser):
 
         for op in self.otherPos:
             v = op[2](elems[op[0]])
-            reg_record.__setattr__(name=op[1], value=v)
+            reg_record.__setattr__(op[1], v)
 
         res = (id_record, reg_record)
 
