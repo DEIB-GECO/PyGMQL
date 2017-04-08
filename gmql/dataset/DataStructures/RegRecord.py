@@ -30,6 +30,6 @@ class RegRecord:
         attrs = [a for a in attrs if not a.startswith("__") and
                  a not in ['chr', 'start', 'stop', 'strand']]
         for a in attrs:
-            d[a] = self.a
+            d[a] = self.__getattribute__(a)
 
         return d

@@ -18,7 +18,7 @@ def load_meta_from_path(path, parser):
     meta = sc.newAPIHadoopRDD(inputFormatClass, keyFormatClass, valueFormatClass, conf=conf_meta)
     logger.info("parsing metadata")
     meta = meta.map(lambda x: parser.parse_line_meta(id_record=x[0], line=x[1]))
-    # RDD[(id, attr_name, value)]
+    # RDD[(id, (attr_name, value))]
 
     # convert to  for local processing
     meta_df = meta_rdd_to_pandas(meta)
