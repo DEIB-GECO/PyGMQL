@@ -2,4 +2,4 @@
 API for calling interactively the GMQL Engine from Python
 
 ## Architecture
-![Image of the architecture]("./images/PyGML - Architecture.png")
+![Image of the architecture](./images/PyGML - Architecture.png?raw=true "Architecture")
