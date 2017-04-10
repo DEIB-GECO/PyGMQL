@@ -19,4 +19,7 @@ class NarrowPeakParser(BedParser):
                     (9, 'peak', float)]
         super().__init__(delimiter, chrPos, startPos, stopPos, strandPos, otherPos)
 
+    def get_parser_name(self):
+        return "NarrowPeakParser"
+
 

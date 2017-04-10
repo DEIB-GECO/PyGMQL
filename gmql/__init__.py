@@ -6,6 +6,8 @@ import subprocess as sp
 from sys import stdout
 from py4j.java_gateway import JavaGateway
 import os
+import time
+import atexit
 
 
 def set_logger(logger_name):
@@ -42,7 +44,7 @@ def start_gateway_server(gmql_jar):
 
     command = [java_path, '-jar', gmql_jar]
     proc = sp.Popen(command)
-
+    time.sleep(5)
     gateway = JavaGateway()
     return proc, gateway
 
@@ -52,14 +54,17 @@ def get_python_api_package(gateway):
 
 
 def start_gmql_manager(python_api_package):
-    gmql_manager = python_api_package.GMQLManager
-    gmql_manager.startEngine()
-    return gmql_manager
+    pythonManager = python_api_package.PythonManager
+    pythonManager.startEngine()
+    return pythonManager
 
+
+def get_python_manager():
+    global pythonManager
+    return pythonManager
 """
     GMQL Logger configuration
 """
-
 logger_name = "PyGML logger"
 logger = set_logger(logger_name)
 
@@ -67,10 +72,46 @@ logger = set_logger(logger_name)
     Initializing the JVM with the 
 """
 gmql_jar = "/home/luca/Documenti/GMQL/GMQL-PythonAPI/target/uber-GMQL-PythonAPI-1.0-SNAPSHOT.jar"
-server_process, gateway = start_gateway_server(gmql_jar)
+server_process, gateway, pythonManager = None, None, None
+
+
+def start():
+    global server_process, gateway, pythonManager
+    server_process, gateway = start_gateway_server(gmql_jar)
+    python_api_package = get_python_api_package(gateway)
+    pythonManager = start_gmql_manager(python_api_package)
+
 
 """
     Starting the GMQL manager
 """
-python_api_package = get_python_api_package(gateway)
-gmql_manager = start_gmql_manager(python_api_package)
+
+
+def stop():
+    global pythonManager, server_process
+    try:
+        if pythonManager is None:
+            raise GMQLManagerNotInitializedError("You need first to initialize the GMQLManager with the start() method")
+    except Exception:
+        pass
+    try:
+        pythonManager.stopEngine()
+    except Exception:
+        pass
+    # kill JVM
+    try:
+        server_process.terminate()
+    except Exception:
+        pass
+
+atexit.register(stop)
+
+# things to expose to the user
+from .dataset.GMQLDataset import GMQLDataset
+from .dataset import parsers
+
+
+class GMQLManagerNotInitializedError(Exception):
+    pass
+
+start()
