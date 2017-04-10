@@ -1,14 +1,27 @@
+from .. import get_python_manager
+
+
 class GMQLDataset:
     """
     The main abstraction of the library.
-    A GMQLDataset represents a genomic dataset and it is divided in:
-        - region data: a classic RDD
-        - metadata: a pandas dataframe
-    A region sample is composed by
+    A GMQLDataset represents a genomic dataset and it is divided in region data and
+    meta data. The function that can be applied to a GMQLDataset affect one of these
+    two features or both.
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, parser=None, index=None):
+        """
+        Initiates a GMQLDataset
+        :param parser: the parser for the dataset
+        :param index: the index to be used to retrieve the IRVariable on the Scala side
+        """
+        self.parser = parser
+        self.index = index
+
+    def show_info(self):
+        print("GMQLDataset")
+        print("\tParser:\t{}".format(self.parser.get_parser_name()))
+        print("\tIndex:\t{}".format(self.index))
 
     def load_from_path(self, path):
         """
@@ -16,7 +29,8 @@ class GMQLDataset:
         :param path: path of the dataset
         :return: a new GMQLDataset
         """
-        pass
+        index = get_python_manager().read_dataset(path, self.parser.get_parser_name())
+        return GMQLDataset(parser=self.parser, index=index)
 
     def get_meta_attributes(self):
         """

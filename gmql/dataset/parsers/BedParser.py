@@ -67,4 +67,7 @@ class BedParser(Parser):
 
         return attr
 
+    def get_parser_name(self):
+        return "GenericBedParser"
+
 

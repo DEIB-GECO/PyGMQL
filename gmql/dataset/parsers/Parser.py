@@ -36,3 +36,6 @@ class Parser:
     def get_attributes(self):
         pass
 
+    def get_parser_name(self):
+        pass
+
