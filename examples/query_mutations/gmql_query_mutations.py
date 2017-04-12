@@ -23,16 +23,16 @@ encode_dataset = gl.GMQLDataset().load("encode_hg19")
 # filter the dataset
 Ac = encode_dataset.meta_select(lambda meta: meta.experiment_target == 'H3K27ac−human')
 
-# hmm...I think this can be improved...
+
 project_arg = {
-  "peak": ADD(DIV("RIGHT",2),DIV("LEFT",2))             
+  "peak": Record("RIGHT")/2 + Record("LEFT")/2            
 }
 peaked = Ac.reg_project(new_attributes=project_arg)
 
-# hmm...I think this can be improved...
+
 project_arg = {
-    "LEFT" : SUB("peak",1500),                          
-    "RIGHT": ADD("peak",1500)
+    "LEFT" : Record("peak") - 1500,                          
+    "RIGHT": Record("peak") + 1500
 }
 large = peaked.reg_project(new_attributes=project_arg)
 
@@ -45,11 +45,11 @@ S = rep.cover(minAcc=1, maxAcc=2)
 # convention: the GMQLDataset calling map is the 
 # reference and the paramter of the function is the experiment
 RepCount = rep.map(S)       
-CSE = RepCount.reg_select(['count_REP_S','GT',0])
+CSE = RepCount.reg_select(condition = Record("count_REP_S") > 0)
 
 # find the mutation occurring in those enhancers
 M = CSE.map(gwas_dataset, {'bag' : BAG("trait")})
-N = M.reg_select(['count_Z_GWAS','GT',0])
+N = M.reg_select(condition = Record("count_Z_GWAS") > 0)
 P = N.meta_project(['count_Z_GWAS','bag'])
 
 # materialization in memory <---- notice that here we collect 
