@@ -8,5 +8,3 @@ data = gl.GMQLDataset(parser=parser)\
                 .load_from_path(path=data_path)
 
 data.show_info()
-
-
