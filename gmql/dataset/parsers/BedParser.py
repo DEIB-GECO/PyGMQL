@@ -8,7 +8,8 @@ class BedParser(Parser):
     """
     delimiter = None
 
-    def __init__(self, delimiter, chrPos, startPos, stopPos, strandPos=None, otherPos=None):
+    def __init__(self, parser_name, delimiter, chrPos, startPos,
+                 stopPos, strandPos=None, otherPos=None):
         """
         Generic Bed Parser
         :param delimiter: delimiter of the columns of the file
@@ -24,6 +25,7 @@ class BedParser(Parser):
         self.stopPos = stopPos
         self.strandPos = strandPos
         self.otherPos = otherPos
+        self.parser_name = parser_name
 
         # managing extra fields
 
@@ -68,6 +70,6 @@ class BedParser(Parser):
         return attr
 
     def get_parser_name(self):
-        return "GenericBedParser"
+        return self.parser_name
 
 
