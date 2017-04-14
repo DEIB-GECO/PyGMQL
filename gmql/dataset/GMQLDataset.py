@@ -47,7 +47,13 @@ class GMQLDataset:
         :param predicate: logical predicate on the values of the rows
         :return: a new GMQLDataset
         """
-        pass
+        pmg = get_python_manager()
+        opmng = pmg.getOperatorManager()
+        expressionBuilder = pmg.getNewExpressionBuilder()
+        meta_condition = expressionBuilder.createMetaPredicate()
+
+        new_index = opmng.meta_select(self.index, meta_condition) # Test
+        return GMQLDataset(index=new_index, parser=self.parser)
 
     def meta_project(self, attr_list, new_attr_dict=None):
         """
@@ -122,3 +128,11 @@ class GMQLDataset:
         :return: a new GMQLDataset
         """
         pass
+
+    def materialize(self, output_path):
+        pymg = get_python_manager()
+        pymg.materialize(self.index, output_path)
+
+        # taking in memory the data structure
+
+

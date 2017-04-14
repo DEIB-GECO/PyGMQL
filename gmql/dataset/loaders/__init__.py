@@ -14,3 +14,7 @@ conf = {"textinputformat.record.delimiter": "\n",
         "mapreduce.input.fileinputformat.input.dir.recursive": "true",
         "mapred.max.split.size": str(defaultCombineSize*1024*1024)
         }
+
+
+def generateKey(filename):
+    return hash(filename)

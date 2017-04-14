@@ -28,7 +28,7 @@ class RegRecord:
         attrs = dir(self)
         # take only the ones that are not mandatory
         attrs = [a for a in attrs if not a.startswith("__") and
-                 a not in ['chr', 'start', 'stop', 'strand']]
+                 a not in ['chr', 'start', 'stop', 'strand','to_dictionary']]
         for a in attrs:
             d[a] = self.__getattribute__(a)
 

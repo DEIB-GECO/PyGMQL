@@ -9,5 +9,3 @@ class Record():
         pass
     def __or__(self, other):
         pass
-    def __sub__(self, other):
-        pass

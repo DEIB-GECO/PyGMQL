@@ -9,12 +9,6 @@ import pyspark
 # global logger
 logger = logging.getLogger('gmql_logger')
 
-n_partitions = 100
-
-
-def partition_by_key(k):
-    return k % n_partitions
-
 
 def put_in_dictionary(tuple):
     tuple[1]['id_sample'] = tuple[0]
@@ -33,7 +27,7 @@ def load_reg_from_path(path, parser):
     conf_meta = conf.copy()
     conf_meta["mapred.input.dir"] = only_region_files
     sc = pyspark.SparkContext.getOrCreate()
-    
+
     logger.info("loading region data")
     files = sc.newAPIHadoopRDD(inputFormatClass,
                                keyFormatClass,
