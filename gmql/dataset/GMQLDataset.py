@@ -53,8 +53,8 @@ class GMQLDataset:
         """
         pmg = get_python_manager()
         opmng = pmg.getOperatorManager()
-        expressionBuilder = pmg.getNewExpressionBuilder()
-        meta_condition = expressionBuilder.createMetaPredicate()
+
+        meta_condition = predicate.getMetaCondition()
 
         new_index = opmng.meta_select(self.index, meta_condition) # Test
         return GMQLDataset(index=new_index, parser=self.parser)
@@ -134,8 +134,8 @@ class GMQLDataset:
         pass
 
     def materialize(self, output_path):
-        # pymg = get_python_manager()
-        # pymg.materialize(self.index, output_path)
+        pymg = get_python_manager()
+        pymg.materialize(self.index, output_path)
 
         # taking in memory the data structure
         real_path = output_path + '/exp/'

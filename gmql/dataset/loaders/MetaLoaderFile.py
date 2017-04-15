@@ -7,7 +7,7 @@ from . import generateKey
 import os
 import pandas as pd
 
-logger = logging.getLogger('gmql_logger')
+logger = logging.getLogger("PyGML logger")
 
 
 def load_meta_from_path(path):
@@ -19,7 +19,8 @@ def load_meta_from_path(path):
         abs_path = os.path.abspath(f)
         abs_path_no_meta = abs_path[:-5]
         key = generateKey(abs_path_no_meta)
-        lines = open(abs_path).readlines()
+        fo = open(abs_path)
+        lines = fo.readlines()
         # parsing
         parsed.extend(list(map(lambda row: parser.parse_line_meta(key, row), lines)))  # [(id, (attr_name, value)),...]
     return to_pandas(parsed)

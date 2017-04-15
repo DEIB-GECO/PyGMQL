@@ -45,15 +45,22 @@ class BedParser(Parser):
         else:
             strand = '*'
 
-        reg_record = RegRecord(chr=chr, start=start, stop=stop,
-                               strand=strand)
+        # reg_record = RegRecord(chr=chr, start=start, stop=stop,
+        #                        strand=strand)
+
+        reg_record = {'id_sample' : id_record,
+                      'chr' : chr,
+                      'start' : start,
+                      'stop': stop,
+                      'strand': strand}
+
         # other attributes
 
         for op in self.otherPos:
             v = op[2](elems[op[0]])
-            reg_record.__setattr__(op[1], v)
+            reg_record[op[1]] = v
 
-        res = (id_record, reg_record)
+        res = reg_record
 
         return res
 
