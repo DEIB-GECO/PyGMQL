@@ -1,4 +1,5 @@
 from .. import get_python_manager
+from .loaders import MetaLoaderFile, RegLoaderFile
 
 
 class GMQLDataset:
@@ -9,7 +10,7 @@ class GMQLDataset:
     two features or both.
     """
 
-    def __init__(self, parser=None, index=None):
+    def __init__(self, parser=None, index=None, regs=None, meta=None):
         """
         Initiates a GMQLDataset
         :param parser: the parser for the dataset
@@ -17,6 +18,9 @@ class GMQLDataset:
         """
         self.parser = parser
         self.index = index
+        self.regs = regs
+        self.meta = meta
+
 
     def show_info(self):
         print("GMQLDataset")
@@ -130,9 +134,15 @@ class GMQLDataset:
         pass
 
     def materialize(self, output_path):
-        pymg = get_python_manager()
-        pymg.materialize(self.index, output_path)
+        # pymg = get_python_manager()
+        # pymg.materialize(self.index, output_path)
 
         # taking in memory the data structure
+        real_path = output_path + '/exp/'
 
+        # metadata
+        meta = MetaLoaderFile.load_meta_from_path(real_path)
+        # region data
+        regs = RegLoaderFile.load_reg_from_path(real_path)
+        return GMQLDataset(parser=self.parser, index=self.index, regs=regs, meta=meta)
 
