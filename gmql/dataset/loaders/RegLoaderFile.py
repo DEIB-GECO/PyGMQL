@@ -8,7 +8,7 @@ import pandas as pd
 from . import generateKey
 
 # global logger
-logger = logging.getLogger('gmql_logger')
+logger = logging.getLogger("PyGML logger")
 
 
 def load_reg_from_path(path):
@@ -26,11 +26,19 @@ def load_reg_from_path(path):
             continue
         abs_path = os.path.abspath(file)
         key = generateKey(abs_path)
-        lines = open(abs_path).readlines()
-
+        fo = open(abs_path)
+        lines = fo.readlines()
+        fo.close()
         # parsing
-        parsed.extend(list(map(lambda row: parser.parse_line_reg(key, row), lines)))    # [(id, RegRecord),...]
-    return to_pandas(parsed)
+        list_of_dict = list(map(lambda row: parser.parse_line_reg(key, row), lines))
+        del lines
+        df = to_pandas(list_of_dict)
+        parsed.append(df)    # [dict,...]
+        del df
+    result = pd.concat(objs=parsed, ignore_index=True, copy=False)
+    del parsed
+    result = result.set_index('id_sample')
+    return result
 
 
 def get_parser(path):
@@ -66,6 +74,7 @@ def get_parser(path):
             elif type == 'double':
                 fun = float
             otherPos.append((i, name, fun))
+        i += 1
 
     return BedParser(parser_name=parser_name, delimiter='\t',
                      chrPos=chrPos, startPos=startPos, stopPos=stopPos,
@@ -73,13 +82,12 @@ def get_parser(path):
 
 
 def to_pandas(reg_list):
-    reg_list = list(map(to_dictionary, reg_list))   # [{...},...]
     df = pd.DataFrame.from_dict(reg_list)
     return df
 
 
 def to_dictionary(tuple):
-    d = tuple[1].to_dictionary()
+    d = tuple[1]
     d['id_sample'] = tuple[0]
     return d
 

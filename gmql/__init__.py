@@ -44,10 +44,23 @@ def start_gateway_server(gmql_jar):
 
     command = [java_path, '-jar', gmql_jar]
     proc = sp.Popen(command)
-    time.sleep(5)
+    synchronize()
     gateway = JavaGateway()
     return proc, gateway
 
+
+def synchronize():
+    synchfile = 'sync.txt'
+    on = False
+    while not on:
+        try:
+            f = open(synchfile,'r')
+            on = True
+            f.close()
+        except Exception:
+            time.sleep(2)
+            continue
+    return
 
 def get_python_api_package(gateway):
     return gateway.jvm.it.polimi.genomics.pythonapi
@@ -89,6 +102,8 @@ def start():
 
 def stop():
     global pythonManager, server_process
+    synchfile = 'sync.txt'
+    os.remove(synchfile)
     try:
         if pythonManager is None:
             raise GMQLManagerNotInitializedError("You need first to initialize the GMQLManager with the start() method")
@@ -109,6 +124,8 @@ atexit.register(stop)
 # things to expose to the user
 from .dataset.GMQLDataset import GMQLDataset
 from .dataset import parsers
+from .dataset.DataStructures.MetaField import MetaField
+# from .dataset.DataStructures.RegField import RegField #TODO: RegField
 
 
 class GMQLManagerNotInitializedError(Exception):
