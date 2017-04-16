@@ -1,5 +1,7 @@
 from .. import get_python_manager
 from .loaders import MetaLoaderFile, RegLoaderFile
+from .DataStructures.RegField import RegField
+from .DataStructures.MetaField import MetaField
 
 
 class GMQLDataset:
@@ -34,7 +36,11 @@ class GMQLDataset:
         :return: a new GMQLDataset
         """
         index = get_python_manager().read_dataset(path, self.parser.get_parser_name())
-        return GMQLDataset(parser=self.parser, index=index)
+
+        # load directly the metadata for exploration
+        meta = MetaLoaderFile.load_meta_from_path(path)
+
+        return GMQLDataset(parser=self.parser, index=index, meta=meta)
 
     def get_meta_attributes(self):
         """
@@ -45,7 +51,13 @@ class GMQLDataset:
     def get_reg_attributes(self):
         pass
 
-    def meta_select(self, predicate):
+    def MetaField(self, name):
+        return MetaField(name=name)
+
+    def RegField(self, name):
+        return RegField(name=name, index=self.index)
+
+    def meta_select(self, predicate, semijoin=None):
         """
         Select the rows of the metadata dataset based on a logical predicate
         :param predicate: logical predicate on the values of the rows
