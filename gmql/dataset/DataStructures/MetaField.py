@@ -7,7 +7,7 @@ class MetaField:
         self.metaCondition = meta_condition
 
         pymg = get_python_manager()
-        self.exp_build = pymg.getNewExpressionBuilder()
+        self.exp_build = pymg.getNewExpressionBuilder(0) # index = whatever
 
     def getMetaCondition(self):
         return self.metaCondition
