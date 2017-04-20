@@ -3,15 +3,19 @@ from ... import get_python_manager
 
 class RegField:
 
-    def __init__(self, name, index=None, region_condition=None):
+    def __init__(self, name, index=None, region_condition=None, reNode=None):
         self.name = name
         self.index = index
         self.region_condition = region_condition
         pymg = get_python_manager()
         self.exp_build = pymg.getNewExpressionBuilder(self.index)
+        self.reNode = reNode
 
     def getRegionCondition(self):
         return self.region_condition
+
+    def getRegionExtension(self):
+        return self.reNode
 
     """
         PREDICATES

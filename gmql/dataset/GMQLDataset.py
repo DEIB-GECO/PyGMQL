@@ -135,7 +135,16 @@ class GMQLDataset:
         for f in field_list:
             if f not in reg_fixed_fileds:
                 regsJavaList.append(f)
-        new_index = self.opmng.reg_project(self.index, regsJavaList)
+        if new_field_dict is not None:
+            regExtJavaList = get_gateway().jvm.java.util.ArrayList()
+            for k in new_field_dict.keys():
+                name = k
+                reNode = new_field_dict[k].getRegionExtension()
+                reg_extension = self.pmg.getNewExpressionBuilder(self.index).createRegionExtension(name, reNode)
+                regExtJavaList.append(reg_extension)
+            new_index = self.opmng.reg_project_extend(self.index, regsJavaList, regExtJavaList)
+        else:
+            new_index = self.opmng.reg_project(self.index, regsJavaList)
         return GMQLDataset(index=new_index, parser=self.parser)
 
     """
