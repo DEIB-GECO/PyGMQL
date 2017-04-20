@@ -10,6 +10,9 @@ class RegField:
         pymg = get_python_manager()
         self.exp_build = pymg.getNewExpressionBuilder(self.index)
 
+    def getRegionCondition(self):
+        return self.region_condition
+
     """
         PREDICATES
     """
