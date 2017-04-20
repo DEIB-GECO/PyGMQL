@@ -72,6 +72,11 @@ def start_gmql_manager(python_api_package):
     return pythonManager
 
 
+def get_gateway():
+    global gateway
+    return gateway
+
+
 def get_python_manager():
     global pythonManager
     return pythonManager

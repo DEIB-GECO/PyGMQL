@@ -1,8 +1,11 @@
-from .. import get_python_manager
+from .. import get_python_manager, get_gateway
 from .loaders import MetaLoaderFile, RegLoaderFile
 from .DataStructures.RegField import RegField
 from .DataStructures.MetaField import MetaField
+import shutil
+import os
 
+reg_fixed_fileds = ['chr', 'start', 'stop', 'strand']
 
 class GMQLDataset:
     """
@@ -23,22 +26,26 @@ class GMQLDataset:
         self.regs = regs
         self.meta = meta
 
+        self.pmg = get_python_manager()
+        self.opmng = self.pmg.getOperatorManager()
+
 
     def show_info(self):
         print("GMQLDataset")
         print("\tParser:\t{}".format(self.parser.get_parser_name()))
         print("\tIndex:\t{}".format(self.index))
 
-    def load_from_path(self, path):
+    def load_from_path(self, path, meta_load=False):
         """
         Load a GMQL Dataset
         :param path: path of the dataset
         :return: a new GMQLDataset
         """
-        index = get_python_manager().read_dataset(path, self.parser.get_parser_name())
-
-        # load directly the metadata for exploration
-        meta = MetaLoaderFile.load_meta_from_path(path)
+        index = self.pmg.read_dataset(path, self.parser.get_parser_name())
+        meta = None
+        if meta_load:
+            # load directly the metadata for exploration
+            meta = MetaLoaderFile.load_meta_from_path(path)
 
         return GMQLDataset(parser=self.parser, index=index, meta=meta)
 
@@ -63,12 +70,9 @@ class GMQLDataset:
         :param predicate: logical predicate on the values of the rows
         :return: a new GMQLDataset
         """
-        pmg = get_python_manager()
-        opmng = pmg.getOperatorManager()
-
         meta_condition = predicate.getMetaCondition()
 
-        new_index = opmng.meta_select(self.index, meta_condition) # Test
+        new_index = self.opmng.meta_select(self.index, meta_condition)
         return GMQLDataset(index=new_index, parser=self.parser)
 
     def meta_project(self, attr_list, new_attr_dict=None):
@@ -79,7 +83,12 @@ class GMQLDataset:
                                 in which every function computes the new column based on the values of the others
         :return: a new GMQLDataset
         """
-        pass
+        metaJavaList = get_gateway().jvm.java.util.ArrayList()
+        for a in attr_list:
+            metaJavaList.append(a)
+        new_index = self.opmng.meta_project(self.index, metaJavaList)
+        return GMQLDataset(index=new_index, parser=self.parser)
+
 
     def add_meta(self, attr_name, value):
         """
@@ -107,7 +116,11 @@ class GMQLDataset:
         :param predicate: logical predicate on the values of the regions
         :return: a new GMQLDataset
         """
-        pass
+        reg_condition = predicate.getRegionCondition()
+
+        new_index = self.opmng.reg_select(self.index, reg_condition)
+
+        return GMQLDataset(parser=self.parser, index=new_index)
 
     def reg_project(self, field_list, new_field_dict=None):
         """
@@ -118,7 +131,12 @@ class GMQLDataset:
                                 of the others
         :return: a new GMQLDataset
         """
-        pass
+        regsJavaList = get_gateway().jvm.java.util.ArrayList()
+        for f in field_list:
+            if f not in reg_fixed_fileds:
+                regsJavaList.append(f)
+        new_index = self.opmng.reg_project(self.index, regsJavaList)
+        return GMQLDataset(index=new_index, parser=self.parser)
 
     """
     Mixed operations
@@ -146,12 +164,15 @@ class GMQLDataset:
         pass
 
     def materialize(self, output_path):
-        pymg = get_python_manager()
-        pymg.materialize(self.index, output_path)
+
+        # check that the folder does not exists
+        if os.path.isdir(output_path):
+            shutil.rmtree(output_path)
+
+        self.pmg.materialize(self.index, output_path)
 
         # taking in memory the data structure
         real_path = output_path + '/exp/'
-
         # metadata
         meta = MetaLoaderFile.load_meta_from_path(real_path)
         # region data
