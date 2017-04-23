@@ -64,7 +64,7 @@ class GMQLDataset:
     def RegField(self, name):
         return RegField(name=name, index=self.index)
 
-    def meta_select(self, predicate, semijoin=None):
+    def meta_select(self, predicate):
         """
         Select the rows of the metadata dataset based on a logical predicate
         :param predicate: logical predicate on the values of the rows
@@ -75,7 +75,7 @@ class GMQLDataset:
         new_index = self.opmng.meta_select(self.index, meta_condition)
         return GMQLDataset(index=new_index, parser=self.parser)
 
-    def meta_project(self, attr_list, new_attr_dict=None):
+    def meta_project(self, attr_list):
         """
         Project the metadata based on a list of attribute names
         :param attr_list: list of the columns to select
@@ -88,7 +88,6 @@ class GMQLDataset:
             metaJavaList.append(a)
         new_index = self.opmng.meta_project(self.index, metaJavaList)
         return GMQLDataset(index=new_index, parser=self.parser)
-
 
     def add_meta(self, attr_name, value):
         """
@@ -164,6 +163,35 @@ class GMQLDataset:
         :return: a new GMQLDataset
         """
         pass
+
+    def cover(self, type, minAcc, maxAcc, groupBy=None, new_reg_fields=None):
+        coverFlag = self.opmng.getCoverTypes(type)
+        minAccParam = self.opmng.getCoverParam(str(minAcc))
+        maxAccParam = self.opmng.getCoverParam(str(maxAcc))
+        groupByJavaList = get_gateway().jvm.java.util.ArrayList()
+        if groupBy:
+            # translate to java list
+            for g in groupBy:
+                groupByJavaList.append(g)
+        aggregatesJavaList = get_gateway().jvm.java.util.ArrayList()
+        if new_reg_fields:
+            pass
+
+        new_index = self.opmng.cover(self.index, coverFlag, minAccParam, maxAccParam,
+                                     groupByJavaList, aggregatesJavaList)
+        return GMQLDataset(index=new_index, parser=self.parser)
+
+    def normal_cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None):
+        return self.cover("normal", minAcc, maxAcc, groupBy, new_reg_fields)
+
+    def flat_cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None):
+        return self.cover("flat", minAcc, maxAcc, groupBy, new_reg_fields)
+
+    def summit_cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None):
+        return self.cover("summit", minAcc, maxAcc, groupBy, new_reg_fields)
+
+    def histogram_cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None):
+        return self.cover("histogram", minAcc, maxAcc, groupBy, new_reg_fields)
 
     def sample(self, fraction):
         """
