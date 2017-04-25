@@ -62,6 +62,7 @@ def synchronize():
             continue
     return
 
+
 def get_python_api_package(gateway):
     return gateway.jvm.it.polimi.genomics.pythonapi
 
@@ -127,9 +128,10 @@ def stop():
 atexit.register(stop)
 
 # things to expose to the user
-from .dataset.GMQLDataset import GMQLDataset        # the dataset
-from .dataset import parsers                        # the set of parsers
-from .dataset.DataStructures.Aggregates import *    # the possible aggregations
+from .dataset.GMQLDataset import GMQLDataset                # the dataset
+from .dataset import parsers                                # the set of parsers
+from .dataset.DataStructures.Aggregates import *            # the possible aggregations
+from .dataset.DataStructures.GenometricPredicates import *  # the possible join conditions
 
 class GMQLManagerNotInitializedError(Exception):
     pass
