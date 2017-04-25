@@ -223,6 +223,9 @@ class GMQLDataset:
     def histogram_cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None):
         return self.cover("histogram", minAcc, maxAcc, groupBy, new_reg_fields)
 
+    def join(self, experiment, genometric_predicate):
+        pass
+
     def sample(self, fraction):
         """
         :param n: number of different samples to be sampled
