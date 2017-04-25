@@ -165,6 +165,30 @@ class GMQLDataset:
         pass
 
     def cover(self, type, minAcc, maxAcc, groupBy=None, new_reg_fields=None):
+        """
+        COVER is a GMQL operator that takes as input a dataset (of usually, 
+        but not necessarily, multiple samples) and returns another dataset 
+        (with a single sample, if no groupby option is specified) by “collapsing”
+        the input samples and their regions according to certain rules 
+        specified by the COVER parameters. The attributes of the output regions 
+        are only the region coordinates, plus in case, when aggregate functions 
+        are specified, new attributes with aggregate values over attribute values 
+        of the contributing input regions; output metadata are the union of the 
+        input ones, plus the metadata attributes JaccardIntersect and 
+        JaccardResult, representing global Jaccard Indexes for the considered 
+        dataset, computed as the correspondent region Jaccard Indexes but on 
+        the whole sample regions.
+
+        :param type: the kind of cover variant you want
+        :param minAcc: minimum accumulation value, i.e. the minimum number
+         of overlapping regions to be considered during COVER execution
+        :param maxAcc: maximum accumulation value, i.e. the maximum number
+         of overlapping regions to be considered during COVER execution
+        :param groupBy: optional list of metadata attributes 
+        :param new_reg_fields: dictionary of the type
+            {'new_region_attribute' : AGGREGATE_FUNCTION('field'), ...}
+        :return: a new GMQLDataset
+        """
         coverFlag = self.opmng.getCoverTypes(type)
         minAccParam = self.opmng.getCoverParam(str(minAcc))
         maxAccParam = self.opmng.getCoverParam(str(maxAcc))
@@ -175,8 +199,14 @@ class GMQLDataset:
                 groupByJavaList.append(g)
         aggregatesJavaList = get_gateway().jvm.java.util.ArrayList()
         if new_reg_fields:
-            pass
-
+            expBuild = self.pmg.getNewExpressionBuilder(self.index)
+            for k in new_reg_fields.keys():
+                new_name = k
+                op = new_reg_fields[k]
+                op_name = op.get_aggregate_name()
+                op_argument = op.get_argument()
+                regsToReg = expBuild.getRegionsToRegion(op_name, new_name, op_argument)
+                aggregatesJavaList.append(regsToReg)
         new_index = self.opmng.cover(self.index, coverFlag, minAccParam, maxAccParam,
                                      groupByJavaList, aggregatesJavaList)
         return GMQLDataset(index=new_index, parser=self.parser)

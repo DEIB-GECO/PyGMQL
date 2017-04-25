@@ -127,11 +127,9 @@ def stop():
 atexit.register(stop)
 
 # things to expose to the user
-from .dataset.GMQLDataset import GMQLDataset
-from .dataset import parsers
-from .dataset.DataStructures.MetaField import MetaField
-# from .dataset.DataStructures.RegField import RegField #TODO: RegField
-
+from .dataset.GMQLDataset import GMQLDataset        # the dataset
+from .dataset import parsers                        # the set of parsers
+from .dataset.DataStructures.Aggregates import *    # the possible aggregations
 
 class GMQLManagerNotInitializedError(Exception):
     pass
