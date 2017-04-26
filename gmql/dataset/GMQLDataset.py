@@ -223,8 +223,39 @@ class GMQLDataset:
     def histogram_cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None):
         return self.cover("histogram", minAcc, maxAcc, groupBy, new_reg_fields)
 
-    def join(self, experiment, genometric_predicate):
-        pass
+    def join(self, experiment, genometric_predicate, output="LEFT", joinBy=None):
+        """
+        The JOIN operator takes in input two datasets, respectively known as anchor
+        (the first/left one) and experiment (the second/right one) and returns a
+        dataset of samples consisting of regions extracted from the operands 
+        according to the specified condition (known as genometric predicate). 
+        The number of generated output samples is the Cartesian product of the number 
+        of samples in the anchor and in the experiment dataset (if no joinby close 
+        if specified). The attributes (and their values) of the regions in the output 
+        dataset are the union of the region attributes (with their values) in the input 
+        datasets; homonymous attributes are disambiguated by prefixing their name with 
+        their dataset name. The output metadata are the union of the input metadata, 
+        with their attribute names prefixed with their input dataset name.
+        
+        :param experiment: an other GMQLDataset
+        :param genometric_predicate: a list of Genometric atomic conditions
+        :param joinBy: list of metadata attributes
+        :return: a new GMQLDataset
+        """
+        atomicConditionsJavaList = get_gateway().jvm.java.util.ArrayList()
+        for a in genometric_predicate:
+            atomicConditionsJavaList.append(a.get_gen_condition())
+        regionJoinCondition = self.opmng.getRegionJoinCondition(atomicConditionsJavaList)
+        metaJoinByJavaList = get_gateway().jvm.java.util.ArrayList()
+        for m in joinBy:
+            metaJoinByJavaList.append(m)
+        metaJoinCondition = self.opmng.getMetaJoinCondition(metaJoinByJavaList)
+        regionBuilder = self.opmng.getRegionBuilderJoin(output)
+
+        new_index = self.opmng.join(self.index, experiment.index, metaJoinCondition, regionJoinCondition, regionBuilder)
+
+        return GMQLDataset(index=new_index, parser=self.parser)
+
 
     def sample(self, fraction):
         """
