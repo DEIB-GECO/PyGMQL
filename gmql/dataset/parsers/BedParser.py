@@ -1,5 +1,6 @@
 from .Parser import Parser
 from ..DataStructures.RegRecord import RegRecord
+from ... import get_python_manager, get_gateway
 
 
 class BedParser(Parser):
@@ -24,10 +25,33 @@ class BedParser(Parser):
         self.startPos = startPos
         self.stopPos = stopPos
         self.strandPos = strandPos
-        self.otherPos = otherPos
+        self.otherPos = getTypes(otherPos)
         self.parser_name = parser_name
 
-        # managing extra fields
+        strand = -1
+        if self.strandPos is not None:
+            strand = self.strandPos
+
+        otherPosJavaList = get_gateway().jvm.java.util.ArrayList()
+
+        if otherPos:
+            for o in otherPos:
+                pos = o[0]
+                name = o[1]
+                type = o[2]
+                posJavaList = get_gateway().jvm.java.util.ArrayList()
+                posJavaList.append(pos)
+                posJavaList.append(name)
+                posJavaList.append(type)
+                otherPosJavaList.append(posJavaList)
+
+        # construction of the scala parser
+        self.gmql_parser = get_python_manager().buildParser(self.delimiter,
+                                                            self.chrPos,
+                                                            self.startPos,
+                                                            strand,
+                                                            otherPosJavaList)
+
 
     def parse_line_reg(self, id_record, line):
         elems = line.split(self.delimiter)
@@ -78,5 +102,28 @@ class BedParser(Parser):
 
     def get_parser_name(self):
         return self.parser_name
+
+
+def getTypes(otherPos):
+    if otherPos:
+        result = []
+        for o in otherPos:
+            type = o[2]
+            fun = str
+            if type == 'string':
+                fun = str
+            elif type == 'long':
+                fun = int
+            elif type == 'char':
+                fun = str
+            elif type == 'double':
+                fun = float
+            elif type == 'integer':
+                fun = int
+            result.append((o[0], o[1], fun))
+
+        return result
+    return None
+
 
 
