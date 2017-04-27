@@ -247,8 +247,9 @@ class GMQLDataset:
             atomicConditionsJavaList.append(a.get_gen_condition())
         regionJoinCondition = self.opmng.getRegionJoinCondition(atomicConditionsJavaList)
         metaJoinByJavaList = get_gateway().jvm.java.util.ArrayList()
-        for m in joinBy:
-            metaJoinByJavaList.append(m)
+        if joinBy:
+            for m in joinBy:
+                metaJoinByJavaList.append(m)
         metaJoinCondition = self.opmng.getMetaJoinCondition(metaJoinByJavaList)
         regionBuilder = self.opmng.getRegionBuilderJoin(output)
 

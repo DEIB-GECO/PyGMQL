@@ -35,10 +35,10 @@ class MD(GenometricCondition):
 
 
 class UP(GenometricCondition):
-    def __init__(self, number):
+    def __init__(self):
         super(UP, self).__init__(condition_name="UP")
 
 
 class DOWN(GenometricCondition):
-    def __init__(self, number):
+    def __init__(self):
         super(DOWN, self).__init__(condition_name="DOWN")
