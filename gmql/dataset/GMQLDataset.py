@@ -257,6 +257,51 @@ class GMQLDataset:
 
         return GMQLDataset(index=new_index, parser=self.parser)
 
+    def map(self, experiment, new_reg_fields=None, joinBy=None):
+        """
+        MAP is a non-symmetric operator over two datasets, respectively called
+        reference and experiment. The operation computes, for each sample in 
+        the experiment dataset, aggregates over the values of the experiment 
+        regions that intersect with a region in a reference sample, for each 
+        region of each sample in the reference dataset; we say that experiment 
+        regions are mapped to the reference regions.
+        The number of generated output samples is the Cartesian product of the samples 
+        in the two input datasets; each output sample has the same regions as the related 
+        input reference sample, with their attributes and values, plus the attributes 
+        computed as aggregates over experiment region values. Output sample metadata 
+        are the union of the related input sample metadata, whose attribute names are 
+        prefixed with their input dataset name. 
+        For each reference sample, the MAP operation produces a matrix like structure,
+        called genomic space, where each experiment sample is associated with a row, 
+        each reference region with a column, and each matrix row is a vector of numbers
+        - the aggregates computed during MAP execution. When the features of the reference 
+        regions are unknown, the MAP helps in extracting the most interesting regions 
+        out of many candidates. 
+        :param experiment: a GMQLDataset
+        :param new_region_fields: an optional dictionary of the form 
+                                    {'new_field_1': AGGREGATE_FUNCTION(field), ...}
+                                
+        :param joinBy: optional list of metadata
+        :return: a new GMQLDataset
+        """
+        aggregatesJavaList = get_gateway().jvm.java.util.ArrayList()
+        if new_reg_fields:
+            expBuild = self.pmg.getNewExpressionBuilder(self.index)
+            for k in new_reg_fields.keys():
+                new_name = k
+                op = new_reg_fields[k]
+                op_name = op.get_aggregate_name()
+                op_argument = op.get_argument()
+                regsToReg = expBuild.getRegionsToRegion(op_name, new_name, op_argument)
+                aggregatesJavaList.append(regsToReg)
+        metaJoinByJavaList = get_gateway().jvm.java.util.ArrayList()
+        if joinBy:
+            for m in joinBy:
+                metaJoinByJavaList.append(m)
+        metaJoinCondition = self.opmng.getMetaJoinCondition(metaJoinByJavaList)
+
+        new_index = self.opmng.map(self.index, experiment.index, metaJoinCondition, aggregatesJavaList)
+        return GMQLDataset(index=new_index, parser=self.parser)
 
     def sample(self, fraction):
         """
