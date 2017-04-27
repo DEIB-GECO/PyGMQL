@@ -8,6 +8,7 @@ from py4j.java_gateway import JavaGateway
 import os
 import time
 import atexit
+from pkg_resources import resource_filename
 
 
 def set_logger(logger_name):
@@ -41,8 +42,8 @@ def start_gateway_server(gmql_jar):
     """
     java_home = os.environ.get("JAVA_HOME")
     java_path = os.path.join(java_home, "bin", "java")
-
-    command = [java_path, '-jar', gmql_jar]
+    gmql_jar_fn = resource_filename("gmql", "resources/"+gmql_jar)
+    command = [java_path, '-jar', gmql_jar_fn]
     proc = sp.Popen(command)
     synchronize()
     gateway = JavaGateway()
@@ -90,7 +91,8 @@ logger = set_logger(logger_name)
 """
     Initializing the JVM with the 
 """
-gmql_jar = "/home/luca/Documenti/GMQL/GMQL-PythonAPI/target/uber-GMQL-PythonAPI-1.0-SNAPSHOT.jar"
+#gmql_jar = "/home/luca/Documenti/GMQL/GMQL-PythonAPI/target/uber-GMQL-PythonAPI-1.0-SNAPSHOT.jar"
+gmql_jar = "pythonAPI.jar"
 server_process, gateway, pythonManager = None, None, None
 
 
