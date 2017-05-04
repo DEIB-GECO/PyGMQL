@@ -7,6 +7,7 @@ import os
 
 reg_fixed_fileds = ['chr', 'start', 'stop', 'strand']
 
+
 class GMQLDataset:
     """
     The main abstraction of the library.
@@ -29,25 +30,41 @@ class GMQLDataset:
         self.pmg = get_python_manager()
         self.opmng = self.pmg.getOperatorManager()
 
-
     def show_info(self):
         print("GMQLDataset")
         print("\tParser:\t{}".format(self.parser.get_parser_name()))
         print("\tIndex:\t{}".format(self.index))
 
-    def load_from_path(self, path, meta_load=False):
+    def load_from_path(self, path, meta_load=False, reg_load=False, all_load=False):
         """
         Load a GMQL Dataset
         :param path: path of the dataset
+        :param meta_load: if the user wants, he can directly load all the metadata
+                            in memory in a Pandas Dataframe for an initial exploration
+        :param reg_load: if the user wants, he can directly load all the region data
+                            in memory in a Pandas Dataframe
+        :param all_load: loads both regions and metadata in a pandas Dataframe
         :return: a new GMQLDataset
         """
-        index = self.pmg.read_dataset(path, self.parser.get_parser_name())
+        # get the correct path
+        path = preprocess_path(path)
+        index = None
+        if self.parser is not None:
+            index = self.pmg.read_dataset(path, self.parser.get_gmql_parser())
+
+        if all_load:
+            reg_load = True
+            meta_load = True
         meta = None
         if meta_load:
             # load directly the metadata for exploration
             meta = MetaLoaderFile.load_meta_from_path(path)
+        regs = None
+        if reg_load:
+            # region data
+            regs = RegLoaderFile.load_reg_from_path(path)
 
-        return GMQLDataset(parser=self.parser, index=index, meta=meta)
+        return GMQLDataset(parser=self.parser, index=index, meta=meta, regs=regs)
 
     def get_meta_attributes(self):
         """
@@ -223,7 +240,8 @@ class GMQLDataset:
     def histogram_cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None):
         return self.cover("histogram", minAcc, maxAcc, groupBy, new_reg_fields)
 
-    def join(self, experiment, genometric_predicate, output="LEFT", joinBy=None):
+    def join(self, experiment, genometric_predicate, output="LEFT", joinBy=None,
+             refName=None, expName=None):
         """
         The JOIN operator takes in input two datasets, respectively known as anchor
         (the first/left one) and experiment (the second/right one) and returns a
@@ -253,11 +271,18 @@ class GMQLDataset:
         metaJoinCondition = self.opmng.getMetaJoinCondition(metaJoinByJavaList)
         regionBuilder = self.opmng.getRegionBuilderJoin(output)
 
-        new_index = self.opmng.join(self.index, experiment.index, metaJoinCondition, regionJoinCondition, regionBuilder)
+        if refName is None:
+            refName = ""
+        if expName is None:
+            expName = ""
+
+        new_index = self.opmng.join(self.index, experiment.index,
+                                    metaJoinCondition, regionJoinCondition, regionBuilder,
+                                    refName, expName)
 
         return GMQLDataset(index=new_index, parser=self.parser)
 
-    def map(self, experiment, new_reg_fields=None, joinBy=None):
+    def map(self, experiment, new_reg_fields=None, joinBy=None, refName=None, expName=None):
         """
         MAP is a non-symmetric operator over two datasets, respectively called
         reference and experiment. The operation computes, for each sample in 
@@ -300,16 +325,68 @@ class GMQLDataset:
                 metaJoinByJavaList.append(m)
         metaJoinCondition = self.opmng.getMetaJoinCondition(metaJoinByJavaList)
 
-        new_index = self.opmng.map(self.index, experiment.index, metaJoinCondition, aggregatesJavaList)
+        if refName is None:
+            refName = ""
+        if expName is None:
+            expName = ""
+
+        new_index = self.opmng.map(self.index, experiment.index, metaJoinCondition,
+                                   aggregatesJavaList, refName, expName)
         return GMQLDataset(index=new_index, parser=self.parser)
 
-    def sample(self, fraction):
+    def order(self, meta=None, meta_ascending=None, meta_top=None, meta_k=None,
+              regs=None, regs_ascending=None, region_top=None, region_k=None):
         """
-        :param n: number of different samples to be sampled
+        The ORDER operator is used to order either samples, sample regions, or both,
+        in a dataset according to a set of metadata and/or region attributes, and/or 
+        region coordinates. The number of samples and their regions in the output dataset 
+        is as in the input dataset, as well as their metadata and region attributes 
+        and values, but a new ordering metadata and/or region attribute is added with 
+        the sample or region ordering value, respectively. 
+        :param meta: list of metadata attributes
+        :param meta_ascending: list of boolean values (True = ascending, False = descending)
+        :param meta_top: "top" or "topq" or None
+        :param meta_k: a number specifying how many results to be retained
+        :param regs: list of region attributes
+        :param regs_ascending: list of boolean values (True = ascending, False = descending)
+        :param region_top: "top" or "topq" or None
+        :param region_k: a number specifying how many results to be retained
         :return: a new GMQLDataset
         """
-        pass
+        assert meta or regs, "There must be at least an ordering on the " \
+                             "metadata or on the region data"
+        assert (meta_top and meta_k) or (not meta_top and not meta_k), \
+            "meta_top and meta_k must be together"
+        assert (region_top and region_k) or (not region_top and not region_k), \
+            "region_top and region_k must be together"
+        assert (meta_ascending and len(meta_ascending) == len(meta)) or not meta_ascending, \
+            "meta_ascending and meta must have the same length"
+        assert (regs_ascending and len(regs_ascending) == len(regs)) or not regs_ascending, \
+            "regs_ascending and regs must have the same length"
 
+        if not meta_top:
+            meta_top = ""
+            meta_k = ""
+
+        if not region_top:
+            region_top = ""
+            region_k = ""
+
+        if not meta:
+            meta = []
+            meta_ascending = []
+
+        if not regs:
+            regs = []
+            regs_ascending = []
+
+        new_index = self.opmng.order(self.index, meta, meta_ascending, meta_top, str(meta_k),
+                                     regs, regs_ascending, region_top, str(region_k))
+        return GMQLDataset(parser=self.parser, index=new_index)
+
+    """
+        Materialization utilities
+    """
     def materialize(self, output_path):
 
         # check that the folder does not exists
@@ -326,3 +403,13 @@ class GMQLDataset:
         regs = RegLoaderFile.load_reg_from_path(real_path)
         return GMQLDataset(parser=self.parser, index=self.index, regs=regs, meta=meta)
 
+
+"""
+    Utilities
+"""
+def preprocess_path(path):
+    for d in os.listdir(path):
+        if d == 'exp':
+            new_path = path + "/exp/"
+            return new_path
+    return path

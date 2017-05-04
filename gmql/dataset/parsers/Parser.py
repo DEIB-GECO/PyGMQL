@@ -39,3 +39,6 @@ class Parser:
     def get_parser_name(self):
         pass
 
+    def get_gmql_parser(self):
+        pass
+
