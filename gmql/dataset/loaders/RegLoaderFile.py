@@ -64,16 +64,7 @@ def get_parser(path):
         elif name == 'strand':
             strandPos = i
         else: # other positions
-            fun = str
-            if type == 'string':
-                fun = str
-            elif type == 'long':
-                fun = int
-            elif type == 'char':
-                fun = str
-            elif type == 'double':
-                fun = float
-            otherPos.append((i, name, fun))
+            otherPos.append((i, name, type))
         i += 1
 
     return BedParser(parser_name=parser_name, delimiter='\t',

@@ -40,17 +40,19 @@ class BedParser(Parser):
                 name = o[1]
                 type = o[2]
                 posJavaList = get_gateway().jvm.java.util.ArrayList()
-                posJavaList.append(pos)
-                posJavaList.append(name)
-                posJavaList.append(type)
+                posJavaList.append(str(pos))
+                posJavaList.append(str(name))
+                posJavaList.append(str(type))
                 otherPosJavaList.append(posJavaList)
 
         # construction of the scala parser
-        self.gmql_parser = get_python_manager().buildParser(self.delimiter,
-                                                            self.chrPos,
-                                                            self.startPos,
-                                                            strand,
-                                                            otherPosJavaList)
+        pmng = get_python_manager()
+        self.gmql_parser = pmng.buildParser(self.delimiter,
+                                            self.chrPos,
+                                            self.startPos,
+                                            self.stopPos,
+                                            strand,
+                                            otherPosJavaList)
 
 
     def parse_line_reg(self, id_record, line):
@@ -79,10 +81,10 @@ class BedParser(Parser):
                       'strand': strand}
 
         # other attributes
-
-        for op in self.otherPos:
-            v = op[2](elems[op[0]])
-            reg_record[op[1]] = v
+        if self.otherPos:   # only if defined
+            for op in self.otherPos:
+                v = op[2](elems[op[0]])
+                reg_record[op[1]] = v
 
         res = reg_record
 
@@ -102,6 +104,9 @@ class BedParser(Parser):
 
     def get_parser_name(self):
         return self.parser_name
+
+    def get_gmql_parser(self):
+        return self.gmql_parser
 
 
 def getTypes(otherPos):
@@ -124,6 +129,7 @@ def getTypes(otherPos):
 
         return result
     return None
+
 
 
 
