@@ -382,6 +382,69 @@ class GMQLDataset:
                                      regs, regs_ascending, region_top, str(region_k))
         return GMQLDataset(parser=self.parser, index=new_index)
 
+    def difference(self, other, joinBy=None, exact=None):
+        """
+        DIFFERENCE is a binary, non-symmetric operator that produces one sample
+        in the result for each sample of the first operand, by keeping the same
+        metadata of the first operand sample and only those regions (with their
+        schema and values) of the first operand sample which do not intersect with
+        any region in the second operand sample (also known as negative regions)
+        :param other: GMQLDataset
+        :param joinBy: list of metadata attributes
+        :param exact: boolean
+        :return: a new GMQLDataset
+        """
+        metaJoinByJavaList = get_gateway().jvm.java.util.ArrayList()
+        if joinBy:
+            for m in joinBy:
+                metaJoinByJavaList.append(m)
+        if not exact:
+            exact = False
+        metaJoinCondition = self.opmng.getMetaJoinCondition(metaJoinByJavaList)
+        new_index = self.opmng.difference(self.index, other.index, metaJoinCondition, exact)
+        return GMQLDataset(parser=self.parser, index=new_index)
+
+    def union(self, other, left_name="", right_name=""):
+        """
+        The UNION operation is used to integrate homogeneous or heterogeneous samples of two
+        datasets within a single dataset; for each sample of either one of the input datasets, a
+        sample is created in the result as follows:
+            ● its metadata are the same as in the original sample;
+            ● its schema is the schema of the first (left) input dataset; new 
+                identifiers are assigned to each output sample;
+            ● Its regions are the same (in coordinates and attribute values) as in the original
+                sample. Region attributes which are missing in an input dataset sample
+                (w.r.t. the merged schema) are set to null.
+        :param other: a GMQLDataset
+        :param left_name: string 
+        :param right_name: string
+        :return: a new GMQLDataset
+        """
+        new_index = self.opmng.union(self.index, other.index, left_name, right_name)
+        return GMQLDataset(parser=self.parser, index=new_index)
+
+    def merge(self, groupBy=None):
+        """
+        The MERGE operator builds a new dataset consisting of a single sample having
+            ● as regions all the regions of all the input samples, with the 
+                same attributes and values
+            ● as metadata the union of all the metadata attribute-values 
+                of the input samples.
+        A groupby clause can be specified on metadata: the samples are then
+        partitioned in groups, each with a distinct value of the grouping metadata 
+        attributes, and the MERGE operation is applied to each group separately, 
+        yielding to one sample in the result dataset for each group.
+        Samples without the grouping metadata attributes are disregarded
+        :param groupBy: list of metadata attributes
+        :return: a new GMQLDataset
+        """
+        groupByJavaList = get_gateway().jvm.java.util.ArrayList()
+        if groupBy:
+            # translate to java list
+            for g in groupBy:
+                groupByJavaList.append(g)
+        new_index = self.opmng.merge(self.index, groupByJavaList)
+        return GMQLDataset(parser=self.parser, index=new_index)
     """
         Materialization utilities
     """
