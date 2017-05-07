@@ -4,8 +4,7 @@ from .DataStructures.RegField import RegField
 from .DataStructures.MetaField import MetaField
 import shutil
 import os
-
-reg_fixed_fileds = ['chr', 'start', 'stop', 'strand']
+from .DataStructures import reg_fixed_fileds
 
 
 class GMQLDataset:
@@ -167,19 +166,18 @@ class GMQLDataset:
     Mixed operations
     """
     def extend(self, new_attr_dict):
-        """
-        Extend the metadata based on aggregations on regions
-        :param new_attr_dict: dictionary of the form {'new_attribute_1': function1, ...}
-                                in which every function takes a dictionary of the type
-                                {
-                                    'field1' : [value1, value2, ...],
-                                    'field2' : [value1, ...],
-                                    ...
-                                    'fieldN' : [value1, ...]
-                                }
-        :return: a new GMQLDataset
-        """
-        pass
+        expBuild = self.pmg.getNewExpressionBuilder(self.index)
+        aggregatesJavaList = get_gateway().jvm.java.util.ArrayList()
+        for k in new_attr_dict.keys():
+            new_name = k
+            op = new_attr_dict[k]
+            op_name = op.get_aggregate_name()
+            op_argument = op.get_argument()
+            regsToMeta = expBuild.getRegionsToMeta(op_name, new_name, op_argument)
+            aggregatesJavaList.append(regsToMeta)
+
+        new_index = self.opmng.extend(aggregatesJavaList)
+        return GMQLDataset(parser=self.parser, index=new_index)
 
     def cover(self, type, minAcc, maxAcc, groupBy=None, new_reg_fields=None):
         """

@@ -1,0 +1,1 @@
+reg_fixed_fileds = ['chr', 'start', 'stop', 'strand']
