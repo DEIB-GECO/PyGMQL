@@ -6,6 +6,8 @@ from ..parsers.BedParser import BedParser
 import logging
 import pandas as pd
 from . import generateKey
+from ..DataStructures import reg_fixed_fileds
+
 
 # global logger
 logger = logging.getLogger("PyGML logger")
@@ -74,6 +76,7 @@ def get_parser(path):
 
 def to_pandas(reg_list):
     df = pd.DataFrame.from_dict(reg_list)
+    df = df[reg_fixed_fileds + [c for c in df.columns if c not in reg_fixed_fileds]]
     return df
 
 
