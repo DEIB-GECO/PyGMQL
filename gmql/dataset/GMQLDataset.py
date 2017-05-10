@@ -50,6 +50,9 @@ class GMQLDataset:
         index = None
         if self.parser is not None:
             index = self.pmg.read_dataset(path, self.parser.get_gmql_parser())
+        elif all_load is False: # if we do not have a parser and we do not want to load
+                                # everthing in memory, we use the CustomParser
+            index = self.pmg.read_dataset(path)
 
         if all_load:
             reg_load = True
