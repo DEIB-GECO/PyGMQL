@@ -6,16 +6,18 @@ from ..parsers.BedParser import BedParser
 import logging
 import pandas as pd
 from . import generateKey
-from ..DataStructures import reg_fixed_fileds
+from ..DataStructures import reg_fixed_fileds, \
+    chr_aliases, start_aliases, stop_aliases, strand_aliases
 
 
 # global logger
 logger = logging.getLogger("PyGML logger")
 
 
-def load_reg_from_path(path):
-    # get the parser for the dataset
-    parser = get_parser(path)
+def load_reg_from_path(path, parser=None):
+    if parser is None:
+        # get the parser for the dataset
+        parser = get_parser(path)
     # we need to take only the files of the regions, so only the files that does NOT end with '.meta'
     all_files = set(glob(pathname=path + '/*'))
     meta_files = set(glob(pathname=path + '/*.meta'))
@@ -54,16 +56,16 @@ def get_parser(path):
     chrPos, startPos, stopPos, strandPos, otherPos = None, None, None, None, None
     otherPos = []
     for field in field_nodes:
-        name = list(field.itertext())[0]
+        name = list(field.itertext())[0].lower()
         type = field.get('type').lower()
 
-        if name == 'chr':
+        if name in chr_aliases:
             chrPos = i
-        elif name == 'left':
+        elif name in start_aliases:
             startPos = i
-        elif name == 'right':
+        elif name in stop_aliases:
             stopPos = i
-        elif name == 'strand':
+        elif name in strand_aliases:
             strandPos = i
         else: # other positions
             otherPos.append((i, name, type))

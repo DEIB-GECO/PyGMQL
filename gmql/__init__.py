@@ -91,7 +91,6 @@ logger = set_logger(logger_name)
 """
     Initializing the JVM with the 
 """
-#gmql_jar = "/home/luca/Documenti/GMQL/GMQL-PythonAPI/target/uber-GMQL-PythonAPI-1.0-SNAPSHOT.jar"
 gmql_jar = "pythonAPI.jar"
 server_process, gateway, pythonManager = None, None, None
 
@@ -131,9 +130,11 @@ atexit.register(stop)
 
 # things to expose to the user
 from .dataset.GMQLDataset import GMQLDataset                # the dataset
+from .dataset.GMQLDataset import load_from_path
 from .dataset import parsers                                # the set of parsers
 from .dataset.DataStructures.Aggregates import *            # the possible aggregations
 from .dataset.DataStructures.GenometricPredicates import *  # the possible join conditions
+
 
 class GMQLManagerNotInitializedError(Exception):
     pass
