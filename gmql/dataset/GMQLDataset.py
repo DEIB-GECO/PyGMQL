@@ -5,6 +5,7 @@ from .DataStructures.MetaField import MetaField
 import shutil
 import os
 from .DataStructures import reg_fixed_fileds
+from .parsers import Parser
 
 
 class GMQLDataset:
@@ -45,28 +46,29 @@ class GMQLDataset:
         :param all_load: loads both regions and metadata in a pandas Dataframe
         :return: a new GMQLDataset
         """
-        # get the correct path
-        path = preprocess_path(path)
-        index = None
-        if self.parser is not None:
-            index = self.pmg.read_dataset(path, self.parser.get_gmql_parser())
-        elif all_load is False: # if we do not have a parser and we do not want to load
-                                # everthing in memory, we use the CustomParser
-            index = self.pmg.read_dataset(path)
-
-        if all_load:
-            reg_load = True
-            meta_load = True
-        meta = None
-        if meta_load:
-            # load directly the metadata for exploration
-            meta = MetaLoaderFile.load_meta_from_path(path)
-        regs = None
-        if reg_load:
-            # region data
-            regs = RegLoaderFile.load_reg_from_path(path)
-
-        return GMQLDataset(parser=self.parser, index=index, meta=meta, regs=regs)
+        return load_from_path(path, self.parser, meta_load, reg_load, all_load)
+        # # get the correct path
+        # path = preprocess_path(path)
+        # index = None
+        # if self.parser is not None:
+        #     index = self.pmg.read_dataset(path, self.parser.get_gmql_parser())
+        # elif all_load is False: # if we do not have a parser and we do not want to load
+        #                         # everthing in memory, we use the CustomParser
+        #     index = self.pmg.read_dataset(path)
+        #
+        # if all_load:
+        #     reg_load = True
+        #     meta_load = True
+        # meta = None
+        # if meta_load:
+        #     # load directly the metadata for exploration
+        #     meta = MetaLoaderFile.load_meta_from_path(path)
+        # regs = None
+        # if reg_load:
+        #     # region data
+        #     regs = RegLoaderFile.load_reg_from_path(path)
+        #
+        # return GMQLDataset(parser=self.parser, index=index, meta=meta, regs=regs)
 
     def get_meta_attributes(self):
         """
@@ -477,3 +479,44 @@ def preprocess_path(path):
             new_path = path + "/exp/"
             return new_path
     return path
+
+
+def load_from_path(path, parser=None, meta_load=False, reg_load=False, all_load=False):
+    """
+    
+    :param path: 
+    :param parser:
+    :param meta_load: 
+    :param reg_load: 
+    :param all_load: 
+    :return: 
+    """
+    pmg = get_python_manager()
+
+    path = preprocess_path(path)
+    index = None
+    if parser:
+        if type(parser) is str:
+            index = pmg.read_dataset(path, parser)
+        elif type(parser) is Parser:
+            index = pmg.read_dataset(path, parser.get_gmql_parser())
+        else:
+            raise ValueError("parser must be a string or a Parser")
+    else:
+        index = pmg.read_dataset(path)
+
+    if all_load:
+        reg_load = True
+        meta_load = True
+    meta = None
+    if meta_load:
+        # load directly the metadata for exploration
+        meta = MetaLoaderFile.load_meta_from_path(path)
+    regs = None
+    if reg_load:
+        if type(parser) is Parser:
+            # region data
+            regs = RegLoaderFile.load_reg_from_path(path, parser)
+        else:
+            regs = RegLoaderFile.load_reg_from_path(path)
+    return GMQLDataset(index=index, parser=parser, regs=regs, meta=meta)
