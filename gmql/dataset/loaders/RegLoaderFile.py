@@ -39,6 +39,7 @@ def load_reg_from_path(path, parser=None):
         df = to_pandas(list_of_dict)
         parsed.append(df)    # [dict,...]
         del df
+        #TODO: solve the problem of memory consuption
     result = pd.concat(objs=parsed, ignore_index=True, copy=False)
     del parsed
     result = result.set_index('id_sample')

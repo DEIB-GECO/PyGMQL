@@ -9,6 +9,7 @@ import os
 import time
 import atexit
 from pkg_resources import resource_filename
+import psutil
 
 
 def set_logger(logger_name):
@@ -41,6 +42,8 @@ def start_gateway_server(gmql_jar):
     :return: the process of the server and the gateway for python for accessing to it
     """
     java_home = os.environ.get("JAVA_HOME")
+    if java_home is None:
+        raise SystemError("The environment variable JAVA_HOME is not setted")
     java_path = os.path.join(java_home, "bin", "java")
     gmql_jar_fn = resource_filename("gmql", "resources/"+gmql_jar)
     command = [java_path, '-jar', gmql_jar_fn]
@@ -51,13 +54,13 @@ def start_gateway_server(gmql_jar):
 
 
 def synchronize():
-    synchfile = 'sync.txt'
     on = False
     while not on:
         try:
-            f = open(synchfile,'r')
+            f = open(synchfile, 'r')
             on = True
             f.close()
+            os.remove(synchfile)
         except Exception:
             time.sleep(2)
             continue
@@ -91,36 +94,42 @@ logger = set_logger(logger_name)
 """
     Initializing the JVM with the 
 """
+synchfile = 'sync.txt'
 gmql_jar = "pythonAPI.jar"
 server_process, gateway, pythonManager = None, None, None
 
 
 def start():
     global server_process, gateway, pythonManager
+    process_cleaning()
     server_process, gateway = start_gateway_server(gmql_jar)
     python_api_package = get_python_api_package(gateway)
     pythonManager = start_gmql_manager(python_api_package)
 
 
-"""
-    Starting the GMQL manager
-"""
-
+def process_cleaning():
+    global gmql_jar
+    gmql_jar_name = resource_filename("gmql", "resources/" + gmql_jar)
+    for p in psutil.process_iter():
+        name = p.name()
+        if name == 'java':
+            cmd = p.cmdline()
+            if len(cmd) == 3 and cmd[2] == gmql_jar_name:
+                p.terminate() # kill it
 
 def stop():
     global pythonManager, server_process
-    synchfile = 'sync.txt'
-    os.remove(synchfile)
+
     try:
-        if pythonManager is None:
-            raise GMQLManagerNotInitializedError("You need first to initialize the GMQLManager with the start() method")
+        os.remove(synchfile)
+    #     if pythonManager is None:
+    #         raise GMQLManagerNotInitializedError("You need first to initialize the GMQLManager with the start() method")
     except Exception:
         pass
     try:
         pythonManager.stopEngine()
     except Exception:
         pass
-    # kill JVM
     try:
         server_process.terminate()
     except Exception:
@@ -139,4 +148,8 @@ from .dataset.DataStructures.GenometricPredicates import *  # the possible join 
 class GMQLManagerNotInitializedError(Exception):
     pass
 
+
+"""
+    Starting the GMQL manager
+"""
 start()
