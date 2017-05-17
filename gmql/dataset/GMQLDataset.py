@@ -1,3 +1,5 @@
+from builtins import isinstance
+
 from .. import get_python_manager, get_gateway
 from .loaders import MetaLoaderFile, RegLoaderFile
 from .DataStructures.RegField import RegField
@@ -5,7 +7,7 @@ from .DataStructures.MetaField import MetaField
 import shutil
 import os
 from .DataStructures import reg_fixed_fileds
-from .parsers import Parser
+from .parsers.Parser import Parser
 
 
 class GMQLDataset:
@@ -483,7 +485,7 @@ def preprocess_path(path):
 
 def load_from_path(path, parser=None, meta_load=False, reg_load=False, all_load=False):
     """
-    
+    Loads the data from a path into a GMQLDataset
     :param path: 
     :param parser:
     :param meta_load: 
@@ -498,7 +500,7 @@ def load_from_path(path, parser=None, meta_load=False, reg_load=False, all_load=
     if parser:
         if type(parser) is str:
             index = pmg.read_dataset(path, parser)
-        elif type(parser) is Parser:
+        elif isinstance(parser, Parser):
             index = pmg.read_dataset(path, parser.get_gmql_parser())
         else:
             raise ValueError("parser must be a string or a Parser")
@@ -514,7 +516,7 @@ def load_from_path(path, parser=None, meta_load=False, reg_load=False, all_load=
         meta = MetaLoaderFile.load_meta_from_path(path)
     regs = None
     if reg_load:
-        if type(parser) is Parser:
+        if isinstance(parser, Parser):
             # region data
             regs = RegLoaderFile.load_reg_from_path(path, parser)
         else:

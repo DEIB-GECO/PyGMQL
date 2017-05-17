@@ -11,12 +11,12 @@ class NarrowPeakParser(BedParser):
         startPos = 1
         stopPos = 2
         strandPos = 5
-        otherPos = [(3, 'name', str),
-                    (4, 'score', float),
-                    (6, 'signalValue', float),
-                    (7, 'pValue', float),
-                    (8, 'qValue', float),
-                    (9, 'peak', float)]
+        otherPos = [(3, 'name', "string"),
+                    (4, 'score', "float"),
+                    (6, 'signalValue', "float"),
+                    (7, 'pValue', "float"),
+                    (8, 'qValue', "float"),
+                    (9, 'peak', "float")]
         super().__init__('NarrowPeakParser', delimiter, chrPos, startPos,
                          stopPos, strandPos, otherPos)
 
