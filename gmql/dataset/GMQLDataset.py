@@ -1,5 +1,4 @@
 from builtins import isinstance
-
 from .. import get_python_manager, get_gateway
 from .loaders import MetaLoaderFile, RegLoaderFile
 from .DataStructures.RegField import RegField
