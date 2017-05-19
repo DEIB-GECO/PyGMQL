@@ -117,6 +117,7 @@ def process_cleaning():
             if len(cmd) == 3 and cmd[2] == gmql_jar_name:
                 p.terminate() # kill it
 
+
 def stop():
     global pythonManager, server_process
 
