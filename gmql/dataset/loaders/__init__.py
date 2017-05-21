@@ -16,5 +16,12 @@ conf = {"textinputformat.record.delimiter": "\n",
         }
 
 
-def generateKey(filename):
+def generateHashKey(filename):
     return hash(filename)
+
+
+def generateNameKey(filename):
+    if filename.endswith(".meta"):
+        return filename[:-5]
+    else:
+        return filename

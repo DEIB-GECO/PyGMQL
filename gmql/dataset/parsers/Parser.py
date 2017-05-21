@@ -36,9 +36,27 @@ class Parser:
     def get_attributes(self):
         pass
 
+    def get_ordered_attributes(self):
+        pass
+
+    def get_types(self):
+        pass
+
+    def get_ordered_types(self):
+        pass
+
+    def get_name_type_dict(self):
+        pass
+
     def get_parser_name(self):
         pass
 
     def get_gmql_parser(self):
         pass
+
+def parse_strand(strand):
+    if strand in ['+', '-', '*']:
+        return strand
+    else:
+        return '*'
 
