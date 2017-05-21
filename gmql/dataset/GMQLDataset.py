@@ -7,6 +7,7 @@ import shutil
 import os
 from .DataStructures import reg_fixed_fileds
 from .parsers.Parser import Parser
+from .GDataframe import GDataframe
 
 
 class GMQLDataset:
@@ -97,7 +98,7 @@ class GMQLDataset:
         new_index = self.opmng.meta_select(self.index, meta_condition)
         return GMQLDataset(index=new_index, parser=self.parser)
 
-    def meta_project(self, attr_list):
+    def meta_project(self, attr_list, new_attr_dict=None):
         """
         Project the metadata based on a list of attribute names
         :param attr_list: list of the columns to select
@@ -108,6 +109,11 @@ class GMQLDataset:
         metaJavaList = get_gateway().jvm.java.util.ArrayList()
         for a in attr_list:
             metaJavaList.append(a)
+        if new_attr_dict:
+            metaExtJavaList = get_gateway().jvm.java.util.ArrayList()
+            for k in new_attr_dict.keys():
+                name = k
+
         new_index = self.opmng.meta_project(self.index, metaJavaList)
         return GMQLDataset(index=new_index, parser=self.parser)
 
@@ -118,18 +124,7 @@ class GMQLDataset:
         :param value: value to add to each sample
         :return: a new GMQLDataset
         """
-        pass
-
-    """
-    Region operations
-    """
-    def get_reg_sample(self, n):
-        """
-        Materialize n samples of regions from the RDD
-        :param n: number of samples to materialize
-        :return: a pandas dataframe
-        """
-        pass
+        raise NotImplementedError("This function is not yet implemented")
 
     def reg_select(self, predicate):
         """
@@ -168,9 +163,6 @@ class GMQLDataset:
             new_index = self.opmng.reg_project(self.index, regsJavaList)
         return GMQLDataset(index=new_index, parser=self.parser)
 
-    """
-    Mixed operations
-    """
     def extend(self, new_attr_dict):
         expBuild = self.pmg.getNewExpressionBuilder(self.index)
         aggregatesJavaList = get_gateway().jvm.java.util.ArrayList()
@@ -520,4 +512,7 @@ def load_from_path(path, parser=None, meta_load=False, reg_load=False, all_load=
             regs = RegLoaderFile.load_reg_from_path(path, parser)
         else:
             regs = RegLoaderFile.load_reg_from_path(path)
-    return GMQLDataset(index=index, parser=parser, regs=regs, meta=meta)
+    if (regs is not None) and (meta is not None):
+        return GDataframe(regs=regs, meta=meta)
+    else:
+        return GMQLDataset(index=index, parser=parser, regs=regs, meta=meta)

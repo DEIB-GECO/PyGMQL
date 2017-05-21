@@ -1,6 +1,6 @@
-from .Parser import Parser
-from ..DataStructures.RegRecord import RegRecord
+from .Parser import Parser, parse_strand
 from ... import get_python_manager, get_gateway
+import numpy as np
 
 
 class BedParser(Parser):
@@ -54,7 +54,6 @@ class BedParser(Parser):
                                             strand,
                                             otherPosJavaList)
 
-
     def parse_line_reg(self, id_record, line):
         elems = line.split(self.delimiter)
 
@@ -64,10 +63,7 @@ class BedParser(Parser):
 
         if self.strandPos is not None:
             s = elems[self.strandPos]
-            if s in ['+', '-', '*']:
-                strand = s
-            else:
-                strand = '*'
+            strand = parse_strand(s)
         else:
             strand = '*'
 
@@ -96,11 +92,48 @@ class BedParser(Parser):
 
     def get_attributes(self):
         attr = ['chr', 'start', 'stop', 'strand']
-
-        for i, o in enumerate(self.otherPos):
-            attr.append(o[1])
+        if self.otherPos:
+            for i, o in enumerate(self.otherPos):
+                attr.append(o[1])
 
         return attr
+
+    def get_ordered_attributes(self):
+        attrs = self.get_attributes()
+        attr_arr = np.array(attrs)
+        poss = [self.chrPos, self.startPos, self.stopPos, self.strandPos]
+        if self.otherPos:
+            for o in self.otherPos:
+                poss.append(o[0])
+
+        idx_sort = np.array(poss).argsort()
+        attr_arr[idx_sort].tolist()
+
+    def get_types(self):
+        types = [str, int, int, str]
+        if self.otherPos:
+            for o in self.otherPos:
+                types.append(o[2])
+
+        return types
+
+    def get_name_type_dict(self):
+        attrs = self.get_attributes()
+        types = self.get_types()
+        d = dict()
+        for i,a in enumerate(attrs):
+            d[a] = types[i]
+
+        return d
+
+    def get_ordered_types(self):
+        types = self.get_types()
+        types_arr = np.array(types)
+        poss = [self.chrPos, self.startPos, self.stopPos, self.strandPos]
+        if self.otherPos:
+            for o in self.otherPos:
+                poss.append(o[0])
+        return types_arr[poss].tolist()
 
     def get_parser_name(self):
         return self.parser_name
@@ -113,18 +146,14 @@ def getTypes(otherPos):
     if otherPos:
         result = []
         for o in otherPos:
-            type = o[2]
+            type = o[2].lower()
             fun = str
-            if type == 'string':
+            if type in ['string', 'char']:
                 fun = str
-            elif type == 'long':
+            elif type in ['long', 'int', 'integer']:
                 fun = int
-            elif type == 'char':
-                fun = str
-            elif type == 'double':
+            elif type in ['double', 'float']:
                 fun = float
-            elif type == 'integer':
-                fun = int
             result.append((o[0], o[1], fun))
 
         return result

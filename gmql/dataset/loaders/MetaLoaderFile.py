@@ -3,7 +3,7 @@ from tqdm import tqdm
 import logging
 
 from ..parsers.GenericMetaParser import GenericMetaParser
-from . import generateKey
+from . import generateNameKey
 import os
 import pandas as pd
 
@@ -18,7 +18,7 @@ def load_meta_from_path(path):
     for f in tqdm(meta_files, total=len(meta_files)):
         abs_path = os.path.abspath(f)
         abs_path_no_meta = abs_path[:-5]
-        key = generateKey(abs_path_no_meta)
+        key = generateNameKey(abs_path_no_meta)
         fo = open(abs_path)
         lines = fo.readlines()
         # parsing

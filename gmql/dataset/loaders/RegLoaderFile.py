@@ -5,9 +5,11 @@ import xml.etree.ElementTree as ET
 from ..parsers.BedParser import BedParser
 import logging
 import pandas as pd
-from . import generateKey
+from . import generateNameKey
 from ..DataStructures import reg_fixed_fileds, \
     chr_aliases, start_aliases, stop_aliases, strand_aliases
+import numpy as np
+from ..parsers.Parser import parse_strand
 
 
 # global logger
@@ -24,25 +26,26 @@ def load_reg_from_path(path, parser=None):
 
     only_region_files = all_files - meta_files
     logger.info("Loading region data from path {}".format(path))
-    parsed = []
-    for file in tqdm.tqdm(only_region_files, total=len(only_region_files)):
+
+    n_files = len(only_region_files)
+    dfs = []
+    for file in tqdm.tqdm(only_region_files, total=n_files):
         if file.endswith("schema") or file.endswith("_SUCCESS"):
             continue
         abs_path = os.path.abspath(file)
-        key = generateKey(abs_path)
-        fo = open(abs_path)
-        lines = fo.readlines()
-        fo.close()
-        # parsing
-        list_of_dict = list(map(lambda row: parser.parse_line_reg(key, row), lines))
-        del lines
-        df = to_pandas(list_of_dict)
-        parsed.append(df)    # [dict,...]
-        del df
-        #TODO: solve the problem of memory consuption
-    result = pd.concat(objs=parsed, ignore_index=True, copy=False)
-    del parsed
-    result = result.set_index('id_sample')
+        key = generateNameKey(abs_path)
+
+        df = pd.read_csv(filepath_or_buffer=abs_path,
+                         header=None,
+                         names=parser.get_ordered_attributes(),
+                         dtype=parser.get_name_type_dict(),
+                         sep="\t",
+                         converters={'strand': parse_strand})
+
+        df.index = np.repeat(key, len(df))
+        dfs.append(df)
+
+    result = pd.concat(objs=dfs, copy=False)
     return result
 
 
