@@ -140,7 +140,7 @@ atexit.register(stop)
 
 # things to expose to the user
 from .dataset.GMQLDataset import GMQLDataset                # the dataset
-from .dataset.GMQLDataset import load_from_path
+from .dataset.loaders.Loader import load_from_path
 from .dataset import parsers                                # the set of parsers
 from .dataset.DataStructures.Aggregates import *            # the possible aggregations
 from .dataset.DataStructures.GenometricPredicates import *  # the possible join conditions

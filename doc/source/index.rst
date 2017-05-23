@@ -16,7 +16,6 @@ Welcome to PyGMQL's documentation!
     GMQLDataset
 
 PyGMQL is a python module that enables the user to perform operation on genomic data in a scalable way.
-It is based on the
 
 Indices and tables
 ==================

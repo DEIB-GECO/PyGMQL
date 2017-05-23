@@ -6,8 +6,8 @@ from .DataStructures.MetaField import MetaField
 import shutil
 import os
 from .DataStructures import reg_fixed_fileds
-from .parsers.Parser import Parser
-from .GDataframe import GDataframe
+from .loaders import Loader
+from py4j import java_collections
 
 
 class GMQLDataset:
@@ -19,11 +19,6 @@ class GMQLDataset:
     """
 
     def __init__(self, parser=None, index=None, regs=None, meta=None):
-        """
-        Initiates a GMQLDataset
-        :param parser: the parser for the dataset
-        :param index: the index to be used to retrieve the IRVariable on the Scala side
-        """
         self.parser = parser
         self.index = index
         self.regs = regs
@@ -32,105 +27,110 @@ class GMQLDataset:
         self.pmg = get_python_manager()
         self.opmng = self.pmg.getOperatorManager()
 
+        # get the schema of the dataset
+        schemaJava = self.pmg.getVariableSchemaNames(self.index)
+        self.schema = []
+        for field in schemaJava:
+            self.schema.append(field)
+        self.schema.extend(reg_fixed_fileds)
+
+        # setting the schema as properties of the dataset
+        for field in self.schema:
+            self.__setattr__(field, self.RegField(field))
+        # add also left and right
+        self.left = self.RegField("left")
+        self.right = self.RegField("right")
+
+    def __getitem__(self, item):
+        assert isinstance(item, str), "The name of the field must be a string"
+        return self.MetaField(item)
+
     def show_info(self):
         print("GMQLDataset")
         print("\tParser:\t{}".format(self.parser.get_parser_name()))
         print("\tIndex:\t{}".format(self.index))
 
     def load_from_path(self, path, meta_load=False, reg_load=False, all_load=False):
-        """
-        Load a GMQL Dataset
-        :param path: path of the dataset
-        :param meta_load: if the user wants, he can directly load all the metadata
-                            in memory in a Pandas Dataframe for an initial exploration
-        :param reg_load: if the user wants, he can directly load all the region data
-                            in memory in a Pandas Dataframe
-        :param all_load: loads both regions and metadata in a pandas Dataframe
-        :return: a new GMQLDataset
-        """
-        return load_from_path(path, self.parser, meta_load, reg_load, all_load)
-        # # get the correct path
-        # path = preprocess_path(path)
-        # index = None
-        # if self.parser is not None:
-        #     index = self.pmg.read_dataset(path, self.parser.get_gmql_parser())
-        # elif all_load is False: # if we do not have a parser and we do not want to load
-        #                         # everthing in memory, we use the CustomParser
-        #     index = self.pmg.read_dataset(path)
-        #
-        # if all_load:
-        #     reg_load = True
-        #     meta_load = True
-        # meta = None
-        # if meta_load:
-        #     # load directly the metadata for exploration
-        #     meta = MetaLoaderFile.load_meta_from_path(path)
-        # regs = None
-        # if reg_load:
-        #     # region data
-        #     regs = RegLoaderFile.load_reg_from_path(path)
-        #
-        # return GMQLDataset(parser=self.parser, index=index, meta=meta, regs=regs)
+        return Loader.load_from_path(path, self.parser, meta_load, reg_load, all_load)
 
     def get_meta_attributes(self):
-        """
-        :return: the set of attributes of the metadata dataset
-        """
-        pass
+        raise NotImplementedError("This function is not yet implemented")
 
     def get_reg_attributes(self):
-        pass
+        """
+        Returns the region fields of the dataset
+        
+        :return: a list of field names
+        """
+        return self.schema
 
     def MetaField(self, name):
+        """
+        Creates an instance of a metadata field of the dataset. It can be used in building expressions
+        or conditions for projection or selection.
+        Notice that this function is equivalent to call::
+            dataset[name]
+        
+        
+        :param name: the name of the metadata that is considered
+        :return: a MetaField instance
+        """
         return MetaField(name=name)
 
     def RegField(self, name):
+        """
+        Creates an instance of a region field of the dataset. It can be used in building expressions
+        or conditions for projection or selection.
+        Notice that this function is equivalent to::
+            dataset.name
+        :param name: the name of the region field that is considered
+        :return: a RegField instance
+        """
         return RegField(name=name, index=self.index)
 
     def meta_select(self, predicate):
         """
         Select the rows of the metadata dataset based on a logical predicate
+        
         :param predicate: logical predicate on the values of the rows
         :return: a new GMQLDataset
+        
+        An example of usage::
+        
+            new_dataset = dataset.meta_select(dataset['meta1'] <= 5 && dataset['meta2'] == 'gmql')
         """
         meta_condition = predicate.getMetaCondition()
 
         new_index = self.opmng.meta_select(self.index, meta_condition)
         return GMQLDataset(index=new_index, parser=self.parser)
 
-    def meta_project(self, attr_list, new_attr_dict=None):
+    def meta_project(self, attr_list):
         """
         Project the metadata based on a list of attribute names
-        :param attr_list: list of the columns to select
-        :param new_attr_dict: an optional dictionary of the form {'new_attribute_1': function1, ...}
-                                in which every function computes the new column based on the values of the others
+        
+        :param attr_list: list of the metadata fields to select
         :return: a new GMQLDataset
         """
         metaJavaList = get_gateway().jvm.java.util.ArrayList()
         for a in attr_list:
             metaJavaList.append(a)
-        if new_attr_dict:
-            metaExtJavaList = get_gateway().jvm.java.util.ArrayList()
-            for k in new_attr_dict.keys():
-                name = k
 
         new_index = self.opmng.meta_project(self.index, metaJavaList)
         return GMQLDataset(index=new_index, parser=self.parser)
 
     def add_meta(self, attr_name, value):
-        """
-        Adds to the metadata dataset a new column in which the same value is assigned to each sample
-        :param attr_name: name of the attribute to add
-        :param value: value to add to each sample
-        :return: a new GMQLDataset
-        """
         raise NotImplementedError("This function is not yet implemented")
 
     def reg_select(self, predicate):
         """
         Select only the regions in the dataset that satisfy the predicate
+        
         :param predicate: logical predicate on the values of the regions
         :return: a new GMQLDataset
+        
+        An example of usage::
+        
+            new_dataset = dataset.reg_select(dataset.chr == 'chr1' || dataset.pValue < 0.9)
         """
         reg_condition = predicate.getRegionCondition()
 
@@ -141,11 +141,15 @@ class GMQLDataset:
     def reg_project(self, field_list, new_field_dict=None):
         """
         Project the region data based on a list of field names
+        
         :param field_list: list of the fields to select
-        :param new_field_dict: an optional dictionary of the form {'new_field_1': function1, ...}
-                                in which every function computes the new field based on the values 
-                                of the others
+        :param new_field_dict: an optional dictionary of the form {'new_field_1': function1, 'new_field_2': function2, ...} in which every function computes the new field based on the values of the others
         :return: a new GMQLDataset
+        
+        An example of usage::
+            
+            new_dataset = dataset.reg_project(['pValue', 'name'],
+                                            {'new_field': dataset.pValue / 2})
         """
         regsJavaList = get_gateway().jvm.java.util.ArrayList()
         for f in field_list:
@@ -164,6 +168,24 @@ class GMQLDataset:
         return GMQLDataset(index=new_index, parser=self.parser)
 
     def extend(self, new_attr_dict):
+        """
+        For each sample in an input dataset, the EXTEND operator builds new metadata attributes,
+        assigns their values as the result of arithmetic and/or aggregate functions calculated on 
+        sample region attributes, and adds them to the existing metadata attribute-value pairs of 
+        the sample. Sample number and their genomic regions, with their attributes and values, 
+        remain unchanged in the output dataset.  
+        
+        :param new_attr_dict: a dictionary of the type {'new_metadata' : AGGREGATE_FUNCTION('field'), ...}
+        :return: new GMQLDataset
+        
+        An example of usage::
+        
+            import gmql as gl
+            
+            # ....previous operations on the dataset
+            
+            new_dataset = dataset.extend({''})
+        """
         expBuild = self.pmg.getNewExpressionBuilder(self.index)
         aggregatesJavaList = get_gateway().jvm.java.util.ArrayList()
         for k in new_attr_dict.keys():
@@ -462,57 +484,3 @@ class GMQLDataset:
         regs = RegLoaderFile.load_reg_from_path(real_path)
         return GMQLDataset(parser=self.parser, index=self.index, regs=regs, meta=meta)
 
-
-"""
-    Utilities
-"""
-def preprocess_path(path):
-    for d in os.listdir(path):
-        if d == 'exp':
-            new_path = path + "/exp/"
-            return new_path
-    return path
-
-
-def load_from_path(path, parser=None, meta_load=False, reg_load=False, all_load=False):
-    """
-    Loads the data from a path into a GMQLDataset
-    :param path: 
-    :param parser:
-    :param meta_load: 
-    :param reg_load: 
-    :param all_load: 
-    :return: 
-    """
-    pmg = get_python_manager()
-
-    path = preprocess_path(path)
-    index = None
-    if parser:
-        if type(parser) is str:
-            index = pmg.read_dataset(path, parser)
-        elif isinstance(parser, Parser):
-            index = pmg.read_dataset(path, parser.get_gmql_parser())
-        else:
-            raise ValueError("parser must be a string or a Parser")
-    else:
-        index = pmg.read_dataset(path)
-
-    if all_load:
-        reg_load = True
-        meta_load = True
-    meta = None
-    if meta_load:
-        # load directly the metadata for exploration
-        meta = MetaLoaderFile.load_meta_from_path(path)
-    regs = None
-    if reg_load:
-        if isinstance(parser, Parser):
-            # region data
-            regs = RegLoaderFile.load_reg_from_path(path, parser)
-        else:
-            regs = RegLoaderFile.load_reg_from_path(path)
-    if (regs is not None) and (meta is not None):
-        return GDataframe(regs=regs, meta=meta)
-    else:
-        return GMQLDataset(index=index, parser=parser, regs=regs, meta=meta)
