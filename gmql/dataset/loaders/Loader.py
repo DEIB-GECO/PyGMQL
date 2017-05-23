@@ -35,7 +35,7 @@ def load_from_path(path, parser=None, meta_load=False, reg_load=False, all_load=
             index = pmg.read_dataset(path, parser.get_gmql_parser())
         else:
             raise ValueError("parser must be a string or a Parser")
-    else:
+    elif all_load is False:
         index = pmg.read_dataset(path)
 
     if all_load:
