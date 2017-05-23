@@ -69,8 +69,8 @@ class GMQLDataset:
         Creates an instance of a metadata field of the dataset. It can be used in building expressions
         or conditions for projection or selection.
         Notice that this function is equivalent to call::
+            
             dataset[name]
-        
         
         :param name: the name of the metadata that is considered
         :return: a MetaField instance
@@ -82,7 +82,9 @@ class GMQLDataset:
         Creates an instance of a region field of the dataset. It can be used in building expressions
         or conditions for projection or selection.
         Notice that this function is equivalent to::
+        
             dataset.name
+        
         :param name: the name of the region field that is considered
         :return: a RegField instance
         """
@@ -184,7 +186,8 @@ class GMQLDataset:
             
             # ....previous operations on the dataset
             
-            new_dataset = dataset.extend({''})
+            new_dataset = dataset.extend({'regionCount' : gl.COUNT(),
+                                          'minPValue' : gl.MIN('pValue')})
         """
         expBuild = self.pmg.getNewExpressionBuilder(self.index)
         aggregatesJavaList = get_gateway().jvm.java.util.ArrayList()
@@ -214,7 +217,7 @@ class GMQLDataset:
         dataset, computed as the correspondent region Jaccard Indexes but on 
         the whole sample regions.
 
-        :param type: the kind of cover variant you want
+        :param type: the kind of cover variant you want ['normal', 'flat', 'summit', 'histogram']
         :param minAcc: minimum accumulation value, i.e. the minimum number
          of overlapping regions to be considered during COVER execution
         :param maxAcc: maximum accumulation value, i.e. the maximum number
@@ -223,6 +226,11 @@ class GMQLDataset:
         :param new_reg_fields: dictionary of the type
             {'new_region_attribute' : AGGREGATE_FUNCTION('field'), ...}
         :return: a new GMQLDataset
+        
+        An example of usage::
+        
+            cell_tf = narrow_peak.cover("normal", minAcc=1, maxAcc="Any", 
+                                            groupBy=['cell', 'antibody_target'])    
         """
         coverFlag = self.opmng.getCoverTypes(type)
         minAccParam = self.opmng.getCoverParam(str(minAcc))
@@ -247,15 +255,52 @@ class GMQLDataset:
         return GMQLDataset(index=new_index, parser=self.parser)
 
     def normal_cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None):
+        """
+        The normal cover operation as described in :meth:`~.cover`.
+        Equivalent to calling::
+        
+            dataset.cover("normal", ...)
+        """
         return self.cover("normal", minAcc, maxAcc, groupBy, new_reg_fields)
 
     def flat_cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None):
+        """
+        Variant of the function :meth:`~.cover` that returns the union of all the regions 
+        which contribute to the COVER. More precisely, it returns the contiguous regions 
+        that start from the first end and stop at the last end of the regions which would 
+        contribute to each region of a COVER.
+        
+        Equivalent to calling::
+        
+            cover("flat", ...)
+        """
         return self.cover("flat", minAcc, maxAcc, groupBy, new_reg_fields)
 
     def summit_cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None):
+        """
+        Variant of the function :meth:`~.cover` that returns only those portions of the COVER
+        result where the maximum number of regions overlap (this is done by returning only
+        regions that start from a position after which the number of overlaps does not 
+        increase, and stop at a position where either the number of overlapping regions decreases 
+        or violates the maximum accumulation index).
+        
+        Equivalent to calling::
+        
+            cover("summit", ...)
+        """
         return self.cover("summit", minAcc, maxAcc, groupBy, new_reg_fields)
 
     def histogram_cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None):
+        """
+        Variant of the function :meth:`~.cover` that returns all regions contributing to 
+        the COVER divided in different (contiguous) parts according to their accumulation 
+        index value (one part for each different accumulation value), which is assigned to 
+        the AccIndex region attribute.
+        
+        Equivalent to calling::
+        
+            cover("histogram", ...)
+        """
         return self.cover("histogram", minAcc, maxAcc, groupBy, new_reg_fields)
 
     def join(self, experiment, genometric_predicate, output="LEFT", joinBy=None,
@@ -275,8 +320,33 @@ class GMQLDataset:
         
         :param experiment: an other GMQLDataset
         :param genometric_predicate: a list of Genometric atomic conditions
+        :param output: one of four different values that declare which region is given in output 
+                       for each input pair of anchor and experiment regions satisfying the genometric predicate:
+                       
+                       * 'LEFT': outputs the anchor regions from the anchor dataset that satisfy the genometric predicate
+                       * 'RIGHT': outputs the anchor regions from the experiment dataset that satisfy the genometric predicate
+                       * 'INT': outputs the overlapping part (intersection) of the anchor and experiment regions that satisfy
+                         the genometric predicate; if the intersection is empty, no output is produced
+                       * 'CONTIG': outputs the concatenation between the anchor and experiment regions that satisfy the 
+                         genometric predicate, i.e. the output region is defined as having left (right) coordinates 
+                         equal to the minimum (maximum) of the corresponding coordinate values in the anchor and 
+                         experiment regions satisfying the genometric predicate
+
+
         :param joinBy: list of metadata attributes
+        :param refName: name that you want to assign to the reference dataset
+        :param expName: name that you want to assign to the experiment dataset
         :return: a new GMQLDataset
+        
+        An example of usage::
+            
+            import gmql as gl
+            
+            # anchor_dataset and experiment_dataset are created
+            
+            result_dataset = anchor_dataset.join(experiment=experiment_dataset, 
+                                                    genometric_predicate=[gl.MD(1), gl.DGE(120000)], 
+                                                    output="right")
         """
         atomicConditionsJavaList = get_gateway().jvm.java.util.ArrayList()
         for a in genometric_predicate:
@@ -320,11 +390,14 @@ class GMQLDataset:
         - the aggregates computed during MAP execution. When the features of the reference 
         regions are unknown, the MAP helps in extracting the most interesting regions 
         out of many candidates. 
+        
         :param experiment: a GMQLDataset
-        :param new_region_fields: an optional dictionary of the form 
-                                    {'new_field_1': AGGREGATE_FUNCTION(field), ...}
+        :param new_reg_fields: an optional dictionary of the form 
+               {'new_field_1': AGGREGATE_FUNCTION(field), ...}
                                 
         :param joinBy: optional list of metadata
+        :param refName: name that you want to assign to the reference dataset
+        :param expName: name that you want to assign to the experiment dataset
         :return: a new GMQLDataset
         """
         aggregatesJavaList = get_gateway().jvm.java.util.ArrayList()
@@ -361,6 +434,7 @@ class GMQLDataset:
         is as in the input dataset, as well as their metadata and region attributes 
         and values, but a new ordering metadata and/or region attribute is added with 
         the sample or region ordering value, respectively. 
+        
         :param meta: list of metadata attributes
         :param meta_ascending: list of boolean values (True = ascending, False = descending)
         :param meta_top: "top" or "topq" or None
@@ -409,6 +483,7 @@ class GMQLDataset:
         metadata of the first operand sample and only those regions (with their
         schema and values) of the first operand sample which do not intersect with
         any region in the second operand sample (also known as negative regions)
+        
         :param other: GMQLDataset
         :param joinBy: list of metadata attributes
         :param exact: boolean
@@ -429,15 +504,17 @@ class GMQLDataset:
         The UNION operation is used to integrate homogeneous or heterogeneous samples of two
         datasets within a single dataset; for each sample of either one of the input datasets, a
         sample is created in the result as follows:
-            ● its metadata are the same as in the original sample;
-            ● its schema is the schema of the first (left) input dataset; new 
-                identifiers are assigned to each output sample;
-            ● Its regions are the same (in coordinates and attribute values) as in the original
-                sample. Region attributes which are missing in an input dataset sample
-                (w.r.t. the merged schema) are set to null.
+        
+            * its metadata are the same as in the original sample;
+            * its schema is the schema of the first (left) input dataset; new 
+              identifiers are assigned to each output sample;
+            * its regions are the same (in coordinates and attribute values) as in the original
+              sample. Region attributes which are missing in an input dataset sample
+              (w.r.t. the merged schema) are set to null.
+                
         :param other: a GMQLDataset
-        :param left_name: string 
-        :param right_name: string
+        :param left_name: name that you want to assign to the left dataset
+        :param right_name: name that you want to assign to the right dataset
         :return: a new GMQLDataset
         """
         new_index = self.opmng.union(self.index, other.index, left_name, right_name)
@@ -446,15 +523,18 @@ class GMQLDataset:
     def merge(self, groupBy=None):
         """
         The MERGE operator builds a new dataset consisting of a single sample having
-            ● as regions all the regions of all the input samples, with the 
-                same attributes and values
-            ● as metadata the union of all the metadata attribute-values 
-                of the input samples.
+        
+            * as regions all the regions of all the input samples, with the 
+              same attributes and values
+            * as metadata the union of all the metadata attribute-values 
+              of the input samples.
+                
         A groupby clause can be specified on metadata: the samples are then
         partitioned in groups, each with a distinct value of the grouping metadata 
         attributes, and the MERGE operation is applied to each group separately, 
         yielding to one sample in the result dataset for each group.
         Samples without the grouping metadata attributes are disregarded
+        
         :param groupBy: list of metadata attributes
         :return: a new GMQLDataset
         """
