@@ -21,7 +21,7 @@ def load_from_path(path, parser=None, meta_load=False, reg_load=False, all_load=
     :param meta_load: if set to True, the metadata are loaded directly into memory
     :param reg_load: if set to True, the region data are loaded directly into memory
     :param all_load: if set to True, both region and meta data are loaded in memory and an 
-    instance of GDataframe is returned
+                     instance of GDataframe is returned
     :return: A new GMQLDataset or a GDataframe
     """
     pmg = get_python_manager()
@@ -56,3 +56,4 @@ def load_from_path(path, parser=None, meta_load=False, reg_load=False, all_load=
         return GDataframe(regs=regs, meta=meta)
     else:
         return GMQLDataset.GMQLDataset(index=index, parser=parser, regs=regs, meta=meta)
+
