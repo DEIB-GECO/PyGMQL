@@ -5,22 +5,64 @@
 
 Welcome to PyGMQL's documentation!
 ==================================
-
-.. toctree::
-    :maxdepth: 2
-    :caption: Contents:
-
-    installation
-    introduction
-    genomic_data_model
-    GMQLDataset
-
 PyGMQL is a python module that enables the user to perform operation on genomic data in a scalable way.
 
-Indices and tables
-==================
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   installation
+   introduction
+   genomic_data_model
+   GMQLDataset
+   GDataframe
 
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
 
+Indices and tables
+==================
+
+------------------
+Dataset structures
+------------------
+
+.. currentmodule:: gmql.dataset
+.. autosummary::
+   :nosignatures:
+
+   GMQLDataset.GMQLDataset
+   GDataframe.GDataframe
+
+--------------------
+Aggregates operators
+--------------------
+
+.. currentmodule:: gmql.dataset.DataStructures.Aggregates
+.. autosummary::
+
+   COUNT
+   SUM
+   MIN
+   MAX
+   AVG
+   BAG
+   STD
+   MEDIAN
+   Q1
+   Q2
+   Q3
+
+---------------------
+Genometric predicates
+---------------------
+
+.. currentmodule:: gmql.dataset.DataStructures.GenometricPredicates
+.. autosummary::
+
+   MD
+   DLE
+   DGE
+   UP
+   DOWN

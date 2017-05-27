@@ -19,7 +19,7 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../'))
+sys.path.insert(0, os.path.abspath('../..'))
 
 
 # -- General configuration ------------------------------------------------
@@ -35,7 +35,11 @@ extensions = ['sphinx.ext.autodoc',
     'sphinx.ext.todo',
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
-    'sphinx.ext.githubpages']
+    'sphinx.ext.githubpages',
+    'sphinx.ext.autosummary']
+
+autosummary_generate = True
+add_module_names = False
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -48,6 +52,9 @@ source_suffix = '.rst'
 
 # The master toctree document.
 master_doc = 'index'
+
+# favicon
+html_favicon = "./images/logo-geco.ico"
 
 # General information about the project.
 project = 'PyGMQL'
