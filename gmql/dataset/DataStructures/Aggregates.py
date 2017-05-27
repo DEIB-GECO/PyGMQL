@@ -11,41 +11,59 @@ class Aggregate(object):
 
 
 class COUNT(Aggregate):
+    """ Counts the number of regions in the group. It is automatically computed by the
+    :func:`~gmql.dataset.GMQLDataset.GMQLDataset.map` operation
+    """
     def __init__(self):
-        super(COUNT, self).__init__("SUM", "")
+        super(COUNT, self).__init__("COUNT", "")
 
 
 class SUM(Aggregate):
+    """ Computes the sum of the values of the specified attribute
+    """
     def __init__(self, argument):
         super(SUM, self).__init__("SUM", argument)
 
 
 class MIN(Aggregate):
+    """ Gets the minimum value in the aggregation group for the specified attribute
+    """
     def __init__(self, argument):
         super(MIN, self).__init__("MIN", argument)
 
 
 class MAX(Aggregate):
+    """ Gets the maximum value in the aggregation group for the specified attribute
+    """
     def __init__(self, argument):
         super(MAX, self).__init__("MAX", argument)
 
 
 class AVG(Aggregate):
+    """ Gets the average value in the aggregation group for the specified attribute
+    """
     def __init__(self, argument):
         super(AVG, self).__init__("AVG", argument)
 
 
 class BAG(Aggregate):
+    """ Creates comma-separated strings of distinct attribute values for the specified attribute.
+    It is applicable to attributes of any type.
+    """
     def __init__(self, argument):
         super(BAG, self).__init__("BAG", argument)
 
 
 class STD(Aggregate):
+    """ Gets the standard deviation of the aggregation group for the specified attribute
+    """
     def __init__(self, argument):
         super(STD, self).__init__("STD", argument)
 
 
 class MEDIAN(Aggregate):
+    """ Gets the median value of the aggregation group for the specified attribute
+    """
     def __init__(self, argument):
         super(MEDIAN, self).__init__("MEDIAN", argument)
 

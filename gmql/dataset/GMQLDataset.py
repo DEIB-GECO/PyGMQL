@@ -7,7 +7,6 @@ import shutil
 import os
 from .DataStructures import reg_fixed_fileds
 from .loaders import Loader
-from py4j import java_collections
 
 
 class GMQLDataset:
@@ -90,21 +89,107 @@ class GMQLDataset:
         """
         return RegField(name=name, index=self.index)
 
-    def meta_select(self, predicate):
+    def meta_select(self, predicate=None, semiJoinDataset=None, semiJoinMeta=None):
         """
-        Select the rows of the metadata dataset based on a logical predicate
+        The META_SELECT operation creates a new dataset from an existing one 
+        by extracting a subset of samples from the input dataset; each sample 
+        in the output dataset has the same region attributes and metadata 
+        as in the input dataset.
+        The selection can be based on:
+        
+            * *Metadata predicates*: selection based on the existence and values of certain 
+              metadata attributes in each sample. In predicates, attribute-value conditions 
+              can be composed using logical predicates && (and), || (or) and ~ (not)
+            * *SemiJoin clauses*: selection based on the existence of certain metadata :attr:`~.semiJoinMeta`
+              attributes and the matching of their values with those associated with at 
+              least one sample in an external dataset :attr:`~.semiJoinDataset`
         
         :param predicate: logical predicate on the values of the rows
+        :param semiJoinDataset: an other GMQLDataset 
+        :param semiJoinMeta: a list of metadata
         :return: a new GMQLDataset
         
         An example of usage::
         
             new_dataset = dataset.meta_select(dataset['meta1'] <= 5 && dataset['meta2'] == 'gmql')
         """
-        meta_condition = predicate.getMetaCondition()
 
-        new_index = self.opmng.meta_select(self.index, meta_condition)
+        other_idx = None
+        metaJoinCondition = None
+        meta_condition = None
+
+        if predicate is not None:
+            meta_condition = predicate.getMetaCondition()
+        if (semiJoinDataset is not None) and  \
+                (semiJoinMeta is not None):
+            other_idx = semiJoinDataset.index
+            metaJoinByJavaList = get_gateway().jvm.java.util.ArrayList()
+            for meta in semiJoinMeta:
+                metaJoinByJavaList.append(meta)
+            metaJoinCondition = self.opmng.getMetaJoinCondition(metaJoinByJavaList)
+
+        if other_idx is None:
+            other_idx = -1
+
+        if (meta_condition is None) and \
+                (other_idx >= 0 and metaJoinCondition is not None): # case of only semiJoin
+            new_index = self.opmng.only_semi_select(self.index, other_idx, metaJoinCondition)
+        elif meta_condition is not None:
+            if (other_idx >= 0) and (metaJoinCondition is not None): # case of meta + semiJoin
+                new_index = self.opmng.meta_select(self.index, other_idx, meta_condition, metaJoinCondition)
+            elif (other_idx < 0) and (metaJoinCondition is None): # case only meta
+                new_index = self.opmng.meta_select(self.index, other_idx, meta_condition)
+            else:
+                raise ValueError("semiJoinDataset <=> semiJoinMeta")
+        else:
+            raise ValueError("semiJoinDataset <=> semiJoinMeta")
+
         return GMQLDataset(index=new_index, parser=self.parser)
+
+    def reg_select(self, predicate=None, semiJoinDataset=None, semiJoinMeta=None):
+        """
+        Select only the regions in the dataset that satisfy the predicate
+
+        :param predicate: logical predicate on the values of the regions
+        :param semiJoinDataset: an other GMQLDataset 
+        :param semiJoinMeta: a list of metadata
+        :return: a new GMQLDataset
+
+        An example of usage::
+
+            new_dataset = dataset.reg_select(dataset.chr == 'chr1' || dataset.pValue < 0.9)
+        """
+        reg_condition = None
+        other_idx = None
+        metaJoinCondition = None
+
+        if predicate is not None:
+            reg_condition = predicate.getRegionCondition()
+        if (semiJoinDataset is not None) and \
+                (semiJoinMeta is not None):
+            other_idx = semiJoinDataset.index
+            metaJoinByJavaList = get_gateway().jvm.java.util.ArrayList()
+            for meta in semiJoinMeta:
+                metaJoinByJavaList.append(meta)
+            metaJoinCondition = self.opmng.getMetaJoinCondition(metaJoinByJavaList)
+
+        if other_idx is None:
+            other_idx = -1
+
+        if (reg_condition is None) and \
+                (other_idx >= 0 and metaJoinCondition is not None):  # case of only semiJoin
+            new_index = self.opmng.only_semi_select(self.index, other_idx, metaJoinCondition)
+        elif reg_condition is not None:
+            if (other_idx >= 0) and (metaJoinCondition is not None):  # case of regs + semiJoin
+                new_index = self.opmng.reg_select(self.index, other_idx, reg_condition, metaJoinCondition)
+            elif (other_idx < 0) and (metaJoinCondition is None):  # case only regs
+                new_index = self.opmng.reg_select(self.index, other_idx, reg_condition)
+            else:
+                raise ValueError("semiJoinDataset <=> semiJoinMeta")
+        else:
+            raise ValueError("semiJoinDataset <=> semiJoinMeta")
+
+        return GMQLDataset(parser=self.parser, index=new_index)
 
     def meta_project(self, attr_list):
         """
@@ -120,36 +205,16 @@ class GMQLDataset:
         new_index = self.opmng.meta_project(self.index, metaJavaList)
         return GMQLDataset(index=new_index, parser=self.parser)
 
-    def add_meta(self, attr_name, value):
-        raise NotImplementedError("This function is not yet implemented")
-
-    def reg_select(self, predicate):
-        """
-        Select only the regions in the dataset that satisfy the predicate
-        
-        :param predicate: logical predicate on the values of the regions
-        :return: a new GMQLDataset
-        
-        An example of usage::
-        
-            new_dataset = dataset.reg_select(dataset.chr == 'chr1' || dataset.pValue < 0.9)
-        """
-        reg_condition = predicate.getRegionCondition()
-
-        new_index = self.opmng.reg_select(self.index, reg_condition)
-
-        return GMQLDataset(parser=self.parser, index=new_index)
-
     def reg_project(self, field_list, new_field_dict=None):
         """
         Project the region data based on a list of field names
-        
+
         :param field_list: list of the fields to select
         :param new_field_dict: an optional dictionary of the form {'new_field_1': function1, 'new_field_2': function2, ...} in which every function computes the new field based on the values of the others
         :return: a new GMQLDataset
-        
+
         An example of usage::
-            
+
             new_dataset = dataset.reg_project(['pValue', 'name'],
                                             {'new_field': dataset.pValue / 2})
         """
@@ -168,6 +233,9 @@ class GMQLDataset:
         else:
             new_index = self.opmng.reg_project(self.index, regsJavaList)
         return GMQLDataset(index=new_index, parser=self.parser)
+
+    def add_meta(self, attr_name, value):
+        raise NotImplementedError("This function is not yet implemented")
 
     def extend(self, new_attr_dict):
         """
@@ -553,6 +621,13 @@ class GMQLDataset:
         # check that the folder does not exists
         if os.path.isdir(output_path):
             shutil.rmtree(output_path)
+
+        # If we are in REMOTE MODE:
+        # 1) receive the string from Scala
+        # 2) send the string as payload to REST API (see notes for signature URL)
+        # 3) wait for result (trace through REST API)
+        # 4) when ready download the samples
+        # 5) put everything in pandas
 
         self.pmg.materialize(self.index, output_path)
 

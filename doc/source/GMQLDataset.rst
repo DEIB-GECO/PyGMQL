@@ -2,7 +2,7 @@ The GMQLDataset
 ===============
 Here we present the functions that can be used on a GMQLDataset.
 
-..  automodule:: gmql.dataset.GMQLDataset
+..  autoclass:: gmql.dataset.GMQLDataset.GMQLDataset
     :members:
 
 -----------------
