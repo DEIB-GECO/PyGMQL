@@ -6,8 +6,9 @@ from .DataStructures.MetaField import MetaField
 import shutil
 import os
 from .DataStructures import reg_fixed_fileds
+from .GDataframe import GDataframe
 from .loaders import Loader
-
+from .loaders import MemoryLoader
 
 class GMQLDataset:
     """
@@ -616,11 +617,13 @@ class GMQLDataset:
     """
         Materialization utilities
     """
-    def materialize(self, output_path):
-
-        # check that the folder does not exists
-        if os.path.isdir(output_path):
-            shutil.rmtree(output_path)
+    def materialize(self, output_path=None):
+        regs = None
+        meta = None
+        if output_path is not None:
+            # check that the folder does not exists
+            if os.path.isdir(output_path):
+                shutil.rmtree(output_path)
 
         # If we are in REMOTE MODE:
         # 1) receive the string from Scala
@@ -628,14 +631,20 @@ class GMQLDataset:
         # 3) wait for result (trace through REST API)
         # 4) when ready download the samples
         # 5) put everything in pandas
+            self.pmg.materialize(self.index, output_path)
+            # taking in memory the data structure
+            real_path = output_path + '/exp/'
+            # metadata
+            meta = MetaLoaderFile.load_meta_from_path(real_path)
+            # region data
+            regs = RegLoaderFile.load_reg_from_path(real_path)
 
-        self.pmg.materialize(self.index, output_path)
+        else:
+            # We load the structure directly from the memory
+            collected = self.pmg.collect(self.index)
+            regs = MemoryLoader.load_regions(collected)
+            meta = MemoryLoader.load_metadata(collected)
 
-        # taking in memory the data structure
-        real_path = output_path + '/exp/'
-        # metadata
-        meta = MetaLoaderFile.load_meta_from_path(real_path)
-        # region data
-        regs = RegLoaderFile.load_reg_from_path(real_path)
-        return GMQLDataset(parser=self.parser, index=self.index, regs=regs, meta=meta)
+        result = GDataframe(regs=regs, meta=meta)
+        return result
 
