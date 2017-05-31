@@ -69,15 +69,21 @@ class MEDIAN(Aggregate):
 
 
 class Q1(Aggregate):
+    """ Gets the first quartile for the specified attribute
+    """
     def __init__(self, argument):
         super(Q1, self).__init__("Q1", argument)
 
 
 class Q2(Aggregate):
+    """ Gets the second quartile for the specified attribute
+    """
     def __init__(self, argument):
         super(Q2, self).__init__("Q2", argument)
 
 
 class Q3(Aggregate):
+    """ Gets the third quartile for the specified attribute
+    """
     def __init__(self, argument):
         super(Q3, self).__init__("Q3", argument)
