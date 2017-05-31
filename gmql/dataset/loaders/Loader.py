@@ -5,6 +5,7 @@ from ..GDataframe import GDataframe
 from .. import GMQLDataset
 import os
 
+
 def preprocess_path(path):
     for d in os.listdir(path):
         if d == 'exp':
@@ -56,4 +57,3 @@ def load_from_path(path, parser=None, meta_load=False, reg_load=False, all_load=
         return GDataframe(regs=regs, meta=meta)
     else:
         return GMQLDataset.GMQLDataset(index=index, parser=parser, regs=regs, meta=meta)
-
