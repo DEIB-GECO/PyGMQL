@@ -115,7 +115,8 @@ def process_cleaning():
         if name == 'java':
             cmd = p.cmdline()
             if len(cmd) == 3 and cmd[2] == gmql_jar_name:
-                p.terminate() # kill it
+                print("Previous JVM killed: {}".format(cmd[2]))
+                p.kill()   # kill it
 
 
 def stop():
@@ -134,7 +135,7 @@ def stop():
     try:
         server_process.terminate()
     except Exception:
-        pass
+        print("Impossible to stop the jvm server")
 
 atexit.register(stop)
 
