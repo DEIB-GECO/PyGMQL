@@ -107,7 +107,7 @@ class BedParser(Parser):
                 poss.append(o[0])
 
         idx_sort = np.array(poss).argsort()
-        attr_arr[idx_sort].tolist()
+        return attr_arr[idx_sort].tolist()
 
     def get_types(self):
         types = [str, int, int, str]
