@@ -45,7 +45,7 @@ def start_gateway_server(gmql_jar):
     if java_home is None:
         raise SystemError("The environment variable JAVA_HOME is not setted")
     java_path = os.path.join(java_home, "bin", "java")
-    gmql_jar_fn = resource_filename("gmql", "resources/"+gmql_jar)
+    gmql_jar_fn = resource_filename("gmql", os.path.join("resources", gmql_jar))
     command = [java_path, '-jar', gmql_jar_fn]
     proc = sp.Popen(command)
     synchronize()
@@ -109,7 +109,7 @@ def start():
 
 def process_cleaning():
     global gmql_jar
-    gmql_jar_name = resource_filename("gmql", "resources/" + gmql_jar)
+    gmql_jar_name = resource_filename("gmql", os.path.join("resources", gmql_jar))
     for p in psutil.process_iter():
         name = p.name()
         if name == 'java':
@@ -127,11 +127,12 @@ def stop():
     #     if pythonManager is None:
     #         raise GMQLManagerNotInitializedError("You need first to initialize the GMQLManager with the start() method")
     except Exception:
+        # print("Impossible to remove the sync file")
         pass
     try:
-        pythonManager.stopEngine()
+        pythonManager.shutdown()
     except Exception:
-        pass
+        print("Impossible to shutdown the engine")
     try:
         server_process.terminate()
     except Exception:
