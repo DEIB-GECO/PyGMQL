@@ -633,7 +633,7 @@ class GMQLDataset:
         # 5) put everything in pandas
             self.pmg.materialize(self.index, output_path)
             # taking in memory the data structure
-            real_path = output_path + '/exp/'
+            real_path = os.path.join(output_path, 'exp')
             # metadata
             meta = MetaLoaderFile.load_meta_from_path(real_path)
             # region data
