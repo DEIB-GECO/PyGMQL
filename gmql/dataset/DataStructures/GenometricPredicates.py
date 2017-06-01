@@ -50,10 +50,12 @@ class MD(GenometricCondition):
 
 
 class UP(GenometricCondition):
+    """ Upstream."""
     def __init__(self):
         super(UP, self).__init__(condition_name="UP")
 
 
 class DOWN(GenometricCondition):
+    """ Downstream."""
     def __init__(self):
         super(DOWN, self).__init__(condition_name="DOWN")
