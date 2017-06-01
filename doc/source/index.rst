@@ -35,6 +35,17 @@ Dataset structures
    GMQLDataset.GMQLDataset
    GDataframe.GDataframe
 
+-------------------------
+Dataset loading functions
+-------------------------
+
+.. currentmodule:: gmql.dataset.loaders.Loader
+.. autosummary::
+   :nosignatures:
+
+   load_from_path
+   load_from_remote
+
 --------------------
 Aggregates operators
 --------------------
