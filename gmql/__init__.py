@@ -115,12 +115,12 @@ def process_cleaning():
         if name == 'java':
             cmd = p.cmdline()
             if len(cmd) == 3 and cmd[2] == gmql_jar_name:
-                print("Previous JVM killed: {}".format(cmd[2]))
+                logger.info("Previous JVM killed: {}".format(cmd[2]))
                 p.kill()   # kill it
 
 
 def stop():
-    global pythonManager, server_process
+    global pythonManager, server_process, gateway
 
     try:
         os.remove(synchfile)
@@ -130,13 +130,19 @@ def stop():
         # print("Impossible to remove the sync file")
         pass
     try:
-        pythonManager.shutdown()
+        # pythonManager.stopEngine()
+        gateway.shutdown()
     except Exception:
-        print("Impossible to shutdown the engine")
+        # print("Impossible to shutdown the engine")
+        pass
     try:
-        server_process.terminate()
+        process_cleaning()
     except Exception:
-        print("Impossible to stop the jvm server")
+        pass
+    # try:
+    #     server_process.terminate()
+    # except Exception:
+    #     print("Impossible to stop the jvm server")
 
 atexit.register(stop)
 
