@@ -471,7 +471,7 @@ class GMQLDataset:
         """
         aggregatesJavaList = get_gateway().jvm.java.util.ArrayList()
         if new_reg_fields:
-            expBuild = self.pmg.getNewExpressionBuilder(self.index)
+            expBuild = self.pmg.getNewExpressionBuilder(experiment.index)
             for k in new_reg_fields.keys():
                 new_name = k
                 op = new_reg_fields[k]
