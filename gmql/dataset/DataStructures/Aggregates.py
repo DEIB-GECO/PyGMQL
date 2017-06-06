@@ -47,7 +47,7 @@ class AVG(Aggregate):
 
 
 class BAG(Aggregate):
-    """ Creates comma-separated strings of distinct attribute values for the specified attribute.
+    """ Creates space-separated string of distinct attribute values for the specified attribute.
     It is applicable to attributes of any type.
     """
     def __init__(self, argument):
