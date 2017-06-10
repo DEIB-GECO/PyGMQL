@@ -8,5 +8,5 @@ setup(name='gmql',
       author_email='luca.nanni@mail.polimi.it',
       license='MIT',
       packages=['gmql'],
-      install_requires=['pandas', 'tqdm', 'numpy', 'py4j', 'psutil'],
+      install_requires=['pandas', 'tqdm', 'numpy', 'py4j', 'psutil', 'requests'],
       zip_safe=False)
