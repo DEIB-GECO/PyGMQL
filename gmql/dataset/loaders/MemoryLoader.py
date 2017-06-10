@@ -4,6 +4,7 @@ from tqdm import tqdm
 import logging
 from concurrent.futures import ThreadPoolExecutor
 import math
+from ..DataStructures import reg_fixed_fileds
 
 # global logger
 logger = logging.getLogger("PyGML logger")
@@ -22,25 +23,29 @@ def load_regions(collected_result):
     # get how the strings are structured
     names, types = get_schema(collected_result)
     result = []
+    executor = ThreadPoolExecutor()
     for i in tqdm(range(divisions)):
         # get the full string
         regions_string = collected_result.getRegionsAsString(chunk_size)
-        # convert to list of strings
-        regions_string = regions_string.split(regions_delimiter)
-
-        executor = ThreadPoolExecutor()
-        iterator = executor.map(lambda row:
-                                string_to_dictionary(row,
-                                                     values_delimiter,
-                                                     names,
-                                                     types), regions_string)
-        result.extend(list(iterator))
-    return pd.DataFrame.from_dict(result)
+        if regions_string:
+            # convert to list of strings
+            regions_string = regions_string.split(regions_delimiter)
+            iterator = executor.map(lambda row:
+                                    string_to_dictionary(row,
+                                                         values_delimiter,
+                                                         names,
+                                                         types), regions_string)
+            result.extend(list(iterator))
+    df = pd.DataFrame.from_dict(result)
+    columns = reg_fixed_fileds + names
+    df = df.set_index(keys="id_sample", drop=True)
+    df = df[columns]    # for ordering the columns
+    return df
 
 
 def string_to_dictionary(region, values_delimiter, names, types):
     elements = region.split(values_delimiter)
-
+    # print(elements)
     d = dict()
     d['id_sample'] = int(elements[0])
     d['chr'] = elements[1]
@@ -71,6 +76,7 @@ def to_dictionary(region, names, types):
 
     return d
 
+
 def load_metadata(collected_result):
     meta_Java = collected_result.getMetadata()
     meta_list = []
@@ -94,10 +100,12 @@ def load_metadata(collected_result):
             result_df[col] = g[col].apply(to_list)
     return result_df
 
+
 def to_list(x):
     l = list(x)
     l = [a for a in l if not pd.isnull(a)]
     return l
+
 
 def get_schema(collected_result):
     schema_Java = collected_result.getSchema()
