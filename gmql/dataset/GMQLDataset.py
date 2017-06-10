@@ -626,12 +626,6 @@ class GMQLDataset:
             if os.path.isdir(output_path):
                 shutil.rmtree(output_path)
 
-        # If we are in REMOTE MODE:
-        # 1) receive the string from Scala
-        # 2) send the string as payload to REST API (see notes for signature URL)
-        # 3) wait for result (trace through REST API)
-        # 4) when ready download the samples
-        # 5) put everything in pandas
             self.pmg.materialize(self.index, output_path)
             # taking in memory the data structure
             real_path = os.path.join(output_path, 'exp')
