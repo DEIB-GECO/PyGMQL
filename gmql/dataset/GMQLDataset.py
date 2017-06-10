@@ -206,7 +206,7 @@ class GMQLDataset:
         new_index = self.opmng.meta_project(self.index, metaJavaList)
         return GMQLDataset(index=new_index, parser=self.parser)
 
-    def reg_project(self, field_list, new_field_dict=None):
+    def reg_project(self, field_list=None, new_field_dict=None):
         """
         Project the region data based on a list of field names
 
@@ -220,9 +220,10 @@ class GMQLDataset:
                                             {'new_field': dataset.pValue / 2})
         """
         regsJavaList = get_gateway().jvm.java.util.ArrayList()
-        for f in field_list:
-            if f not in reg_fixed_fileds:
-                regsJavaList.append(f)
+        if field_list is not None:
+            for f in field_list:
+                if f not in reg_fixed_fileds:
+                    regsJavaList.append(f)
         if new_field_dict is not None:
             regExtJavaList = get_gateway().jvm.java.util.ArrayList()
             for k in new_field_dict.keys():
@@ -647,4 +648,37 @@ class GMQLDataset:
 
         result = GDataframe(regs=regs, meta=meta)
         return result
+
+
+def materialize(datasets):
+    """ Multiple materializations. Enables the user to specify a set of GMQLDataset to be materialized.
+    The engine will perform all the materializations at the same time, if an output path is provided,
+    while will perform each operation separately if the output_path is not specified.
+
+    :param datasets: it can be a list of GMQLDataset or a dictionary {'output_path' : GMQLDataset}
+    :return: a list of GDataframe or a dictionary {'output_path' : GDataframe}
+    """
+    result = None
+    if isinstance(datasets, dict):
+        result = dict()
+        for output_path in datasets.keys():
+            dataset = datasets[output_path]
+            if not isinstance(dataset, GMQLDataset):
+                raise TypeError("The values of the dictionary must be GMQLDataset."
+                                " {} was given".format(type(dataset)))
+            gframe = dataset.materialize(output_path)
+            result[output_path] = gframe
+    elif isinstance(datasets, list):
+        result = []
+        for dataset in datasets:
+            if not isinstance(dataset, GMQLDataset):
+                raise TypeError("The values of the list must be GMQLDataset."
+                                " {} was given".format(type(dataset)))
+            gframe = dataset.materialize()
+            result.append(gframe)
+    else:
+        raise TypeError("The input must be a dictionary of a list. "
+                        "{} was given".format(type(datasets)))
+    return result
+
 
