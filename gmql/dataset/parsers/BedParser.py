@@ -91,7 +91,9 @@ class BedParser(Parser):
         return id_record, (elems[0], elems[1])
 
     def get_attributes(self):
-        attr = ['chr', 'start', 'stop', 'strand']
+        attr = ['chr', 'start', 'stop']
+        if self.strandPos is not None:
+            attr.append('strand')
         if self.otherPos:
             for i, o in enumerate(self.otherPos):
                 attr.append(o[1])
@@ -101,7 +103,9 @@ class BedParser(Parser):
     def get_ordered_attributes(self):
         attrs = self.get_attributes()
         attr_arr = np.array(attrs)
-        poss = [self.chrPos, self.startPos, self.stopPos, self.strandPos]
+        poss = [self.chrPos, self.startPos, self.stopPos]
+        if self.strandPos is not None:
+            poss.append(self.strandPos)
         if self.otherPos:
             for o in self.otherPos:
                 poss.append(o[0])
