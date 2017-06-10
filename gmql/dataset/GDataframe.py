@@ -1,5 +1,6 @@
 from .storers import FrameToGMQL
 import pandas as pd
+from .loaders import Loader
 
 
 class GDataframe:
@@ -14,7 +15,6 @@ class GDataframe:
             raise TypeError("regs: expected pandas Dataframe, got {}".format(type(regs)))
         if not isinstance(meta, pd.DataFrame):
             raise TypeError("meta: expected pandas Dataframe, got {}".format(type(meta)))
-
         self.regs = regs
         self.meta = meta
 
@@ -32,9 +32,15 @@ class GDataframe:
         """
         return FrameToGMQL.to_dataset_files(self, path_local=local_path, path_remote=remote_path)
 
-    def to_GMQLDataset(self):
+    def to_GMQLDataset(self, local_path=None, remote_path=None):
         """ Converts the GDataframe in a GMQLDataset for later local or remote computation
 
         :return: a GMQLDataset
         """
-        return None
+        self.to_dataset_files(local_path, remote_path)
+        if local_path is not None:
+            return Loader.load_from_path(local_path=local_path)
+        elif remote_path is not None:
+            raise NotImplementedError()
+        else:
+            raise ValueError("You must specify at least one of local_path and remote_path")
