@@ -1,7 +1,7 @@
 from ... import get_python_manager
 from ..parsers.Parser import Parser
 from . import MetaLoaderFile, RegLoaderFile
-from ..GDataframe import GDataframe
+from .. import GDataframe
 from .. import GMQLDataset
 import os
 
@@ -63,7 +63,7 @@ def load_from_path(local_path=None, parser=None, meta_load=False,
         else:
             regs = RegLoaderFile.load_reg_from_path(local_path)
     if (regs is not None) and (meta is not None):
-        return GDataframe(regs=regs, meta=meta)
+        return GDataframe.GDataframe(regs=regs, meta=meta)
     else:
         return GMQLDataset.GMQLDataset(index=index, parser=parser, regs=regs, meta=meta)
 
