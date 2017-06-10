@@ -4,15 +4,26 @@ from . import MetaLoaderFile, RegLoaderFile
 from .. import GDataframe
 from .. import GMQLDataset
 import os
+import glob
+
+
+def get_file_paths(path):
+    real_path = preprocess_path(path)
+    files_paths = set(glob.glob(real_path + "/[!_]*"))
+    schema_path = set(glob.glob(real_path+"/*.schema"))
+    files_paths = files_paths - schema_path
+    return list(files_paths), schema_path.pop()
 
 
 def preprocess_path(path):
-    for d in os.listdir(path):
-        if d == 'exp':
-            new_path = os.path.join(path, "exp")
-            return new_path
-    return path
+    for root, dirs, files in os.walk(path):
+        if check_for_dataset(files):
+            return root
+    raise ValueError("The provided path does not contain any GMQL dataset")
 
+
+def check_for_dataset(files):
+    return len([x for x in files if x.endswith(".meta")]) > 0
 
 def load_from_path(local_path=None, parser=None, meta_load=False,
                    reg_load=False, all_load=False):
