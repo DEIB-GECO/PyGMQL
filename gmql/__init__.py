@@ -147,11 +147,13 @@ def stop():
 atexit.register(stop)
 
 # things to expose to the user
-from .dataset.GMQLDataset import GMQLDataset                # the dataset
+from .dataset.GMQLDataset import GMQLDataset, materialize   # the dataset
+from .dataset.GDataframe import GDataframe                  # the genomic dataframe
 from .dataset.loaders.Loader import load_from_path
 from .dataset import parsers                                # the set of parsers
 from .dataset.DataStructures.Aggregates import *            # the possible aggregations
 from .dataset.DataStructures.GenometricPredicates import *  # the possible join conditions
+from .RemoteConnection.RemoteManager import RemoteManager      # for interacting with the remote cluster
 
 
 class GMQLManagerNotInitializedError(Exception):
