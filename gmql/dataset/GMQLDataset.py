@@ -75,7 +75,7 @@ class GMQLDataset:
         :param name: the name of the metadata that is considered
         :return: a MetaField instance
         """
-        return MetaField(name=name)
+        return MetaField(name=name, index=self.index)
 
     def RegField(self, name):
         """
@@ -228,7 +228,7 @@ class GMQLDataset:
             regExtJavaList = get_gateway().jvm.java.util.ArrayList()
             for k in new_field_dict.keys():
                 name = k
-                reNode = new_field_dict[k].getRegionExtension()
+                reNode = new_field_dict[k].getRegionExpression()
                 reg_extension = self.pmg.getNewExpressionBuilder(self.index).createRegionExtension(name, reNode)
                 regExtJavaList.append(reg_extension)
             new_index = self.opmng.reg_project_extend(self.index, regsJavaList, regExtJavaList)
@@ -619,6 +619,17 @@ class GMQLDataset:
         Materialization utilities
     """
     def materialize(self, output_path=None):
+        """ Starts the execution of the operations for the GMQLDataset. PyGMQL implements lazy execution
+        and no operation is performed until the materialization of the results is requestd.
+        This operation can happen both locally or remotely.
+        If the user does not specifies any output path, the results are directly converted in a GDataframe.
+        On the other side, if the save of the results is requested, a new GMQL dataset structure
+        is created at the specified location and anyway a GDataframe is returned.
+
+        :param output_path: If specified, the user can say where to locally save the results
+                            of the computations.
+        :return: A GDataframe
+        """
         regs = None
         meta = None
         if output_path is not None:
