@@ -4,15 +4,15 @@ from ... import get_python_manager
 class RegField:
 
     def __init__(self, name, index=None, region_condition=None, reNode=None):
-        assert not(region_condition and reNode), \
-            "You cannot mix conditions and expressions"
+        if (region_condition is not None) and (reNode is not None):
+            raise ValueError("you cannot mix conditions and expressions")
         self.name = name
         self.index = index
         self.region_condition = region_condition
         pymg = get_python_manager()
         self.exp_build = pymg.getNewExpressionBuilder(self.index)
         # check that the name is not already complex
-        if not (name.startswith("(") and name.endswith(")")) and reNode is None :
+        if not (name.startswith("(") and name.endswith(")")) and reNode is None:
             self.reNode = self.exp_build.getRENode(name)
         else:
             self.reNode = reNode
@@ -20,7 +20,7 @@ class RegField:
     def getRegionCondition(self):
         return self.region_condition
 
-    def getRegionExtension(self):
+    def getRegionExpression(self):
         return self.reNode
 
     """
@@ -80,18 +80,24 @@ class RegField:
         EXPRESSIONS
     """
 
+    def __get_return_type(self, other):
+        if isinstance(other, str):
+            other = self.exp_build.getREType("string", other)
+        elif isinstance(other, int):
+            other = self.exp_build.getREType("int", str(other))
+        elif isinstance(other, float):
+            other = self.exp_build.getREType("float", str(other))
+        else:
+            raise ValueError("Expected string, float or integer. {} was found".format(type(other)))
+        return other
+
     def __add__(self, other):
         if isinstance(other, RegField):
             # we are dealing with an other RegField
             new_name = '(' + self.name + ' + ' + other.name + ')'
             node = self.exp_build.getBinaryRegionExpression(self.reNode, "ADD", other.reNode)
         else:
-            if isinstance(other, str):
-                other = self.exp_build.getREType("string", other)
-            elif isinstance(other, int):
-                other = self.exp_build.getREType("int", str(other))
-            elif isinstance(other, float):
-                other = self.exp_build.getREType("float", str(other))
+            other = self.__get_return_type(other)
             new_name = '(' + self.name + ' + ' + str(other) + ')'
             node = self.exp_build.getBinaryRegionExpression(self.reNode, "ADD", other)
         return RegField(name=new_name, index=self.index, reNode=node)
@@ -105,12 +111,7 @@ class RegField:
             new_name = '(' + self.name + ' - ' + other.name + ')'
             node = self.exp_build.getBinaryRegionExpression(self.reNode, "SUB", other.reNode)
         else:
-            if isinstance(other, str):
-                other = self.exp_build.getREType("string", other)
-            elif isinstance(other, int):
-                other = self.exp_build.getREType("int", str(other))
-            elif isinstance(other, float):
-                other = self.exp_build.getREType("float", str(other))
+            other = self.__get_return_type(other)
             new_name = '(' + self.name + ' - ' + str(other) + ')'
             node = self.exp_build.getBinaryRegionExpression(self.reNode, "SUB", other)
         return RegField(name=new_name, index=self.index, reNode=node)
@@ -121,12 +122,7 @@ class RegField:
             new_name = '(' + other.name + ' - ' + self.name + ')'
             node = self.exp_build.getBinaryRegionExpression(other.reNode, "SUB", self.reNode)
         else:
-            if isinstance(other, str):
-                other = self.exp_build.getREType("string", other)
-            elif isinstance(other, int):
-                other = self.exp_build.getREType("int", str(other))
-            elif isinstance(other, float):
-                other = self.exp_build.getREType("float", str(other))
+            other = self.__get_return_type(other)
             new_name = '(' + str(other) + ' - ' + self.name + ')'
             node = self.exp_build.getBinaryRegionExpression(other, "SUB", self.reNode)
         return RegField(name=new_name, index=self.index, reNode=node)
@@ -137,12 +133,7 @@ class RegField:
             new_name = '(' + self.name + ' * ' + other.name + ')'
             node = self.exp_build.getBinaryRegionExpression(self.reNode, "MUL", other.reNode)
         else:
-            if isinstance(other, str):
-                other = self.exp_build.getREType("string", other)
-            elif isinstance(other, int):
-                other = self.exp_build.getREType("int", str(other))
-            elif isinstance(other, float):
-                other = self.exp_build.getREType("float", str(other))
+            other = self.__get_return_type(other)
             new_name = '(' + self.name + ' * ' + str(other) + ')'
             node = self.exp_build.getBinaryRegionExpression(self.reNode, "MUL", other)
         return RegField(name=new_name, index=self.index, reNode=node)
@@ -156,12 +147,7 @@ class RegField:
             new_name = '(' + self.name + ' / ' + other.name + ')'
             node = self.exp_build.getBinaryRegionExpression(self.reNode, "DIV", other.reNode)
         else:
-            if isinstance(other, str):
-                other = self.exp_build.getREType("string", other)
-            elif isinstance(other, int):
-                other = self.exp_build.getREType("int", str(other))
-            elif isinstance(other, float):
-                other = self.exp_build.getREType("float", str(other))
+            other = self.__get_return_type(other)
             new_name = '(' + self.name + ' / ' + str(other) + ')'
             node = self.exp_build.getBinaryRegionExpression(self.reNode, "DIV", other)
         return RegField(name=new_name, index=self.index, reNode=node)
@@ -172,12 +158,7 @@ class RegField:
             new_name = '(' + other.name + ' / ' + self.name + ')'
             node = self.exp_build.getBinaryRegionExpression(other.reNode, "DIV", self.reNode)
         else:
-            if isinstance(other, str):
-                other = self.exp_build.getREType("string", other)
-            elif isinstance(other, int):
-                other = self.exp_build.getREType("int", str(other))
-            elif isinstance(other, float):
-                other = self.exp_build.getREType("float", str(other))
+            other = self.__get_return_type(other)
             new_name = '(' + str(other) + ' / ' + self.name + ')'
             node = self.exp_build.getBinaryRegionExpression(other, "DIV", self.reNode)
         return RegField(name=new_name, index=self.index, reNode=node)
