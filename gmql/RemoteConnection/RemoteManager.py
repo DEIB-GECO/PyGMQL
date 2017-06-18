@@ -1,16 +1,13 @@
 from . import default_address, headers
-import requests
+import requests, time, logging, json
 from requests_toolbelt.multipart.encoder import MultipartEncoderMonitor, MultipartEncoder
-import logging
-import json
 import pandas as pd
 from ..dataset.parsers.BedParser import BedParser
 from ..dataset.DataStructures import chr_aliases, start_aliases, stop_aliases, strand_aliases
 from ..dataset.loaders import Loader
-import os
+import os, shutil, zipfile, sys
 from tqdm import tqdm
-import shutil
-import zipfile
+
 
 # import http.client as http_client
 # http_client.HTTPConnection.debuglevel = 1
@@ -22,6 +19,7 @@ import zipfile
 # requests_log.setLevel(logging.DEBUG)
 # requests_log.propagate = True
 
+good_status = ['PENDING', 'RUNNING']
 
 class RemoteManager:
     """ Manager of the user connection with the remote GMQL service
@@ -55,9 +53,9 @@ class RemoteManager:
         :return: None
         """
         if (username is None) and (password is None):
-            auth_token = self._login_guest()
+            auth_token = self.__login_guest()
         elif (username is not None) and (password is not None):
-            auth_token, fullName = self._login_credentials(username, password)
+            auth_token, fullName = self.__login_credentials(username, password)
             self.logger.info("You are logged as {}".format(fullName))
         else:
             raise ValueError("you have to specify both username and password or nothing")
@@ -68,13 +66,13 @@ class RemoteManager:
         else:
             raise ConnectionError("Impossible to retrieve the authentication token")
 
-    def _login_guest(self):
+    def __login_guest(self):
         url = self.address + "/guest"
         response = requests.get(url=url, headers=headers)
         response = response.json()
         return response.get("authToken")
 
-    def _login_credentials(self, username, password):
+    def __login_credentials(self, username, password):
         url = self.address + "/login"
         body = {
             "username": username,
@@ -98,7 +96,7 @@ class RemoteManager:
         :return: a pandas Dataframe
         """
         url = self.address + "/datasets"
-        header = self._check_authentication()
+        header = self.__check_authentication()
         response = requests.get(url, headers=header)
         response = response.json()
         datasets = response.get("datasets")
@@ -111,7 +109,7 @@ class RemoteManager:
         :return: a pandas Dataframe
         """
         url = self.address + "/datasets/"+dataset_name
-        header = self._check_authentication()
+        header = self.__check_authentication()
         response = requests.get(url, headers=header)
         if response.status_code != 200:
             raise ValueError("Code {}: {}".format(response.status_code, response.json().get("error")))
@@ -126,7 +124,7 @@ class RemoteManager:
         :return: a BedParser
         """
         url = self.address + "/datasets/" + dataset_name+"/schema"
-        header = self._check_authentication()
+        header = self.__check_authentication()
         response = requests.get(url, headers=header)
         if response.status_code != 200:
             raise ValueError("Code {}: {}".format(response.status_code, response.json().get("error")))
@@ -163,7 +161,7 @@ class RemoteManager:
         :return: None
         """
         url = self.address + "/datasets/" + dataset_name + "/uploadSample"
-        header = self._check_authentication()
+        header = self.__check_authentication()
         file_paths, schema_path = Loader.get_file_paths(dataset_local_path)
         fields = dict()
         fields['schema'] = (os.path.basename(schema_path), open(schema_path, "rb"), 'application/octet-stream')
@@ -193,13 +191,13 @@ class RemoteManager:
         :return: None
         """
         url = self.address + "/datasets/" + dataset_name
-        header = self._check_authentication()
+        header = self.__check_authentication()
         response = requests.delete(url, headers=header)
         if response.status_code != 200:
             raise ValueError("Code {}: {}".format(response.status_code, response.json().get("error")))
         self.logger.info("Dataset {} was deleted from the repository".format(dataset_name))
 
-    def _check_authentication(self):
+    def __check_authentication(self):
         if self.auth_token is not None:
             header = headers.copy()
             header['X-AUTH-TOKEN'] = self.auth_token
@@ -216,7 +214,7 @@ class RemoteManager:
         :return: None
         """
         url = self.address + "/datasets/" + dataset_name + "/zip"
-        header = self._check_authentication()
+        header = self.__check_authentication()
         self.logger.info("Downloading dataset {} to {}".format(dataset_name, local_path))
         response = requests.get(url, stream=True, headers=header)
         if response.status_code != 200:
@@ -226,6 +224,7 @@ class RemoteManager:
         os.mkdir(local_path)
         tmp_zip = os.path.join(local_path, "tmp.zip")
         f = open(tmp_zip, "wb")
+        # TODO: find a better way to display the download progression
         for chunk in tqdm(response.iter_content(chunk_size=512)):
             if chunk:
                 f.write(chunk)
@@ -233,6 +232,70 @@ class RemoteManager:
         with zipfile.ZipFile(tmp_zip, "r") as zip_ref:
             zip_ref.extractall(local_path)
         os.remove(tmp_zip)
+
+    def query(self, query, output_path=None, file_name="query", output="tab"):
+        """ Execute a GMQL textual query on the remote server.
+
+        :param query: the string containing the query
+        :param output_path (optional): where to store the results locally. If specified
+               the results are downloaded locally
+        :param file_name (optional): the name of the query
+        :param output (optional): how to save the results. It can be "tab" or "gtf"
+        :return: a pandas dataframe with the dictionary ids of the results
+        """
+        header = self.__check_authentication()
+        header['Content-Type'] = "text/plain"
+        output = output.lower()
+        if output not in ['tab', 'gtf']:
+            raise ValueError("output must be 'tab' or 'gtf'")
+        url = self.address + "/queries/run/" + file_name + '/' + output
+        response = requests.post(url, data=query, headers=header)
+        if response.status_code != 200:
+            raise ValueError("Code {}. {}".format(response.status_code, response.json().get("error")))
+        response = response.json()
+        job = response.get("job")
+        jobid = job.get("id")
+        self.logger.info("Waiting for the result")
+
+        count = 1
+        while True:
+            status_resp = self.trace_job(jobid)
+            status = status_resp["status"]
+            if status == 'SUCCESS':
+                break
+            elif status in good_status:
+                print(" "*50, end='\r')
+                dots = "." * (count % 4)
+                print(status + dots, end="\r")
+            else:
+                message = status_resp['message']
+                raise ValueError("Status: {}. Error during query execution: {}"
+                                 .format(status, message))
+            count += 1
+            time.sleep(1)
+
+        datasets = status_resp.get("datasets")
+        result = []
+        for dataset in datasets:
+            name = dataset.get("name")
+            result.append({'dataset': name})
+            if output_path is not None:
+                path = os.path.join(output_path, name)
+                self.download_dataset(dataset_name=name, local_path=path)
+        return pd.DataFrame.from_dict(result)
+
+    def trace_job(self, jobId):
+        """ Get information about the specified remote job
+
+        :param jobId: the job identifier
+        :return: a dictionary with the information
+        """
+        header = self.__check_authentication()
+        status_url = self.address + "/jobs/" + jobId + "/trace"
+        status_resp = requests.get(status_url, headers=header)
+        if status_resp.status_code != 200:
+            raise ValueError("Code {}. {}".format(status_resp.status_code, status_resp.json().get("error")))
+        return status_resp.json()
 
 
 def create_callback(encoder, n_files=None):
