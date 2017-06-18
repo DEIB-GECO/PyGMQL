@@ -4,7 +4,8 @@ Setting up the environment of the library
 import logging
 import subprocess as sp
 from sys import stdout
-from py4j.java_gateway import JavaGateway
+from py4j.java_gateway import JavaGateway, GatewayParameters
+from py4j.java_collections import ListConverter
 import os
 import time
 import atexit
@@ -49,7 +50,7 @@ def start_gateway_server(gmql_jar):
     command = [java_path, '-jar', gmql_jar_fn]
     proc = sp.Popen(command)
     synchronize()
-    gateway = JavaGateway()
+    gateway = JavaGateway(gateway_parameters=GatewayParameters(auto_convert=True))
     return proc, gateway
 
 
@@ -146,7 +147,32 @@ def stop():
 
 atexit.register(stop)
 
-# things to expose to the user
+class GMQLManagerNotInitializedError(Exception):
+    pass
+
+
+
+# Starting the GMQL manager
+start()
+
+
+"""
+    LANGUAGE CONVERSIONS
+"""
+
+
+def to_java_list(l):
+    ListConverter().convert(l, gateway)
+
+none = pythonManager.getNone()
+
+
+def Some(thing):
+    return pythonManager.getSome(thing)
+
+"""
+    EXPOSING INTERNAL FEATURES
+"""
 from .dataset.GMQLDataset import GMQLDataset, materialize   # the dataset
 from .dataset.GDataframe import GDataframe                  # the genomic dataframe
 from .dataset.loaders.Loader import load_from_path
@@ -154,13 +180,3 @@ from .dataset import parsers                                # the set of parsers
 from .dataset.DataStructures.Aggregates import *            # the possible aggregations
 from .dataset.DataStructures.GenometricPredicates import *  # the possible join conditions
 from .RemoteConnection.RemoteManager import RemoteManager      # for interacting with the remote cluster
-
-
-class GMQLManagerNotInitializedError(Exception):
-    pass
-
-
-"""
-    Starting the GMQL manager
-"""
-start()
