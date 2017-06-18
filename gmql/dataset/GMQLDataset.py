@@ -1,5 +1,5 @@
 from builtins import isinstance
-from .. import get_python_manager, get_gateway
+from .. import get_python_manager, get_gateway, none, Some
 from .loaders import MetaLoaderFile, RegLoaderFile
 from .DataStructures.RegField import RegField
 from .DataStructures.MetaField import MetaField
@@ -192,26 +192,59 @@ class GMQLDataset:
 
         return GMQLDataset(parser=self.parser, index=new_index)
 
-    def meta_project(self, attr_list):
+    def meta_project(self, attr_list=None, new_attr_dict=None):
         """
         Project the metadata based on a list of attribute names
         
         :param attr_list: list of the metadata fields to select
+        :param new_attr_dict: an optional dictionary of the form {'new_field_1': function1,
+               'new_field_2': function2, ...} in which every function computes
+               the new field based on the values of the others
         :return: a new GMQLDataset
         """
-        metaJavaList = get_gateway().jvm.java.util.ArrayList()
-        for a in attr_list:
-            metaJavaList.append(a)
+        projected_meta = None
+        if attr_list is None:
+            projected_meta = none
+        elif isinstance(attr_list, list):
+            projected_meta = Some(attr_list)
+        else:
+            raise ValueError("attr_list must be a list")
 
-        new_index = self.opmng.meta_project(self.index, metaJavaList)
+        meta_ext = None
+        if new_attr_dict is None:
+            meta_ext = none
+        elif not isinstance(new_attr_dict, dict):
+            raise ValueError("new_attr_list must be a dictionary")
+        else:
+            if len(new_attr_dict) != 1:
+                raise ValueError("The dictionary must have only one mapping")
+            meta_ext_list = []
+            for k in new_attr_dict.keys():
+                name = k
+                meNode = new_attr_dict[k]
+                if not isinstance(meNode, MetaField):
+                    raise ValueError("the values of the dictionary must be MetaField")
+                meNode = meNode.getMetaExpression()
+                meta_extension = self.pmg.getNewExpressionBuilder(self.index) \
+                    .createMetaExtension(name, meNode)
+                meta_ext_list.append(meta_extension)
+            meta_ext = Some(meta_ext_list[0])
+
+        new_index = self.opmng.project(self.index,
+                                       projected_meta,
+                                       meta_ext, none, none, none)
         return GMQLDataset(index=new_index, parser=self.parser)
 
-    def reg_project(self, field_list=None, new_field_dict=None):
+    def reg_project(self, field_list=None, all_but=None, new_field_dict=None):
         """
         Project the region data based on a list of field names
 
         :param field_list: list of the fields to select
-        :param new_field_dict: an optional dictionary of the form {'new_field_1': function1, 'new_field_2': function2, ...} in which every function computes the new field based on the values of the others
+        :param all_but: keep only the region fields different from the ones
+               specified
+        :param new_field_dict: an optional dictionary of the form {'new_field_1':
+               function1, 'new_field_2': function2, ...} in which every function
+               computes the new field based on the values of the others
         :return: a new GMQLDataset
 
         An example of usage::
@@ -219,21 +252,42 @@ class GMQLDataset:
             new_dataset = dataset.reg_project(['pValue', 'name'],
                                             {'new_field': dataset.pValue / 2})
         """
-        regsJavaList = get_gateway().jvm.java.util.ArrayList()
-        if field_list is not None:
-            for f in field_list:
-                if f not in reg_fixed_fileds:
-                    regsJavaList.append(f)
-        if new_field_dict is not None:
-            regExtJavaList = get_gateway().jvm.java.util.ArrayList()
+        projected_regs = None
+        if field_list is None:
+            projected_regs = none
+        elif isinstance(field_list, list):
+            projected_regs = Some(field_list)
+        else:
+            raise ValueError("field_list must be a list")
+
+        all_but_f = None
+        if all_but is None:
+            all_but_f = none
+        elif isinstance(all_but, list):
+            all_but_f = Some(all_but)
+        else:
+            raise ValueError("all_but list must be a list")
+
+        regs_ext = None
+        if new_field_dict is None:
+            regs_ext = none
+        elif not isinstance(new_field_dict, dict):
+            raise ValueError("new_filed_dict must be a dictionary")
+        else:
+            regs_ext_list = []
             for k in new_field_dict.keys():
                 name = k
-                reNode = new_field_dict[k].getRegionExpression()
-                reg_extension = self.pmg.getNewExpressionBuilder(self.index).createRegionExtension(name, reNode)
-                regExtJavaList.append(reg_extension)
-            new_index = self.opmng.reg_project_extend(self.index, regsJavaList, regExtJavaList)
-        else:
-            new_index = self.opmng.reg_project(self.index, regsJavaList)
+                reNode = new_field_dict[k]
+                if not isinstance(reNode, RegField):
+                    raise ValueError("the values of the dictionary must be RegField")
+                reNode = reNode.getRegionExpression()
+                reg_extension = self.pmg.getNewExpressionBuilder(self.index)\
+                    .createRegionExtension(name, reNode)
+                regs_ext_list.append(reg_extension)
+            regs_ext = Some(regs_ext_list)
+
+        new_index = self.opmng.project(self.index, none, none,
+                                       projected_regs, all_but_f, regs_ext)
         return GMQLDataset(index=new_index, parser=self.parser)
 
     def add_meta(self, attr_name, value):
