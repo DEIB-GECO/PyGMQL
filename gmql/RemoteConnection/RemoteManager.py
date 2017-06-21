@@ -253,8 +253,7 @@ class RemoteManager:
         if response.status_code != 200:
             raise ValueError("Code {}. {}".format(response.status_code, response.json().get("error")))
         response = response.json()
-        job = response.get("job")
-        jobid = job.get("id")
+        jobid = response.get("id")
         self.logger.info("Waiting for the result")
 
         count = 1
