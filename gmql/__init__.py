@@ -36,22 +36,56 @@ def set_logger(logger_name):
     return logger
 
 
-def start_gateway_server(gmql_jar):
-    """
-    Starts the JVM with the server handling the command requests from the user
-    :param gmql_jar: the location of the jar containing the Scala API
-    :return: the process of the server and the gateway for python for accessing to it
-    """
+def start_gateway_server(gmql_jar, instances_file):
+    port_n = check_instances(instances_file)
+
     java_home = os.environ.get("JAVA_HOME")
     if java_home is None:
         raise SystemError("The environment variable JAVA_HOME is not setted")
     java_path = os.path.join(java_home, "bin", "java")
     gmql_jar_fn = resource_filename("gmql", os.path.join("resources", gmql_jar))
-    command = [java_path, '-jar', gmql_jar_fn]
+    command = [java_path, '-jar', gmql_jar_fn, str(port_n)]
     proc = sp.Popen(command)
     synchronize()
-    gateway = JavaGateway(gateway_parameters=GatewayParameters(auto_convert=True))
-    return proc, gateway
+    gateway = JavaGateway(gateway_parameters=GatewayParameters(auto_convert=True, port=port_n))
+    return proc, gateway, port_n
+
+
+def check_instances(instances_file):
+    instances_fn = resource_filename("gmql", os.path.join("resources", instances_file))
+    port = 25335
+    with open(instances_fn, "r") as f:
+        content = f.readlines()
+        if len(content) > 0:
+            last_n = int(content[-1])
+            port = last_n + 1
+
+    with open(instances_fn, "a") as f:
+        f.write(str(port) + os.linesep)
+    return port
+
+
+def remove_instance(port_n, instances_file):
+    instances_fn = resource_filename("gmql", os.path.join("resources", instances_file))
+    ports = None
+    with open(instances_fn, "r") as f:
+        lines = f.readlines()
+        ports = list(map(int, lines))
+        if port_n not in ports:
+            raise ValueError("Port number {} is not in the current instances".format(port_n))
+        ports.remove(port_n)
+    ports = list(map(lambda x: str(x) + os.linesep, ports))
+    with open(instances_fn, "w") as f:
+        f.writelines(ports)
+
+
+def get_open_instances():
+    global instances_file
+    instances_fn = resource_filename("gmql", os.path.join("resources", instances_file))
+    ports = None
+    with open(instances_fn, "r") as f:
+        ports = list(map(int, f.readlines()))
+    return ports
 
 
 def synchronize():
@@ -97,53 +131,54 @@ logger = set_logger(logger_name)
 """
 synchfile = 'sync.txt'
 gmql_jar = "pythonAPI.jar"
-server_process, gateway, pythonManager = None, None, None
+instances_file = "instances"
+server_process, gateway, pythonManager, port_n = None, None, None, None
 
 
 def start():
-    global server_process, gateway, pythonManager
+    global server_process, gateway, pythonManager, instances_file, port_n
     process_cleaning()
-    server_process, gateway = start_gateway_server(gmql_jar)
+    server_process, gateway, port_n = start_gateway_server(gmql_jar, instances_file)
     python_api_package = get_python_api_package(gateway)
     pythonManager = start_gmql_manager(python_api_package)
 
 
 def process_cleaning():
     global gmql_jar
+    active_ports = get_open_instances()
     gmql_jar_name = resource_filename("gmql", os.path.join("resources", gmql_jar))
     for p in psutil.process_iter():
         name = p.name()
         if name == 'java':
             cmd = p.cmdline()
-            if len(cmd) == 3 and cmd[2] == gmql_jar_name:
-                logger.info("Previous JVM killed: {}".format(cmd[2]))
-                p.kill()   # kill it
+            if len(cmd) == 4 and cmd[2] == gmql_jar_name:
+                port = int(cmd[3])
+                if port not in active_ports:
+                    logger.info("Previous JVM killed: {}".format(cmd[2]))
+                    p.kill()   # kill it
+                else:
+                    active_ports.remove(port)
+    global instances_file
+    for a in active_ports:
+        remove_instance(a, instances_file)
+
 
 
 def stop():
-    global pythonManager, server_process, gateway
-
+    global pythonManager, server_process, gateway, port_n, instances_file
+    remove_instance(port_n, instances_file)
     try:
         os.remove(synchfile)
-    #     if pythonManager is None:
-    #         raise GMQLManagerNotInitializedError("You need first to initialize the GMQLManager with the start() method")
     except Exception:
-        # print("Impossible to remove the sync file")
         pass
     try:
-        # pythonManager.stopEngine()
         gateway.shutdown()
     except Exception:
-        # print("Impossible to shutdown the engine")
         pass
     try:
         process_cleaning()
     except Exception:
         pass
-    # try:
-    #     server_process.terminate()
-    # except Exception:
-    #     print("Impossible to stop the jvm server")
 
 atexit.register(stop)
 
