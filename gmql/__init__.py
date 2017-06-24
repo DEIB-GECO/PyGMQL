@@ -209,7 +209,7 @@ def Some(thing):
     EXPOSING INTERNAL FEATURES
 """
 from .dataset.GMQLDataset import GMQLDataset, materialize   # the dataset
-from .dataset.GDataframe import GDataframe                  # the genomic dataframe
+from .dataset.GDataframe import GDataframe, from_pandas     # the genomic dataframe
 from .dataset.loaders.Loader import load_from_path
 from .dataset import parsers                                # the set of parsers
 from .dataset.DataStructures.Aggregates import *            # the possible aggregations
