@@ -45,6 +45,7 @@ def to_local(gframe, path_local):
     dataset_name = os.path.basename(os.path.normpath(path_local))
     save_schema(regs, dataset_name, "Peak", path_local + "/" + "schema.schema")
 
+
 def meta_to_file(meta_df, filename):
     f = open(filename, "w")
     # the dataframe is only one line
