@@ -103,7 +103,7 @@ def search_column(region_df, names, types, subs, name=None):
 
     isok = False
     for e in columns:
-        if e in names and check_type(region_df[name], types):
+        if e in names and check_type(region_df[e], types):
             region_df = region_df.rename({e: subs})
             isok = True
             break
@@ -113,10 +113,7 @@ def search_column(region_df, names, types, subs, name=None):
 
 
 def check_type(column, types):
-    for t in types:
-        if isinstance(column.dtype, t):
-            return True
-    return False
+    return column.dtype in types
 
 
 def check_meta(meta_df, regs_df):
