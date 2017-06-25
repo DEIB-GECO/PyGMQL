@@ -54,12 +54,9 @@ def start_gateway_server(gmql_jar, instances_file):
 def check_instances(instances_file):
     instances_fn = resource_filename("gmql", os.path.join("resources", instances_file))
     port = 25335
-    with open(instances_fn, "r") as f:
-        content = f.readlines()
-        if len(content) > 0:
-            last_n = int(content[-1])
-            port = last_n + 1
-
+    ports = get_open_instances()
+    if len(ports) > 0:
+        port = ports[-1] + 1
     with open(instances_fn, "a") as f:
         f.write(str(port) + os.linesep)
     return port
@@ -67,13 +64,10 @@ def check_instances(instances_file):
 
 def remove_instance(port_n, instances_file):
     instances_fn = resource_filename("gmql", os.path.join("resources", instances_file))
-    ports = None
-    with open(instances_fn, "r") as f:
-        lines = f.readlines()
-        ports = list(map(int, lines))
-        if port_n not in ports:
-            raise ValueError("Port number {} is not in the current instances".format(port_n))
-        ports.remove(port_n)
+    ports = get_open_instances()
+    if port_n not in ports:
+        raise ValueError("Port number {} is not in the current instances".format(port_n))
+    ports.remove(port_n)
     ports = list(map(lambda x: str(x) + os.linesep, ports))
     with open(instances_fn, "w") as f:
         f.writelines(ports)
