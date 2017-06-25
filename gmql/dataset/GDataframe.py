@@ -117,7 +117,16 @@ def check_type(column, types):
 
 
 def check_meta(meta_df, regs_df):
-    return True
+    reg_index = regs_df.index
+    reg_samples = set(reg_index.unique())
+
+    meta_index = meta_df.index
+    meta_samples = set(meta_index.unique())
+
+    if reg_samples != meta_samples:
+        return False
+    else:
+        return True
 
 
 def empty_meta(regs):
