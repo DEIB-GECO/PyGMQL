@@ -1,4 +1,3 @@
-from builtins import isinstance
 from .. import get_python_manager, get_gateway, none, Some
 from .loaders import MetaLoaderFile, RegLoaderFile
 from .DataStructures.RegField import RegField
@@ -10,12 +9,13 @@ from .GDataframe import GDataframe
 from .loaders import Loader
 from .loaders import MemoryLoader
 
+
 class GMQLDataset:
     """
     The main abstraction of the library.
-    A GMQLDataset represents a genomic dataset and it is divided in region data and
-    meta data. The function that can be applied to a GMQLDataset affect one of these
-    two features or both.
+    A GMQLDataset represents a genomic dataset in the GMQL standard and it is divided
+    in region data and meta data. The function that can be applied to a GMQLDataset
+    affect one of these two features or both.
     """
 
     def __init__(self, parser=None, index=None, regs=None, meta=None):
@@ -42,10 +42,14 @@ class GMQLDataset:
         self.right = self.RegField("right")
 
     def __getitem__(self, item):
-        assert isinstance(item, str), "The name of the field must be a string"
-        return self.MetaField(item)
+        if isinstance(item, str):
+            return self.MetaField(item)
+        elif isinstance(item, MetaField):
+            return self.meta_select(predicate=item)
+        else:
+            raise ValueError("Input must be a string or a MetaField. {} was found".format(type(item)))
 
-    def show_info(self):
+    def __show_info(self):
         print("GMQLDataset")
         print("\tParser:\t{}".format(self.parser.get_parser_name()))
         print("\tIndex:\t{}".format(self.index))
@@ -109,17 +113,34 @@ class GMQLDataset:
         :param semiJoinDataset: an other GMQLDataset 
         :param semiJoinMeta: a list of metadata
         :return: a new GMQLDataset
+
         
-        An example of usage::
+        Example 1::
         
-            new_dataset = dataset.meta_select(dataset['meta1'] <= 5 && dataset['meta2'] == 'gmql')
+            output_dataset = dataset.meta_select(dataset['patient_age'] < 70)
+            # This statement can be written also as
+            output_dataset = dataset[ dataset['patient_age'] < 70 ]
+
+        Example 2::
+
+            output_dataset = dataset.meta_select( (dataset['tissue_status'] == 'tumoral') &&
+                                                (tumor_tag == 'gbm') || (tumor_tag == 'brca'))
+            # This statement can be written also as
+            output_dataset = dataset[ (dataset['tissue_status'] == 'tumoral') &&
+                                    (tumor_tag == 'gbm') || (tumor_tag == 'brca') ]
+
+        Example 3::
+
+            JUN_POLR2A_TF = HG19_ENCODE_NARROW.meta_select( JUN_POLR2A_TF['antibody_target'] == 'JUN',
+                                                            semiJoinDataset=POLR2A_TF, semiJoinMeta=['cell'])
+
         """
 
         other_idx = None
         metaJoinCondition = None
         meta_condition = None
 
-        if predicate is not None:
+        if isinstance(predicate, MetaField):
             meta_condition = predicate.getMetaCondition()
         if (semiJoinDataset is not None) and  \
                 (semiJoinMeta is not None):
