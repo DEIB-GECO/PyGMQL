@@ -29,10 +29,10 @@ def to_local(gframe, path_local):
     # creating the directory
     if os.path.isdir(path_local):
         shutil.rmtree(path_local)
-    os.mkdir(path_local)
+    os.makedirs(path_local)
 
     logger.info("Saving data at {}".format(path_local))
-    all_file_names = regs.index.unique()
+    all_file_names = map(str, regs.index.unique())
     for file in tqdm(all_file_names):
         final_file_name = path_local + "/" + file
         part_regs = regs.loc[file]
