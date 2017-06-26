@@ -225,7 +225,8 @@ class RemoteManager:
         tmp_zip = os.path.join(local_path, "tmp.zip")
         f = open(tmp_zip, "wb")
         # TODO: find a better way to display the download progression
-        for chunk in tqdm(response.iter_content(chunk_size=512)):
+        from .. import disable_progress
+        for chunk in tqdm(response.iter_content(chunk_size=512), disable=disable_progress):
             if chunk:
                 f.write(chunk)
         f.close()
@@ -304,7 +305,9 @@ def create_callback(encoder, n_files=None):
         byte_per_file = encoder_len / n_files
     else:
         tot_len = encoder_len
-    bar = tqdm(total=tot_len)
+
+    from .. import disable_progress
+    bar = tqdm(total=tot_len, disable=disable_progress)
 
     if n_files is not None:
         def callback(monitor):
