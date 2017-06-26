@@ -131,7 +131,9 @@ def check_meta(meta_df, regs_df):
 
 def empty_meta(regs):
     index = regs.index.unique()
-    return pd.DataFrame(index=index)
+    df = pd.DataFrame(index=index)
+    df['file'] = pd.Series(index=index, data=list(map(lambda x: [str(x)], index)))
+    return df
 
 
 def to_gmql_regions(regs):
