@@ -35,6 +35,22 @@ def set_logger(logger_name):
     logger.addHandler(handler)
     return logger
 
+disable_progress = False
+
+
+def set_progress(how):
+    """ Enables or disables the progress bars for the loading, writing and downloading
+    of datasets
+
+    :param how: True if you want the progress bar, False otherwise
+    :return: None
+    """
+    global disable_progress
+    if isinstance(how, bool):
+        disable_progress = ~how
+    else:
+        raise ValueError("how must be a boolean. {} was found".format(type(how)))
+
 
 def start_gateway_server(gmql_jar, instances_file):
     port_n = check_instances(instances_file)
