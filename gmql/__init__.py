@@ -52,6 +52,21 @@ def set_progress(how):
         raise ValueError("how must be a boolean. {} was found".format(type(how)))
 
 
+def set_logging(how):
+    """ Enables or disables the logging mechanism of PyGMQL.
+
+    :param how: True if you want the logging, False otherwise
+    :return: None
+    """
+    if isinstance(how, bool):
+        if how:
+            logging.disable(logging.NOTSET)
+        else:
+            logging.disable(logging.CRITICAL)
+    else:
+        raise ValueError("how must be a boolean. {} was found".format(type(how)))
+
+
 def start_gateway_server(gmql_jar, instances_file):
     port_n = check_instances(instances_file)
 
