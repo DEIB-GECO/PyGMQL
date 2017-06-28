@@ -2,22 +2,68 @@
 API for calling interactively the GMQL Engine from Python
 
 ## Setup
+
+#### Use Anaconda
+We suggest to manage your python distribution through Anaconda. 
+The latest version of can be downloaded from https://www.continuum.io/downloads.
+
+Once your Anaconda distribution is installed, let's create a brand new environment:
+```
+conda create --name pygmql python=3.6
+```
+
+#### Download this repository
 First of all download this repository in a choosen location:
 ```
-    git clone https://github.com/DEIB-GECO/PyGMQL.git
+git clone https://github.com/DEIB-GECO/PyGMQL.git
 ```
-Check that the `JAVA_HOME` enviroment variable is correctly set to the latest JAVA distribution.
+Check that the `JAVA_HOME` enviroment variable is correctly set to 
+the latest JAVA distribution.
 ```
-    echo $JAVA_HOME
+echo $JAVA_HOME
 ```
+If the variable is not set (the previous command does not show nothing), you may need
+to install JAVA (https://www.java.com/it/download/) and then set `JAVA_HOME` like the following:
+
+On linux:
+```
+echo export "JAVA_HOME=/path/to/java" >> ~/.bash_profile
+source ~/.bash_profile
+```
+
+On Mac:
+```
+echo export "JAVA_HOME=\$(/usr/libexec/java_home)" >> ~/.bash_profile
+source ~/.bash_profile
+```
+
+On Windows:
+
+1. Right click My Computer and select Properties.
+2. On the Advanced tab, select Environment Variables, and then 
+edit JAVA_HOME to point to where the JDK software is located, 
+for example, C:\Program Files\Java\jdk1.6.0_02.
+
+#### Install with pip
 Than go inside the library folder and install the package as follows:
 ```
-    cd PyGMQL
-    pip install -e .
+cd PyGMQL
+pip install -e .
 ```
 
 We strongly suggest to use the library with the support of a **Jupyter Notebook**
 for the best graphical rendering of the data structures.
 
-## Architecture
-<img src="./images/PyGML - Architecture.png">
+#### Run the library
+Firstly activate the `pygmql` conda environment and enter in the interactive 
+Python shell
+```
+source activate pygmql
+python
+```
+
+Then simply import the library
+```python
+import gmql as gl
+```
+Now you are ready to use PyGMQL! Congratulations!
