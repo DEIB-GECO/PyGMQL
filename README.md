@@ -67,3 +67,12 @@ Then simply import the library
 import gmql as gl
 ```
 Now you are ready to use PyGMQL! Congratulations!
+
+### Keep the code updated
+This is a constantly evolving project. Therefore the library will be
+constantly added with new features. Therefore we suggest to update your
+local copy periodically:
+```
+cd PyGMQL
+git pull
+```
