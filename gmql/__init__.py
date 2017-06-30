@@ -44,6 +44,15 @@ def set_progress(how):
 
     :param how: True if you want the progress bar, False otherwise
     :return: None
+
+    Example::
+
+        import gmql as gl
+
+        gl.set_progress(True)   # abilitates progress bars
+        # ....do something...
+        gl.set_progress(False)  # removes progress bars
+        # ....do something...
     """
     global disable_progress
     if isinstance(how, bool):
@@ -57,6 +66,15 @@ def set_logging(how):
 
     :param how: True if you want the logging, False otherwise
     :return: None
+
+    Example::
+
+        import gmql as gl
+
+        gl.set_logging(True)   # abilitates the logging
+        # ....do something...
+        gl.set_logging(False)  # removes the logging
+        # ....do something...
     """
     if isinstance(how, bool):
         if how:
