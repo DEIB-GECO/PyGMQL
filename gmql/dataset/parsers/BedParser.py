@@ -9,8 +9,8 @@ class BedParser(Parser):
     """
     delimiter = None
 
-    def __init__(self, parser_name, delimiter, chrPos, startPos,
-                 stopPos, strandPos=None, otherPos=None):
+    def __init__(self, delimiter, chrPos, startPos,
+                 stopPos, strandPos=None, otherPos=None, parser_name=None):
         """
         Generic Bed Parser
         :param delimiter: delimiter of the columns of the file
