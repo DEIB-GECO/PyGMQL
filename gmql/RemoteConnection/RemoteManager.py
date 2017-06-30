@@ -19,7 +19,7 @@ from tqdm import tqdm
 # requests_log.setLevel(logging.DEBUG)
 # requests_log.propagate = True
 
-good_status = ['PENDING', 'RUNNING']
+good_status = ['PENDING', 'RUNNING', 'DS_CREATION_RUNNING']
 
 class RemoteManager:
     """ Manager of the user connection with the remote GMQL service
@@ -36,6 +36,23 @@ class RemoteManager:
         self.logger = logging.getLogger("PyGML logger")
         self.auth_token = None
         self.json_encoder = json.JSONEncoder()
+
+    """
+        Security controls
+    """
+
+    def register(self, first_name, last_name, user_name, email, password):
+        url = self.address + "/register"
+        body = {
+            "firstName" : first_name,
+            "lastName": last_name,
+            "username": user_name,
+            "email": email,
+            "password": password
+        }
+        response = requests.post(url, data=json.dumps(body))
+        if response.status_code != 200:
+            raise ValueError("Code {}. {}".format(response.status_code, response.json().get("error")))
 
     def login(self, username=None, password=None):
         """ Before doing any remote operation, the user has to login to the GMQL serivice.
@@ -89,6 +106,29 @@ class RemoteManager:
             auth_token = response.get("authToken")
             fullName = response.get("fullName")
         return auth_token, fullName
+
+    def __check_authentication(self):
+        if self.auth_token is not None:
+            header = headers.copy()
+            header['X-AUTH-TOKEN'] = self.auth_token
+            return header
+        else:
+            raise EnvironmentError("you first need to login before doing operations")
+
+    def logout(self):
+        """ Logout from the remote account
+
+        :return: None
+        """
+        url = self.address + "/logout"
+        header = self.__check_authentication()
+        response = requests.get(url, headers=header)
+        if response.status_code != 200:
+            raise ValueError("Code {}. {}".format(response.status_code, response.json().get("error")))
+
+    """
+        Repository
+    """
 
     def get_dataset_list(self):
         """ Returns the list of available datasets for the current user.
@@ -197,13 +237,9 @@ class RemoteManager:
             raise ValueError("Code {}: {}".format(response.status_code, response.json().get("error")))
         self.logger.info("Dataset {} was deleted from the repository".format(dataset_name))
 
-    def __check_authentication(self):
-        if self.auth_token is not None:
-            header = headers.copy()
-            header['X-AUTH-TOKEN'] = self.auth_token
-            return header
-        else:
-            raise EnvironmentError("you first need to login before doing operations")
+    """
+        Download repository
+    """
 
     def download_dataset(self, dataset_name, local_path):
         """ It downloads from the repository the specified dataset and puts it
@@ -221,7 +257,7 @@ class RemoteManager:
             raise ValueError("Code {}: {}".format(response.status_code, response.json().get("error")))
         if os.path.isdir(local_path):
             shutil.rmtree(local_path)
-        os.mkdir(local_path)
+        os.makedirs(local_path)
         tmp_zip = os.path.join(local_path, "tmp.zip")
         f = open(tmp_zip, "wb")
         # TODO: find a better way to display the download progression
@@ -233,6 +269,10 @@ class RemoteManager:
         with zipfile.ZipFile(tmp_zip, "r") as zip_ref:
             zip_ref.extractall(local_path)
         os.remove(tmp_zip)
+
+    """
+        Query
+    """
 
     def query(self, query, output_path=None, file_name="query", output="tab"):
         """ Execute a GMQL textual query on the remote server.
@@ -255,7 +295,7 @@ class RemoteManager:
             raise ValueError("Code {}. {}".format(response.status_code, response.json().get("error")))
         response = response.json()
         jobid = response.get("id")
-        self.logger.info("Waiting for the result")
+        self.logger.info("JobId: {}. Waiting for the result".format(jobid))
 
         count = 1
         while True:
@@ -283,6 +323,10 @@ class RemoteManager:
                 path = os.path.join(output_path, name)
                 self.download_dataset(dataset_name=name, local_path=path)
         return pd.DataFrame.from_dict(result)
+
+    """
+        Execution
+    """
 
     def trace_job(self, jobId):
         """ Get information about the specified remote job
