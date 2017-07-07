@@ -18,7 +18,8 @@ class NarrowPeakParser(BedParser):
                     (8, 'qValue', "float"),
                     (9, 'peak', "float")]
 
-        super().__init__('NarrowPeakParser', delimiter, chrPos, startPos,
-                         stopPos, strandPos, otherPos)
+        super().__init__(parser_name='NarrowPeakParser', delimiter=delimiter,
+                         chrPos=chrPos, startPos=startPos,
+                         stopPos=stopPos, strandPos=strandPos, otherPos=otherPos)
 
 
