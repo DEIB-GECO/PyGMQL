@@ -57,9 +57,6 @@ class GMQLDataset:
     def load_from_path(self, path, meta_load=False, reg_load=False, all_load=False):
         return Loader.load_from_path(path, self.parser, meta_load, reg_load, all_load)
 
-    def get_meta_attributes(self):
-        raise NotImplementedError("This function is not yet implemented")
-
     def get_reg_attributes(self):
         """
         Returns the region fields of the dataset
@@ -311,9 +308,6 @@ class GMQLDataset:
                                        projected_regs, all_but_f, regs_ext)
         return GMQLDataset(index=new_index, parser=self.parser)
 
-    def add_meta(self, attr_name, value):
-        raise NotImplementedError("This function is not yet implemented")
-
     def extend(self, new_attr_dict):
         """
         For each sample in an input dataset, the EXTEND operator builds new metadata attributes,
@@ -347,7 +341,7 @@ class GMQLDataset:
         new_index = self.opmng.extend(aggregatesJavaList)
         return GMQLDataset(parser=self.parser, index=new_index)
 
-    def cover(self, type, minAcc, maxAcc, groupBy=None, new_reg_fields=None):
+    def cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None, type="normal"):
         """
         COVER is a GMQL operator that takes as input a dataset (of usually, 
         but not necessarily, multiple samples) and returns another dataset 
@@ -364,9 +358,11 @@ class GMQLDataset:
 
         :param type: the kind of cover variant you want ['normal', 'flat', 'summit', 'histogram']
         :param minAcc: minimum accumulation value, i.e. the minimum number
-         of overlapping regions to be considered during COVER execution
+         of overlapping regions to be considered during COVER execution. It can be any positive
+         number or the strings {'ALL', 'ANY'}.
         :param maxAcc: maximum accumulation value, i.e. the maximum number
-         of overlapping regions to be considered during COVER execution
+         of overlapping regions to be considered during COVER execution. It can be any positive
+         number or the strings {'ALL', 'ANY'}.
         :param groupBy: optional list of metadata attributes 
         :param new_reg_fields: dictionary of the type
             {'new_region_attribute' : AGGREGATE_FUNCTION('field'), ...}
@@ -406,7 +402,7 @@ class GMQLDataset:
         
             dataset.cover("normal", ...)
         """
-        return self.cover("normal", minAcc, maxAcc, groupBy, new_reg_fields)
+        return self.cover(minAcc, maxAcc, groupBy, new_reg_fields, type="normal")
 
     def flat_cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None):
         """
@@ -419,7 +415,7 @@ class GMQLDataset:
         
             cover("flat", ...)
         """
-        return self.cover("flat", minAcc, maxAcc, groupBy, new_reg_fields)
+        return self.cover(minAcc, maxAcc, groupBy, new_reg_fields, type="flat")
 
     def summit_cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None):
         """
@@ -433,7 +429,7 @@ class GMQLDataset:
         
             cover("summit", ...)
         """
-        return self.cover("summit", minAcc, maxAcc, groupBy, new_reg_fields)
+        return self.cover(minAcc, maxAcc, groupBy, new_reg_fields, type="summit")
 
     def histogram_cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None):
         """
@@ -446,7 +442,7 @@ class GMQLDataset:
         
             cover("histogram", ...)
         """
-        return self.cover("histogram", minAcc, maxAcc, groupBy, new_reg_fields)
+        return self.cover(minAcc, maxAcc, groupBy, new_reg_fields, type="histogram")
 
     def join(self, experiment, genometric_predicate, output="LEFT", joinBy=None,
              refName=None, expName=None):
