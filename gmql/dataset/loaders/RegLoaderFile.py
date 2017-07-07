@@ -36,7 +36,7 @@ def load_reg_from_path(path, parser=None):
         abs_path = os.path.abspath(file)
         key = generateNameKey(abs_path)
 
-        df = pd.read_csv(filepath_or_buffer=abs_path,
+        df = pd.read_csv(filepath_or_buffer=abs_path, na_values="null",
                          header=None,
                          names=parser.get_ordered_attributes(),
                          dtype=parser.get_name_type_dict(),
