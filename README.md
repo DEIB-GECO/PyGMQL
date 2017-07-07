@@ -53,6 +53,11 @@ pip install -e .
 
 We strongly suggest to use the library with the support of a **Jupyter Notebook**
 for the best graphical rendering of the data structures.
+It may be necessary to manually install the Jupyter kernel:
+```
+source activate pygmql
+python -m ipykernel install --user --name myenv --display-name "Python (myenv)"
+```
 
 #### Run the library
 Firstly activate the `pygmql` conda environment and enter in the interactive 
