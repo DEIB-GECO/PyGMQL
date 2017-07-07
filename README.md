@@ -56,7 +56,7 @@ for the best graphical rendering of the data structures.
 It may be necessary to manually install the Jupyter kernel:
 ```
 source activate pygmql
-python -m ipykernel install --user --name myenv --display-name "Python (myenv)"
+python -m ipykernel install --user --name pygmql --display-name "Python (pygmql)"
 ```
 
 #### Run the library
