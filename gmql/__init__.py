@@ -28,7 +28,8 @@ def set_logger(logger_name):
     handler.setLevel(logging.INFO)
 
     # create a logging format
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     handler.setFormatter(formatter)
 
     # add the handlers to the logger
@@ -58,7 +59,8 @@ def set_progress(how):
     if isinstance(how, bool):
         disable_progress = ~how
     else:
-        raise ValueError("how must be a boolean. {} was found".format(type(how)))
+        raise ValueError(
+            "how must be a boolean. {} was found".format(type(how)))
 
 
 def set_logging(how):
@@ -82,40 +84,49 @@ def set_logging(how):
         else:
             logging.disable(logging.CRITICAL)
     else:
-        raise ValueError("how must be a boolean. {} was found".format(type(how)))
+        raise ValueError(
+            "how must be a boolean. {} was found".format(type(how)))
 
 
 def start_gateway_server(gmql_jar, instances_file):
     port_n = check_instances(instances_file)
-
+    # print("Using port {}".format(port_n))
     java_home = os.environ.get("JAVA_HOME")
     if java_home is None:
         raise SystemError("The environment variable JAVA_HOME is not setted")
     java_path = os.path.join(java_home, "bin", "java")
-    gmql_jar_fn = resource_filename("gmql", os.path.join("resources", gmql_jar))
+    gmql_jar_fn = resource_filename(
+        "gmql", os.path.join("resources", gmql_jar))
     command = [java_path, '-jar', gmql_jar_fn, str(port_n)]
     proc = sp.Popen(command)
     synchronize()
-    gateway = JavaGateway(gateway_parameters=GatewayParameters(auto_convert=True, port=port_n))
+    gateway = JavaGateway(gateway_parameters=GatewayParameters(
+        auto_convert=True, port=port_n))
     return proc, gateway, port_n
 
 
 def check_instances(instances_file):
-    instances_fn = resource_filename("gmql", os.path.join("resources", instances_file))
+    instances_fn = resource_filename(
+        "gmql", os.path.join("resources", instances_file))
     port = 25335
     ports = get_open_instances()
+    # print("Current open ports {}".format(ports))
     if len(ports) > 0:
         port = ports[-1] + 1
-    with open(instances_fn, "a") as f:
-        f.write(str(port) + os.linesep)
+    ports.append(port)
+    ports_string = list(map(lambda x: str(x) + os.linesep, ports))
+    with open(instances_fn, "w") as f:
+        f.writelines(ports_string)
     return port
 
 
 def remove_instance(port_n, instances_file):
-    instances_fn = resource_filename("gmql", os.path.join("resources", instances_file))
+    instances_fn = resource_filename(
+        "gmql", os.path.join("resources", instances_file))
     ports = get_open_instances()
     if port_n not in ports:
-        raise ValueError("Port number {} is not in the current instances".format(port_n))
+        raise ValueError(
+            "Port number {} is not in the current instances".format(port_n))
     ports.remove(port_n)
     ports = list(map(lambda x: str(x) + os.linesep, ports))
     with open(instances_fn, "w") as f:
@@ -124,10 +135,14 @@ def remove_instance(port_n, instances_file):
 
 def get_open_instances():
     global instances_file
-    instances_fn = resource_filename("gmql", os.path.join("resources", instances_file))
+    instances_fn = resource_filename(
+        "gmql", os.path.join("resources", instances_file))
+    # print("Instances file: {}".format(instances_fn))
     ports = None
     with open(instances_fn, "r") as f:
-        ports = list(map(int, f.readlines()))
+        lines = list(map(str.strip, f.readlines()))
+        lines = list(filter(lambda x: len(x) > 0, lines))
+        ports = list(map(int, lines))
     return ports
 
 
@@ -181,7 +196,8 @@ server_process, gateway, pythonManager, port_n = None, None, None, None
 def start():
     global server_process, gateway, pythonManager, instances_file, port_n
     process_cleaning()
-    server_process, gateway, port_n = start_gateway_server(gmql_jar, instances_file)
+    server_process, gateway, port_n = start_gateway_server(
+        gmql_jar, instances_file)
     python_api_package = get_python_api_package(gateway)
     pythonManager = start_gmql_manager(python_api_package)
 
@@ -189,10 +205,11 @@ def start():
 def process_cleaning():
     global gmql_jar
     active_ports = get_open_instances()
-    gmql_jar_name = resource_filename("gmql", os.path.join("resources", gmql_jar))
+    gmql_jar_name = resource_filename(
+        "gmql", os.path.join("resources", gmql_jar))
     for p in psutil.process_iter():
         name = p.name()
-        if name == 'java':
+        if name.startswith('java'):
             cmd = p.cmdline()
             if len(cmd) == 4 and cmd[2] == gmql_jar_name:
                 port = int(cmd[3])
@@ -202,9 +219,9 @@ def process_cleaning():
                 else:
                     active_ports.remove(port)
     global instances_file
+    # print("Ports to be removed: {}".format(active_ports))
     for a in active_ports:
         remove_instance(a, instances_file)
-
 
 
 def stop():
@@ -225,9 +242,9 @@ def stop():
 
 atexit.register(stop)
 
+
 class GMQLManagerNotInitializedError(Exception):
     pass
-
 
 
 # Starting the GMQL manager
@@ -255,6 +272,9 @@ from .dataset.GMQLDataset import GMQLDataset, materialize   # the dataset
 from .dataset.GDataframe import GDataframe, from_pandas     # the genomic dataframe
 from .dataset.loaders.Loader import load_from_path
 from .dataset import parsers                                # the set of parsers
-from .dataset.DataStructures.Aggregates import *            # the possible aggregations
-from .dataset.DataStructures.GenometricPredicates import *  # the possible join conditions
-from .RemoteConnection.RemoteManager import RemoteManager      # for interacting with the remote cluster
+# the possible aggregations
+from .dataset.DataStructures.Aggregates import *
+# the possible join conditions
+from .dataset.DataStructures.GenometricPredicates import *
+# for interacting with the remote cluster
+from .RemoteConnection.RemoteManager import RemoteManager
