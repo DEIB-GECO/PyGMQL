@@ -81,3 +81,6 @@ local copy periodically:
 cd PyGMQL
 git pull
 ```
+
+## Tutorial
+You can download a tutorial for beginners at this [link](https://www.dropbox.com/s/37z6olis79itzi5/Tutorial_PyGMQL.zip?dl=0) 
