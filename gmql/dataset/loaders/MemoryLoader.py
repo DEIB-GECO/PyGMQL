@@ -58,8 +58,11 @@ def string_to_dictionary(region, values_delimiter, names, types):
     for i in range(0, len(names)):
         name = names[i]
         fun = types[i]
-        d[name] = fun(elements[5 + i])
-
+        element = elements[5 + i]
+        if element != 'null':
+            d[name] = fun(element)
+        else:
+            d[name] = None
     return d
 
 
