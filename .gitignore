@@ -186,3 +186,4 @@ ENV/
 
 # End of https://www.gitignore.io/api/pycharm,python
 /tests/
+gmql/resources/instances
