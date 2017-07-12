@@ -45,8 +45,11 @@ def load_reg_from_path(path, parser=None):
 
         df.index = np.repeat(key, len(df))
         dfs.append(df)
-
-    result = pd.concat(objs=dfs, copy=False)
+    if len(dfs) > 0:
+        result = pd.concat(objs=dfs, copy=False)
+    else:
+        result = pd.DataFrame(columns=parser.get_ordered_attributes())
+        result.index.name = "id_sample"
     return result
 
 
