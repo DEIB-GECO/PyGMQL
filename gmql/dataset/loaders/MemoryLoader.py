@@ -38,10 +38,15 @@ def load_regions(collected_result):
                                                          names,
                                                          types), regions_string)
             result.extend(list(iterator))
-    df = pd.DataFrame.from_dict(result)
+
     columns = reg_fixed_fileds + names
-    df = df.set_index(keys="id_sample", drop=True)
-    df = df[columns]    # for ordering the columns
+    if len(result) > 0:
+        df = pd.DataFrame.from_dict(result)
+        df = df.set_index(keys="id_sample", drop=True)
+        df = df[columns]  # for ordering the columns
+    else:
+        df = pd.DataFrame(columns=columns)
+        df.index.name = "id_sample"
     return df
 
 
@@ -92,18 +97,22 @@ def load_metadata(collected_result):
         value = meta[2]
         meta_list.append({'id_sample' : id, name: value})
 
-    df = pd.DataFrame.from_dict(meta_list)
-    columns = df.columns
+    if len(meta_list) > 0:
+        df = pd.DataFrame.from_dict(meta_list)
+        columns = df.columns
 
-    # grouping by 'id_sample'
-    g = df.groupby('id_sample')
+        # grouping by 'id_sample'
+        g = df.groupby('id_sample')
 
-    logger.info("Building metadata dataframe")
-    result_df = pd.DataFrame()
-    from ... import disable_progress
-    for col in tqdm(columns, total=len(columns), disable=disable_progress):
-        if col != 'id_sample':
-            result_df[col] = g[col].apply(to_list)
+        logger.info("Building metadata dataframe")
+        result_df = pd.DataFrame()
+        from ... import disable_progress
+        for col in tqdm(columns, total=len(columns), disable=disable_progress):
+            if col != 'id_sample':
+                result_df[col] = g[col].apply(to_list)
+    else:
+        result_df = pd.DataFrame()
+        result_df.index.name = "id_sample"
     return result_df
 
 
