@@ -29,19 +29,23 @@ def load_meta_from_path(path):
 
 def to_pandas(meta_list):
     # turn to dictionary
-    meta_list = list(map(to_dictionary, meta_list))     # [{'id_sample': id, attr_name: value},...]
-    df = pd.DataFrame.from_dict(meta_list)
-    columns = df.columns
+    if len(meta_list) > 0:
+        meta_list = list(map(to_dictionary, meta_list))     # [{'id_sample': id, attr_name: value},...]
+        df = pd.DataFrame.from_dict(meta_list)
+        columns = df.columns
 
-    # grouping by 'id_sample'
-    g = df.groupby('id_sample')
+        # grouping by 'id_sample'
+        g = df.groupby('id_sample')
 
-    logger.info("dataframe construction")
-    result_df = pd.DataFrame()
-    from ... import disable_progress
-    for col in tqdm(columns, total=len(columns), disable=disable_progress):
-        if col != 'id_sample':
-            result_df[col] = g[col].apply(to_list)
+        logger.info("dataframe construction")
+        result_df = pd.DataFrame()
+        from ... import disable_progress
+        for col in tqdm(columns, total=len(columns), disable=disable_progress):
+            if col != 'id_sample':
+                result_df[col] = g[col].apply(to_list)
+    else:
+        result_df = pd.DataFrame()
+        result_df.index.name = "id_sample"
     return result_df
 
 
