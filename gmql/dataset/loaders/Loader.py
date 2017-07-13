@@ -25,6 +25,7 @@ def preprocess_path(path):
 def check_for_dataset(files):
     return len([x for x in files if x.endswith(".meta")]) > 0
 
+
 def load_from_path(local_path=None, parser=None, meta_load=False,
                    reg_load=False, all_load=False):
     """ Loads the data from a local path into a GMQLDataset.
