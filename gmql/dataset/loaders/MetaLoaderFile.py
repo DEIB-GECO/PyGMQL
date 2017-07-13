@@ -50,7 +50,7 @@ def to_pandas(meta_list):
 
 
 def to_dictionary(tuple):
-    return {"id_sample": tuple[0], tuple[1][0] : tuple[1][1]}
+    return {"id_sample": tuple[0], tuple[1][0]: tuple[1][1]}
 
 
 def to_list(x):
