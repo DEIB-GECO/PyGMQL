@@ -1,16 +1,13 @@
 """
 Setting up the environment of the library
 """
-import logging
+import logging, os, time, atexit, psutil
 import subprocess as sp
 from sys import stdout
 from py4j.java_gateway import JavaGateway, GatewayParameters
 from py4j.java_collections import ListConverter
-import os
-import time
-import atexit
+from .FileManagment import TempFileManager
 from pkg_resources import resource_filename
-import psutil
 
 
 def set_logger(logger_name):
@@ -226,6 +223,9 @@ def process_cleaning():
 
 def stop():
     global pythonManager, server_process, gateway, port_n, instances_file
+
+    # flushing the tmp files
+    TempFileManager.flush_everything()
     remove_instance(port_n, instances_file)
     try:
         os.remove(synchfile)
@@ -249,6 +249,8 @@ class GMQLManagerNotInitializedError(Exception):
 
 # Starting the GMQL manager
 start()
+# Setting up the temporary files folder
+TempFileManager.initialize_tmp_folders()
 
 
 """
