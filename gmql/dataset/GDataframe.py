@@ -2,13 +2,16 @@ from .storers import FrameToGMQL
 import pandas as pd
 from .loaders import Loader
 from .DataStructures import reg_fixed_fileds, \
-    strand_aliases, stop_aliases, start_aliases, chr_aliases
+    strand_aliases, stop_aliases, start_aliases, chr_aliases, id_sample_aliases
 import numpy as np
 
 chr_types = [object, str]
 start_types = [int, np.int, np.int8, np.int16, np.int32, np.int64]
 stop_types = start_types
 strand_types = [object, str]
+id_sample_types = [object, str] + start_types
+
+default_id_sample = "sample"
 
 class GDataframe:
     """ Class holding the result of a materialization of a GMQLDataset.
@@ -53,7 +56,8 @@ class GDataframe:
             raise ValueError("You must specify at least one of local_path and remote_path")
 
 
-def from_pandas(regs, meta=None, chr_name=None, start_name=None, stop_name=None, strand_name=None):
+def from_pandas(regs, meta=None, chr_name=None, start_name=None, stop_name=None,
+                strand_name=None, sample_name=None):
     """ Creates a GDataframe from a pandas dataframe of region and a pandas dataframe of metadata
 
     :param regs: a pandas Dataframe of regions that is coherent with the GMQL data model
@@ -62,9 +66,11 @@ def from_pandas(regs, meta=None, chr_name=None, start_name=None, stop_name=None,
     :param start_name: (optional) which column of :attr:`~.regs` is the start
     :param stop_name: (optional) which column of :attr:`~.regs` is the stop
     :param strand_name: (optional) which column of :attr:`~.regs` is the strand
+    :param sample_name: (optional) which column of :attr:`~.regs` represents the sample name
+           of that region. If nothing is provided, all the region will be put in a single sample.
     :return: a GDataframe
     """
-    regs = check_regs(regs, chr_name, start_name, stop_name, strand_name)
+    regs = check_regs(regs, chr_name, start_name, stop_name, strand_name, sample_name)
     regs = to_gmql_regions(regs)
     if meta is not None:
         if not check_meta(meta, regs):
@@ -74,7 +80,8 @@ def from_pandas(regs, meta=None, chr_name=None, start_name=None, stop_name=None,
     return GDataframe(regs, meta)
 
 
-def check_regs(region_df, chr_name=None, start_name=None, stop_name=None, strand_name=None):
+def check_regs(region_df, chr_name=None, start_name=None, stop_name=None,
+               strand_name=None, sample_name=None):
     """ Modifies a region dataframe to be coherent with the GMQL data model
 
     :param region_df: a pandas Dataframe of regions that is coherent with the GMQL data model
@@ -84,6 +91,15 @@ def check_regs(region_df, chr_name=None, start_name=None, stop_name=None, strand
     :param strand_name: (optional) which column of :attr:`~.region_df` is the strand
     :return: a modified pandas Dataframe
     """
+
+    if sample_name is None:
+        region_df.index = np.repeat(default_id_sample, len(region_df))
+    else:
+        region_df = search_column(region_df, id_sample_aliases,
+                                  id_sample_types, 'id_sample', sample_name)
+        region_df = region_df.set_index("id_sample", drop=True)
+        region_df = region_df.sort_index()
+
     region_df = search_column(region_df,  chr_aliases, chr_types, 'chr', chr_name)
     region_df = search_column(region_df, start_aliases, start_types, 'start', start_name)
     region_df = search_column(region_df, stop_aliases, stop_types, 'stop', stop_name)
@@ -96,15 +112,18 @@ def search_column(region_df, names, types, subs, name=None):
     names = list(map(str.lower, names))
 
     if name is not None:
+        if name not in columns:
+            raise ValueError("{} is not a column of the region dataframe".format(name))
         if check_type(region_df[name], types):
-            region_df = region_df.rename({name: subs})
+            region_df = region_df.rename(columns={name: subs})
+            return region_df
         else:
             raise TypeError("Column {} is not of type {}.".format(name, types))
 
     isok = False
     for e in columns:
         if e in names and check_type(region_df[e], types):
-            region_df = region_df.rename({e: subs})
+            region_df = region_df.rename(columns={e: subs})
             isok = True
             break
     if (not isok) and (subs != 'strand'):
