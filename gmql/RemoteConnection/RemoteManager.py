@@ -2,9 +2,12 @@ from . import default_address, headers
 import requests, time, logging, json
 from requests_toolbelt.multipart.encoder import MultipartEncoderMonitor, MultipartEncoder
 import pandas as pd
+from ..dataset.GDataframe import GDataframe
 from ..dataset.parsers.BedParser import BedParser
+from ..dataset.parsers import allowed_types
 from ..dataset.DataStructures import chr_aliases, start_aliases, stop_aliases, strand_aliases
 from ..dataset.loaders import Loader
+from ..FileManagment import TempFileManager
 import os, shutil, zipfile, sys
 from tqdm import tqdm
 
@@ -20,6 +23,7 @@ from tqdm import tqdm
 # requests_log.propagate = True
 
 good_status = ['PENDING', 'RUNNING', 'DS_CREATION_RUNNING']
+
 
 class RemoteManager:
     """ Manager of the user connection with the remote GMQL service
@@ -142,14 +146,21 @@ class RemoteManager:
         datasets = response.get("datasets")
         return pd.DataFrame.from_dict(datasets)
 
-    def get_dataset_samples(self, dataset_name):
+    def get_dataset_samples(self, dataset_name, owner=None):
         """ Get the list of samples of a specific remote dataset.
 
         :param dataset_name: the dataset name
+        :param owner: (optional) who owns the dataset. If it is not specified, the current user
+               is used. For public dataset use 'public'.
         :return: a pandas Dataframe
         """
-        url = self.address + "/datasets/"+dataset_name
+        if isinstance(owner, str):
+            owner = owner.lower()
+            dataset_name = owner + "." + dataset_name
+
         header = self.__check_authentication()
+
+        url = self.address + "/datasets/" + dataset_name
         response = requests.get(url, headers=header)
         if response.status_code != 200:
             raise ValueError("Code {}: {}".format(response.status_code, response.json().get("error")))
@@ -157,28 +168,37 @@ class RemoteManager:
         samples = response.get("samples")
         return pd.DataFrame.from_dict(samples)
 
-    def get_dataset_schema(self, dataset_name):
+    def get_dataset_schema(self, dataset_name, owner=None):
         """ Given a dataset name, it returns a BedParser coherent with the schema of it
 
         :param dataset_name: a dataset name on the repository
+        :param owner: (optional) who owns the dataset. If it is not specified, the current user
+               is used. For public dataset use 'public'.
         :return: a BedParser
         """
+
+        if isinstance(owner, str):
+            owner = owner.lower()
+            dataset_name = owner + "." + dataset_name
+
         url = self.address + "/datasets/" + dataset_name+"/schema"
         header = self.__check_authentication()
         response = requests.get(url, headers=header)
         if response.status_code != 200:
             raise ValueError("Code {}: {}".format(response.status_code, response.json().get("error")))
+
         response = response.json()
         name = response.get("name")
-        schemaType = response.get("schemaType")
-        if schemaType.lower() != 'bed':
-            raise TypeError("This dataset is not of type BED. {} was found".format(schemaType))
+        schemaType = response.get("type")
+        if schemaType.lower() not in allowed_types:
+            raise TypeError("This dataset is not of type {}. {} was found".format(allowed_types, schemaType))
+
         fields = response.get("fields")
         chrPos, startPos, stopPos, strandPos = None, None, None, None
         otherPos = []
         for i,f in enumerate(fields):
             fieldName = f.get("name")
-            fieldType = f.get("fieldType")
+            fieldType = f.get("type")
             if fieldName in chr_aliases:
                 chrPos = i
             elif fieldName in start_aliases:
@@ -190,20 +210,33 @@ class RemoteManager:
             else:
                 otherPos.append((i, fieldName, fieldType.lower()))
 
-        return BedParser(parser_name=name, chrPos=chrPos, startPos=startPos,
+        return BedParser(parser_name=name, chrPos=chrPos, startPos=startPos, delimiter="\t",
                          stopPos=stopPos, strandPos=strandPos, otherPos=otherPos)
 
-    def upload_dataset(self, dataset_local_path, dataset_name):
+    def upload_dataset(self, dataset, dataset_name):
         """ Upload to the repository an entire dataset from a local path
 
-        :param dataset_local_path: the local path of the dataset
+        :param dataset: the local path of the dataset
         :param dataset_name: the name you want to assign to the dataset remotely
         :return: None
         """
+
         url = self.address + "/datasets/" + dataset_name + "/uploadSample"
         header = self.__check_authentication()
-        file_paths, schema_path = Loader.get_file_paths(dataset_local_path)
+
         fields = dict()
+        remove = False
+        if isinstance(dataset, GDataframe):
+            tmp_path = TempFileManager.get_new_dataset_tmp_folder()
+            dataset.to_dataset_files(local_path=tmp_path)
+            dataset = tmp_path
+            remove = True
+
+        # a path is provided
+        if not isinstance(dataset, str):
+            raise TypeError("Dataset can be a path or a GDataframe. {} was passed".format(type(dataset)))
+
+        file_paths, schema_path = Loader.get_file_paths(dataset)
         fields['schema'] = (os.path.basename(schema_path), open(schema_path, "rb"), 'application/octet-stream')
         for i, file in enumerate(file_paths):
             fields["file"+str(i + 1)] = (os.path.basename(file), open(file, "rb"), 'application/octet-stream')
@@ -216,13 +249,16 @@ class RemoteManager:
         header['Content-Type'] = m_encoder.content_type
         params = {"schemaName": "bed"}
 
-        self.logger.info("Uploading dataset at {} with name {}".format(dataset_local_path, dataset_name))
+        self.logger.info("Uploading dataset at {} with name {}".format(dataset, dataset_name))
 
         response = requests.post(url, data=m_encoder,
                                  headers=header,
                                  params=params)
         if response.status_code != 200:
             raise ValueError("Code {}: {}".format(response.status_code, response.content))
+
+        if remove:
+            TempFileManager.delete_tmp_dataset(dataset)
 
     def delete_dataset(self, dataset_name):
         """ Deletes the dataset having the specified name
