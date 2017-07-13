@@ -7,6 +7,7 @@ float_aliases = ['double', 'float']
 
 allowed_types = ['bed', 'tab']
 
+
 def get_parsing_function(type_string):
     if type_string in string_aliases:
         return str
