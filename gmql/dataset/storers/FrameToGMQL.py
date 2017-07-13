@@ -35,11 +35,11 @@ def to_local(gframe, path_local):
     all_file_names = regs.index.unique()
     from ... import disable_progress
     for file in tqdm(all_file_names, disable=disable_progress):
-        final_file_name = path_local + "/" + str(file)
-        part_regs = regs.loc[file]
+        final_file_name = os.path.join(path_local, str(file))
+        part_regs = regs.loc[[file]]
         part_regs.to_csv(path_or_buf=final_file_name, sep="\t", header=False, index=False)
 
-        parts_meta = meta.loc[file]
+        parts_meta = meta.loc[[file]]
         meta_to_file(parts_meta, final_file_name + ".meta")
 
     # save the schema
