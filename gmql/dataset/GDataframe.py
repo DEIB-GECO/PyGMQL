@@ -4,6 +4,7 @@ from .loaders import Loader
 from .DataStructures import reg_fixed_fileds, \
     strand_aliases, stop_aliases, start_aliases, chr_aliases, id_sample_aliases
 import numpy as np
+from ..FileManagment import TempFileManager
 
 chr_types = [object, str]
 start_types = [int, np.int, np.int8, np.int16, np.int32, np.int64]
@@ -12,6 +13,7 @@ strand_types = [object, str]
 id_sample_types = [object, str] + start_types
 
 default_id_sample = "sample"
+
 
 class GDataframe:
     """ Class holding the result of a materialization of a GMQLDataset.
@@ -47,13 +49,21 @@ class GDataframe:
 
         :return: a GMQLDataset
         """
-        self.to_dataset_files(local_path, remote_path)
+        local = None
+        remote = None
+        if (local_path is None) and (remote_path is None):
+            # get a temporary path
+            local = TempFileManager.get_new_dataset_tmp_folder()
         if local_path is not None:
-            return Loader.load_from_path(local_path=local_path)
-        elif remote_path is not None:
-            raise NotImplementedError()
-        else:
-            raise ValueError("You must specify at least one of local_path and remote_path")
+            local = local_path
+        if remote_path is not None:
+            remote = remote_path
+        self.to_dataset_files(local, remote)
+
+        if local is not None:
+            return Loader.load_from_path(local_path=local)
+        elif remote is not None:
+            raise NotImplementedError("The remote loading is not implemented yet!")
 
 
 def from_pandas(regs, meta=None, chr_name=None, start_name=None, stop_name=None,
