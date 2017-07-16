@@ -210,7 +210,7 @@ class GMQLDataset:
 
         return GMQLDataset(parser=self.parser, index=new_index)
 
-    def meta_project(self, attr_list=None, new_attr_dict=None):
+    def meta_project(self, attr_list=None, all_but=None, new_attr_dict=None):
         """
         Project the metadata based on a list of attribute names
         
@@ -220,11 +220,17 @@ class GMQLDataset:
                the new field based on the values of the others
         :return: a new GMQLDataset
         """
+        if (attr_list is not None) and (all_but is not None):
+            raise ValueError("You can specifiy only one of attr_list or all_but. Not both")
+        all_but_value = False
         projected_meta = None
-        if attr_list is None:
+        if (attr_list is None) and (all_but is None):
             projected_meta = none
         elif isinstance(attr_list, list):
             projected_meta = Some(attr_list)
+        elif isinstance(all_but, list):
+            projected_meta = Some(all_but)
+            all_but_value = True
         else:
             raise ValueError("attr_list must be a list")
 
@@ -250,7 +256,8 @@ class GMQLDataset:
 
         new_index = self.opmng.project(self.index,
                                        projected_meta,
-                                       meta_ext, none, none, none)
+                                       meta_ext, all_but_value, none, none, none)
+
         return GMQLDataset(index=new_index, parser=self.parser)
 
     def reg_project(self, field_list=None, all_but=None, new_field_dict=None):
@@ -709,6 +716,7 @@ class GMQLDataset:
                 shutil.rmtree(output_path)
 
             self.pmg.materialize(self.index, output_path)
+            self.pmg.execute()
             # taking in memory the data structure
             real_path = os.path.join(output_path, 'exp')
             # metadata
@@ -724,6 +732,26 @@ class GMQLDataset:
 
         result = GDataframe(regs=regs, meta=meta)
         return result
+
+    def take(self, n=5):
+        """ Returns a small set of regions and metadata from a query. It is supposed to
+        be used for debugging purposes or for data exploration.
+
+        :param n: how many samples to retrieve
+        :return: a GDataframe
+        """
+        if n <= 0:
+            raise ValueError("n must be a positive number. {} was given".format(n))
+
+        collected = self.pmg.take(self.index, n)
+        regs = MemoryLoader.load_regions(collected)
+        meta = MemoryLoader.load_metadata(collected)
+        result = GDataframe(regs, meta)
+        return result
+
+    def _get_serialized_dag(self):
+        serialized_dag = self.pmg.serializeVariable(self.index)
+        return serialized_dag
 
 
 def materialize(datasets):
