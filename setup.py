@@ -1,6 +1,9 @@
 from setuptools import setup, find_packages
+import os
 
-version = '0.0.1'
+with open(os.path.join(".", "gmql", "resources", "version"), "r") as f_ver:
+    version = f_ver.read().strip()
+
 github_url = 'https://github.com/lucananni93/GMQL-Python'
 
 setup(name='gmql',
@@ -25,8 +28,4 @@ setup(name='gmql',
       ],
       keywords="genomics big data pandas python",
       python_requires='>=3',
-      include_package_data=True,
-      package_data={
-          '': ['*.jar']
-      },
       zip_safe=False)
