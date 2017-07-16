@@ -29,4 +29,5 @@ setup(name='gmql',
       ],
       keywords="genomics big data pandas python",
       python_requires='>=3',
+      include_package_data=True,
       zip_safe=False)
