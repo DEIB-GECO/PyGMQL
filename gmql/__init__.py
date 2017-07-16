@@ -10,6 +10,10 @@ from .FileManagment import TempFileManager
 from pkg_resources import resource_filename
 
 
+"""
+    Logging and progress bars
+"""
+
 def set_logger(logger_name):
     """
     The library has a personal logger that tells the user the intermediate steps of the
@@ -84,6 +88,9 @@ def set_logging(how):
         raise ValueError(
             "how must be a boolean. {} was found".format(type(how)))
 
+"""
+    Backend management
+"""
 
 def start_gateway_server(gmql_jar, instances_file):
     port_n = check_instances(instances_file)
@@ -268,11 +275,42 @@ def Some(thing):
     return pythonManager.getSome(thing)
 
 """
+    Remote manager management
+"""
+
+remote_manager = None
+
+
+def get_remote_manager():
+    global remote_manager
+    return remote_manager
+
+
+def initialize_remote_manager():
+    global remote_manager
+    remote_manager = RemoteManager()
+
+
+def login(username=None, password=None):
+    global remote_manager
+    remote_manager.login(username, password)
+
+
+def logout():
+    global remote_manager
+    remote_manager.logout()
+
+
+def execute_remote():
+    global remote_manager
+    remote_manager.execute_remote_all()
+
+"""
     EXPOSING INTERNAL FEATURES
 """
 from .dataset.GMQLDataset import GMQLDataset, materialize   # the dataset
 from .dataset.GDataframe import GDataframe, from_pandas     # the genomic dataframe
-from .dataset.loaders.Loader import load_from_path
+from .dataset.loaders.Loader import load_from_path, load_from_remote
 from .dataset import parsers                                # the set of parsers
 # the possible aggregations
 from .dataset.DataStructures.Aggregates import *
@@ -280,3 +318,5 @@ from .dataset.DataStructures.Aggregates import *
 from .dataset.DataStructures.GenometricPredicates import *
 # for interacting with the remote cluster
 from .RemoteConnection.RemoteManager import RemoteManager
+
+initialize_remote_manager()
