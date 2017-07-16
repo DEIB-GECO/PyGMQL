@@ -1,13 +1,32 @@
-from setuptools import setup
+from setuptools import setup, find_packages
+
+version = '0.0.1'
+github_url = 'https://github.com/lucananni93/GMQL-Python'
 
 setup(name='gmql',
-      version='0.1',
-      description='Python library for GMQL computation',
-      url='https://github.com/lucananni93/GMQL-Python',
+      version=version,
+      description='Python library for GMQL',
+      long_description="PyGMQL is a python module that enables the user "
+                       "to perform operation on genomic data in a scalable way.",
+      url=github_url,
       author='Luca Nanni',
       author_email='luca.nanni@mail.polimi.it',
       license='MIT',
-      packages=['gmql'],
+      download_url='{}/tarball/{}'.format(github_url, version),
+      packages=find_packages(),
       install_requires=['pandas', 'tqdm', 'numpy', 'py4j',
                         'psutil', 'requests', 'requests-toolbelt'],
+      classifiers=[
+            'Development Status :: 3 - Alpha',
+            'Intended Audience :: Science/Research',
+            'Topic :: Scientific/Engineering :: Bio-Informatics',
+            
+            'Programming Language :: Python :: 3'
+      ],
+      keywords="genomics big data pandas python",
+      python_requires='>=3',
+      include_package_data=True,
+      package_data={
+          '': ['*.jar']
+      },
       zip_safe=False)
