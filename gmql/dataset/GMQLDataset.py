@@ -1,13 +1,13 @@
-from .. import get_python_manager, get_gateway, none, Some
+from .. import get_python_manager, get_gateway, none, Some, get_remote_manager
 from .loaders import MetaLoaderFile, RegLoaderFile
 from .DataStructures.RegField import RegField
 from .DataStructures.MetaField import MetaField
 import shutil
 import os
 from .DataStructures import reg_fixed_fileds
-from .GDataframe import GDataframe
-from .loaders import Loader
-from .loaders import MemoryLoader
+from .import GDataframe
+from .loaders import MemoryLoader, Loader
+from ..FileManagment.TempFileManager import get_unique_identifier, get_new_dataset_tmp_folder
 
 
 class GMQLDataset:
@@ -18,11 +18,12 @@ class GMQLDataset:
     affect one of these two features or both.
     """
 
-    def __init__(self, parser=None, index=None, regs=None, meta=None):
+    def __init__(self, parser=None, index=None, regs=None, meta=None, location="local"):
         self.parser = parser
         self.index = index
         self.regs = regs
         self.meta = meta
+        self.location = location
 
         self.pmg = get_python_manager()
         self.opmng = self.pmg.getOperatorManager()
@@ -53,9 +54,6 @@ class GMQLDataset:
         print("GMQLDataset")
         print("\tParser:\t{}".format(self.parser.get_parser_name()))
         print("\tIndex:\t{}".format(self.index))
-
-    def load_from_path(self, path, meta_load=False, reg_load=False, all_load=False):
-        return Loader.load_from_path(path, self.parser, meta_load, reg_load, all_load)
 
     def get_reg_attributes(self):
         """
@@ -163,7 +161,7 @@ class GMQLDataset:
         else:
             raise ValueError("semiJoinDataset <=> semiJoinMeta")
 
-        return GMQLDataset(index=new_index, parser=self.parser)
+        return GMQLDataset(index=new_index, location=self.location)
 
     def reg_select(self, predicate=None, semiJoinDataset=None, semiJoinMeta=None):
         """
@@ -208,7 +206,7 @@ class GMQLDataset:
         else:
             raise ValueError("semiJoinDataset <=> semiJoinMeta")
 
-        return GMQLDataset(parser=self.parser, index=new_index)
+        return GMQLDataset(index=new_index, location=self.location)
 
     def meta_project(self, attr_list=None, all_but=None, new_attr_dict=None):
         """
@@ -225,7 +223,7 @@ class GMQLDataset:
         all_but_value = False
         projected_meta = None
         if (attr_list is None) and (all_but is None):
-            projected_meta = none
+            projected_meta = none()
         elif isinstance(attr_list, list):
             projected_meta = Some(attr_list)
         elif isinstance(all_but, list):
@@ -236,7 +234,7 @@ class GMQLDataset:
 
         meta_ext = None
         if new_attr_dict is None:
-            meta_ext = none
+            meta_ext = none()
         elif not isinstance(new_attr_dict, dict):
             raise ValueError("new_attr_list must be a dictionary")
         else:
@@ -256,9 +254,9 @@ class GMQLDataset:
 
         new_index = self.opmng.project(self.index,
                                        projected_meta,
-                                       meta_ext, all_but_value, none, none, none)
+                                       meta_ext, all_but_value, none(), none(), none())
 
-        return GMQLDataset(index=new_index, parser=self.parser)
+        return GMQLDataset(index=new_index, location=self.location)
 
     def reg_project(self, field_list=None, all_but=None, new_field_dict=None):
         """
@@ -279,7 +277,7 @@ class GMQLDataset:
         """
         projected_regs = None
         if field_list is None:
-            projected_regs = none
+            projected_regs = none()
         elif isinstance(field_list, list):
             projected_regs = Some(field_list)
         else:
@@ -287,7 +285,7 @@ class GMQLDataset:
 
         all_but_f = None
         if all_but is None:
-            all_but_f = none
+            all_but_f = none()
         elif isinstance(all_but, list):
             all_but_f = Some(all_but)
         else:
@@ -295,7 +293,7 @@ class GMQLDataset:
 
         regs_ext = None
         if new_field_dict is None:
-            regs_ext = none
+            regs_ext = none()
         elif not isinstance(new_field_dict, dict):
             raise ValueError("new_filed_dict must be a dictionary")
         else:
@@ -311,9 +309,9 @@ class GMQLDataset:
                 regs_ext_list.append(reg_extension)
             regs_ext = Some(regs_ext_list)
 
-        new_index = self.opmng.project(self.index, none, none,
+        new_index = self.opmng.project(self.index, none(), none(),
                                        projected_regs, all_but_f, regs_ext)
-        return GMQLDataset(index=new_index, parser=self.parser)
+        return GMQLDataset(index=new_index, location=self.location)
 
     def extend(self, new_attr_dict):
         """
@@ -346,7 +344,7 @@ class GMQLDataset:
             aggregatesJavaList.append(regsToMeta)
 
         new_index = self.opmng.extend(aggregatesJavaList)
-        return GMQLDataset(parser=self.parser, index=new_index)
+        return GMQLDataset(index=new_index, location=self.location)
 
     def cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None, type="normal"):
         """
@@ -400,7 +398,7 @@ class GMQLDataset:
                 aggregatesJavaList.append(regsToReg)
         new_index = self.opmng.cover(self.index, coverFlag, minAccParam, maxAccParam,
                                      groupByJavaList, aggregatesJavaList)
-        return GMQLDataset(index=new_index, parser=self.parser)
+        return GMQLDataset(index=new_index, location=self.location)
 
     def normal_cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None):
         """
@@ -516,7 +514,7 @@ class GMQLDataset:
                                     metaJoinCondition, regionJoinCondition, regionBuilder,
                                     refName, expName)
 
-        return GMQLDataset(index=new_index, parser=self.parser)
+        return GMQLDataset(index=new_index, location=self.location)
 
     def map(self, experiment, new_reg_fields=None, joinBy=None, refName=None, expName=None):
         """
@@ -571,7 +569,7 @@ class GMQLDataset:
 
         new_index = self.opmng.map(self.index, experiment.index, metaJoinCondition,
                                    aggregatesJavaList, refName, expName)
-        return GMQLDataset(index=new_index, parser=self.parser)
+        return GMQLDataset(index=new_index, location=self.location)
 
     def order(self, meta=None, meta_ascending=None, meta_top=None, meta_k=None,
               regs=None, regs_ascending=None, region_top=None, region_k=None):
@@ -622,7 +620,7 @@ class GMQLDataset:
 
         new_index = self.opmng.order(self.index, meta, meta_ascending, meta_top, str(meta_k),
                                      regs, regs_ascending, region_top, str(region_k))
-        return GMQLDataset(parser=self.parser, index=new_index)
+        return GMQLDataset(index=new_index, location=self.location)
 
     def difference(self, other, joinBy=None, exact=None):
         """
@@ -645,7 +643,7 @@ class GMQLDataset:
             exact = False
         metaJoinCondition = self.opmng.getMetaJoinCondition(metaJoinByJavaList)
         new_index = self.opmng.difference(self.index, other.index, metaJoinCondition, exact)
-        return GMQLDataset(parser=self.parser, index=new_index)
+        return GMQLDataset(index=new_index, location=self.location)
 
     def union(self, other, left_name="", right_name=""):
         """
@@ -666,7 +664,7 @@ class GMQLDataset:
         :return: a new GMQLDataset
         """
         new_index = self.opmng.union(self.index, other.index, left_name, right_name)
-        return GMQLDataset(parser=self.parser, index=new_index)
+        return GMQLDataset(index=new_index, location=self.location)
 
     def merge(self, groupBy=None):
         """
@@ -692,22 +690,49 @@ class GMQLDataset:
             for g in groupBy:
                 groupByJavaList.append(g)
         new_index = self.opmng.merge(self.index, groupByJavaList)
-        return GMQLDataset(parser=self.parser, index=new_index)
+        return GMQLDataset(index=new_index, location=self.location)
     """
         Materialization utilities
     """
-    def materialize(self, output_path=None):
+    def materialize(self, output_path=None, output_name=None,  all_load=True):
         """ Starts the execution of the operations for the GMQLDataset. PyGMQL implements lazy execution
         and no operation is performed until the materialization of the results is requestd.
         This operation can happen both locally or remotely.
-        If the user does not specifies any output path, the results are directly converted in a GDataframe.
-        On the other side, if the save of the results is requested, a new GMQL dataset structure
-        is created at the specified location and anyway a GDataframe is returned.
 
-        :param output_path: If specified, the user can say where to locally save the results
+        * Local mode: if the GMQLDataset is local (based on local data) the user can specify the
+
+        :param output_path: (Optional) If specified, the user can say where to locally save the results
                             of the computations.
-        :return: A GDataframe
+        :param output_name: (Optional) Can be used only if the dataset is remote. It represents the name that
+                            the user wants to give to the resulting dataset on the server
+        :param all_load: (Optional) It affects the computation only when the dataset is remote. It specifies if
+                         the downloaded result dataset should be directly converted to a GDataframe (True) or to a
+                         GMQLDataset (False) for future local queries.
+        :return: A GDataframe or a GMQLDataset
         """
+
+        if self.location == 'remote':
+            return self._materialize_remote(output_name, output_path, all_load)
+        elif self.location == 'local':
+            if output_name is not None:
+                raise ValueError("This dataset is local. You cannot specify a result name.")
+            return self._materialize_local(output_path)
+        else:
+            raise ValueError("GMQLDataset location unknown: {}".format(self.location))
+
+    def _materialize_remote(self, output_name=None, download_path=None, all_load=True):
+        if not isinstance(output_name, str):
+            output_name = get_unique_identifier()
+        self.pmg.materialize(self.index, output_name)
+        remote_manager = get_remote_manager()
+        if (download_path is None) and all_load:
+            download_path = get_new_dataset_tmp_folder()
+        result = remote_manager.execute_remote_all(output_path=download_path)
+        if len(result) == 1: #TODO: change this!!!
+            path = result[0]
+            return Loader.load_from_path(local_path=path, all_load=all_load)
+
+    def _materialize_local(self, output_path=None):
         regs = None
         meta = None
         if output_path is not None:
@@ -730,7 +755,7 @@ class GMQLDataset:
             regs = MemoryLoader.load_regions(collected)
             meta = MemoryLoader.load_metadata(collected)
 
-        result = GDataframe(regs=regs, meta=meta)
+        result = GDataframe.GDataframe(regs=regs, meta=meta)
         return result
 
     def take(self, n=5):
@@ -746,43 +771,9 @@ class GMQLDataset:
         collected = self.pmg.take(self.index, n)
         regs = MemoryLoader.load_regions(collected)
         meta = MemoryLoader.load_metadata(collected)
-        result = GDataframe(regs, meta)
+        result = GDataframe.GDataframe(regs, meta)
         return result
 
     def _get_serialized_dag(self):
         serialized_dag = self.pmg.serializeVariable(self.index)
         return serialized_dag
-
-
-def materialize(datasets):
-    """ Multiple materializations. Enables the user to specify a set of GMQLDataset to be materialized.
-    The engine will perform all the materializations at the same time, if an output path is provided,
-    while will perform each operation separately if the output_path is not specified.
-
-    :param datasets: it can be a list of GMQLDataset or a dictionary {'output_path' : GMQLDataset}
-    :return: a list of GDataframe or a dictionary {'output_path' : GDataframe}
-    """
-    result = None
-    if isinstance(datasets, dict):
-        result = dict()
-        for output_path in datasets.keys():
-            dataset = datasets[output_path]
-            if not isinstance(dataset, GMQLDataset):
-                raise TypeError("The values of the dictionary must be GMQLDataset."
-                                " {} was given".format(type(dataset)))
-            gframe = dataset.materialize(output_path)
-            result[output_path] = gframe
-    elif isinstance(datasets, list):
-        result = []
-        for dataset in datasets:
-            if not isinstance(dataset, GMQLDataset):
-                raise TypeError("The values of the list must be GMQLDataset."
-                                " {} was given".format(type(dataset)))
-            gframe = dataset.materialize()
-            result.append(gframe)
-    else:
-        raise TypeError("The input must be a dictionary of a list. "
-                        "{} was given".format(type(datasets)))
-    return result
-
-
