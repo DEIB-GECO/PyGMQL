@@ -1,8 +1,9 @@
-from ... import get_python_manager
+from ... import get_python_manager, get_remote_manager
 from ..parsers.Parser import Parser
 from . import MetaLoaderFile, RegLoaderFile
 from .. import GDataframe
 from .. import GMQLDataset
+from .. import RemoteGMQLDataset
 import os
 import glob
 
@@ -80,13 +81,17 @@ def load_from_path(local_path=None, parser=None, meta_load=False,
         return GMQLDataset.GMQLDataset(index=index, parser=parser, regs=regs, meta=meta)
 
 
-def load_from_remote(remote_name=None, parser=None, meta_load=False,
-                     reg_load=False, all_load=False):
+def load_from_remote(remote_name, owner=None):
     """ Loads the data from a remote repository.
 
     :param remote_name: The name of the dataset in the remote repository
+    :param owner: (optional) The owner of the dataset. If nothing is provided, the current user
+                  is used. For public datasets use 'public'.
     :return A new GMQLDataset or a GDataframe
     """
-    # TODO: download from remote to 'path' and then call 'load_from_path'
-    pass
+    pmg = get_python_manager()
+    remote_manager = get_remote_manager()
+    parser = remote_manager.get_dataset_schema(remote_name, owner)
+    index = pmg.read_dataset(remote_name, parser.get_gmql_parser())
+    return RemoteGMQLDataset.RemoteGMQLDataset(index=index, parser=parser)
 
