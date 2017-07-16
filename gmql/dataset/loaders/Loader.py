@@ -3,7 +3,6 @@ from ..parsers.Parser import Parser
 from . import MetaLoaderFile, RegLoaderFile
 from .. import GDataframe
 from .. import GMQLDataset
-from .. import RemoteGMQLDataset
 import os
 import glob
 
@@ -78,7 +77,7 @@ def load_from_path(local_path=None, parser=None, meta_load=False,
     if (regs is not None) and (meta is not None):
         return GDataframe.GDataframe(regs=regs, meta=meta)
     else:
-        return GMQLDataset.GMQLDataset(index=index, parser=parser, regs=regs, meta=meta)
+        return GMQLDataset.GMQLDataset(index=index, parser=parser, regs=regs, meta=meta, location="local")
 
 
 def load_from_remote(remote_name, owner=None):
@@ -93,5 +92,5 @@ def load_from_remote(remote_name, owner=None):
     remote_manager = get_remote_manager()
     parser = remote_manager.get_dataset_schema(remote_name, owner)
     index = pmg.read_dataset(remote_name, parser.get_gmql_parser())
-    return RemoteGMQLDataset.RemoteGMQLDataset(index=index, parser=parser)
+    return GMQLDataset.GMQLDataset(index=index, location="remote")
 
