@@ -1,4 +1,5 @@
 from . import default_address, headers
+from .. import get_python_manager
 import requests, time, logging, json
 from requests_toolbelt.multipart.encoder import MultipartEncoderMonitor, MultipartEncoder
 import pandas as pd
@@ -333,6 +334,19 @@ class RemoteManager:
         jobid = response.get("id")
         self.logger.info("JobId: {}. Waiting for the result".format(jobid))
 
+        status_resp = self._wait_for_result(jobid)
+
+        datasets = status_resp.get("datasets")
+        result = []
+        for dataset in datasets:
+            name = dataset.get("name")
+            result.append({'dataset': name})
+            if output_path is not None:
+                path = os.path.join(output_path, name)
+                self.download_dataset(dataset_name=name, local_path=path)
+        return pd.DataFrame.from_dict(result)
+
+    def _wait_for_result(self, jobid):
         count = 1
         while True:
             status_resp = self.trace_job(jobid)
@@ -349,16 +363,56 @@ class RemoteManager:
                                  .format(status, message))
             count += 1
             time.sleep(1)
+        return status_resp
+
+    # def execute_remote(self, dataset, output="tab"):
+    #     if not isinstance(dataset, GMQLDataset):
+    #         raise TypeError("A GMQLDataset is required. {} was found".format(type(dataset)))
+    #
+    #     dag = dataset._get_serialized_dag()
+    #     self._execute_dag(dag, output)
+    #     # TODO: complete...
+
+    def execute_remote_all(self, output="tab", output_path=None):
+        pmg = get_python_manager()
+        serialized_dag = pmg.get_serialized_materialization_list()
+        return self._execute_dag(serialized_dag, output, output_path)
+
+    def _execute_dag(self, serialized_dag, output="tab", output_path=None):
+        header = self.__check_authentication()
+        header['Content-Type'] = "text/plain"
+        output = output.lower()
+        if output not in ['tab', 'gtf']:
+            raise ValueError("output must be 'tab' or 'gtf'")
+
+        url = self.address + "/queries/dag/" + output
+        body = serialized_dag
+        response = requests.post(url=url, data=body, headers=header)
+        if response.status_code != 200:
+            raise ValueError("Code {}. {}".format(response.status_code, response.json().get("error")))
+        response = response.json()
+        jobid = response.get("id")
+        self.logger.info("JobId: {}. Waiting for the result".format(jobid))
+        status_resp = self._wait_for_result(jobid)
 
         datasets = status_resp.get("datasets")
         result = []
+
+        if isinstance(output_path, bool):
+            if output_path:
+                output_path = TempFileManager.get_new_dataset_tmp_folder()
+            else:
+                output_path = None
+
         for dataset in datasets:
             name = dataset.get("name")
-            result.append({'dataset': name})
-            if output_path is not None:
+            if isinstance(output_path, str):
                 path = os.path.join(output_path, name)
+                result.append(path)
                 self.download_dataset(dataset_name=name, local_path=path)
-        return pd.DataFrame.from_dict(result)
+
+        return result
+
 
     """
         Execution
