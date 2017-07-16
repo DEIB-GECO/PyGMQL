@@ -268,7 +268,9 @@ TempFileManager.initialize_tmp_folders()
 def to_java_list(l):
     ListConverter().convert(l, gateway)
 
-none = pythonManager.getNone()
+
+def none():
+    return pythonManager.getNone()
 
 
 def Some(thing):
@@ -308,10 +310,9 @@ def execute_remote():
 """
     EXPOSING INTERNAL FEATURES
 """
-from .dataset.GMQLDataset import GMQLDataset, materialize   # the dataset
-from .dataset.GDataframe import GDataframe, from_pandas     # the genomic dataframe
+from .dataset.GDataframe import from_pandas
 from .dataset.loaders.Loader import load_from_path, load_from_remote
-from .dataset import parsers                                # the set of parsers
+from .dataset import parsers
 # the possible aggregations
 from .dataset.DataStructures.Aggregates import *
 # the possible join conditions
