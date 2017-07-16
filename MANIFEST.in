@@ -1,2 +1,3 @@
 include gmql/resources/instances
 include gmql/resources/version
+include gmql/resources/github_url
