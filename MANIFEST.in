@@ -1,1 +1,2 @@
-recursive-include gmql/resources *
+include gmql/resources/instances
+include gmql/resources/version
