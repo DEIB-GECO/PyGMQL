@@ -4,7 +4,8 @@ import os
 with open(os.path.join(".", "gmql", "resources", "version"), "r") as f_ver:
     version = f_ver.read().strip()
 
-github_url = 'https://github.com/lucananni93/GMQL-Python'
+with open(os.path.join(".", "gmql", "resources", "github_url"), "r") as f_ver:
+    github_url = f_ver.read().strip()
 
 setup(name='gmql',
       version=version,
