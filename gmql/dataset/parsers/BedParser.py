@@ -9,11 +9,12 @@ class BedParser(Parser):
     """
     delimiter = None
 
-    def __init__(self, delimiter, chrPos, startPos,
-                 stopPos, strandPos=None, otherPos=None, parser_name=None):
-        """
-        Generic Bed Parser
-        :param delimiter: delimiter of the columns of the file
+    def __init__(self, chrPos, startPos,
+                 stopPos, strandPos=None, otherPos=None, parser_name=None,
+                 delimiter="\t"):
+        """ Generic Bed Parser
+
+        :param delimiter: delimiter of the columns of the file. Default "\t"
         :param chrPos: position of the chromosome column
         :param startPos: position of the start column
         :param stopPos: position of the stop column
