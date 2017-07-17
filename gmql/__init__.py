@@ -139,13 +139,13 @@ def check_backend(gmql_jar_fn):
     if os.path.isfile(gmql_jar_fn):
         return gmql_jar_fn
     else:
-        logger.info("Downloading updated backend version")
         # we need to download it
         global backend_download_url, __version__, gmql_jar
         full_url = '{}/{}/{}/{}'.format(backend_download_url,
                                         "releases/download",
                                         __version__, gmql_jar)
-        # full_url = "https://github.com/DEIB-GECO/PyGMQL/releases/download/0.0.1/pythonAPI-0.0.2.jar"
+        logger.info("Downloading updated backend version ({})".format(full_url))
+
         r = requests.get(full_url, stream=True)
         total_size = int(r.headers.get('content-length', 0))
         chunk = 1024*1024
