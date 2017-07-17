@@ -48,6 +48,17 @@ Dataset loading functions
    load_from_path
    load_from_remote
 
+-------
+Parsing
+-------
+
+.. currentmodule:: gmql.dataset.parsers
+.. autosummary::
+   :nosignatures:
+
+   BedParser.BedParser
+
+
 --------------------
 Aggregates operators
 --------------------
