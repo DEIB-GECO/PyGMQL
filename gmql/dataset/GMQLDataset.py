@@ -18,13 +18,13 @@ class GMQLDataset:
     affect one of these two features or both.
     """
 
-    def __init__(self, parser=None, index=None, regs=None, meta=None, location="local"):
+    def __init__(self, parser=None, index=None, regs=None, meta=None, location="local", path_or_name=None):
         self.parser = parser
         self.index = index
         self.regs = regs
         self.meta = meta
         self.location = location
-
+        self.path_or_name=path_or_name
         self.pmg = get_python_manager()
         self.opmng = self.pmg.getOperatorManager()
 
@@ -54,6 +54,22 @@ class GMQLDataset:
         print("GMQLDataset")
         print("\tParser:\t{}".format(self.parser.get_parser_name()))
         print("\tIndex:\t{}".format(self.index))
+
+    def get_metadata(self):
+        if self.path_or_name is None:
+            raise ValueError("You cannot explore the metadata of an intermediate query."
+                             "You can get metadata only after a load_from_local or load_from_remote")
+        if self.location == 'local':
+            return self.__get_metadata_local()
+        elif self.location == 'remote':
+            return self.__get_metadata_remote()
+
+    def __get_metadata_local(self):
+        meta = MetaLoaderFile.load_meta_from_path(self.path_or_name)
+        return GDataframe.GDataframe(meta=meta)
+
+    def __get_metadata_remote(self):
+        pass
 
     def get_reg_attributes(self):
         """

@@ -22,11 +22,21 @@ class GDataframe:
         - A table with the *region* data
         - A table with the *metadata* corresponding to the regions
     """
-    def __init__(self, regs, meta):
-        if not isinstance(regs, pd.DataFrame):
+    def __init__(self, regs=None, meta=None):
+        if (regs is None) and (meta is None):
+            raise ValueError("At least one of meta or regs must not be None")
+        if (regs is not None) and (not isinstance(regs, pd.DataFrame)):
             raise TypeError("regs: expected pandas Dataframe, got {}".format(type(regs)))
-        if not isinstance(meta, pd.DataFrame):
+        if (meta is not None) and (not isinstance(meta, pd.DataFrame)):
             raise TypeError("meta: expected pandas Dataframe, got {}".format(type(meta)))
+
+        if regs is None:
+            index = meta.index
+            regs = pd.DataFrame(index=index)
+
+        if meta is None:
+            meta = empty_meta(regs)
+
         self.regs = regs
         self.meta = meta
 
