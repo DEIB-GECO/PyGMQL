@@ -77,7 +77,8 @@ def load_from_path(local_path=None, parser=None, meta_load=False,
     if (regs is not None) and (meta is not None):
         return GDataframe.GDataframe(regs=regs, meta=meta)
     else:
-        return GMQLDataset.GMQLDataset(index=index, parser=parser, regs=regs, meta=meta, location="local")
+        return GMQLDataset.GMQLDataset(index=index, parser=parser, regs=regs, meta=meta,
+                                       location="local", path_or_name=local_path)
 
 
 def load_from_remote(remote_name, owner=None):
