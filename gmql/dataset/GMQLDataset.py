@@ -325,7 +325,7 @@ class GMQLDataset:
                 regs_ext_list.append(reg_extension)
             regs_ext = Some(regs_ext_list)
 
-        new_index = self.opmng.project(self.index, none(), none(),
+        new_index = self.opmng.project(self.index, none(), none(), False,
                                        projected_regs, all_but_f, regs_ext)
         return GMQLDataset(index=new_index, location=self.location)
 
