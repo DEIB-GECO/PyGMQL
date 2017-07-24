@@ -1,5 +1,4 @@
-from .BedParser import BedParser
-from .NarrowPeakParser import NarrowPeakParser
+from .BedParser import *
 
 string_aliases = ['string', 'char']
 int_aliases = ['long', 'int', 'integer']
