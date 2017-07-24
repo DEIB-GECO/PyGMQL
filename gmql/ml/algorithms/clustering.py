@@ -9,7 +9,6 @@ from pyclustering.cluster.xmeans import xmeans, splitting_type
 from pyclustering.cluster.clarans import clarans
 from pyclustering.cluster.rock import rock
 from pyclustering.cluster.optics import optics
-import numpy as np
 from scipy.spatial.distance import cdist, pdist
 from matplotlib import pyplot as plt
 

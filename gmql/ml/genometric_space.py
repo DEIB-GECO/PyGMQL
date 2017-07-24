@@ -1,14 +1,13 @@
 import pandas as pd
-from parser.parser import Parser
+from .dataset.parser.parser import Parser
 import numpy as np
 import warnings
 import statistics
 from sklearn.feature_extraction.text import TfidfVectorizer
-from ml.clustering import Clustering
-from ml.biclustering import Biclustering
+from .algorithms.clustering import Clustering
+from .algorithms.biclustering import Biclustering
 from tqdm import tqdm
 from wordcloud import WordCloud
-import logging
 
 class GenometricSpace:
     """

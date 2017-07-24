@@ -1,5 +1,5 @@
-from genometric_space import GenometricSpace
-from parser.parser import Parser
+from .genometric_space import GenometricSpace
+from .dataset.parser.parser import Parser
 import pandas as pd
 import warnings
 import numpy as np
