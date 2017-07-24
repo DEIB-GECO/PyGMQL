@@ -38,6 +38,7 @@ backend_download_url = get_github_url()
     Logging and progress bars
 """
 
+
 def set_logger(logger_name):
     """
     The library has a personal logger that tells the user the intermediate steps of the
@@ -352,6 +353,35 @@ def execute_remote():
     global remote_manager
     remote_manager.execute_remote_all()
 
+
+"""
+    Execution mode management
+"""
+
+mode = "local"
+
+
+def set_mode(how):
+    """ Sets the behavior of the API
+
+    :param how: if 'remote' all the execution is performed on the remote server; if 'local' all
+           it is executed locally. Default = 'local'
+    :return: None
+    """
+    global mode
+    if how == "local":
+        mode = how
+    elif how == "remote":
+        mode = how
+    else:
+        raise ValueError("how must be 'local' or 'remote'")
+
+
+def get_mode():
+    global mode
+    return mode
+
+
 """
     EXPOSING INTERNAL FEATURES
 """
@@ -366,3 +396,4 @@ from .dataset.DataStructures.GenometricPredicates import *
 from .RemoteConnection.RemoteManager import RemoteManager
 
 initialize_remote_manager()
+
