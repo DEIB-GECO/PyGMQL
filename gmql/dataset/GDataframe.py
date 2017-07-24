@@ -75,6 +75,20 @@ class GDataframe:
         elif remote is not None:
             raise NotImplementedError("The remote loading is not implemented yet!")
 
+    def _normalize_metadata(self):
+        meta = self.meta
+        meta = meta.apply(_normalize_column)
+        return GDataframe(regs=self.regs, meta=meta)
+    
+
+def _normalize_column(column):
+    lengths = column.map(len)
+    if len(list(filter(lambda x: x > 1, lengths))) == 0:
+        new_column = column.map(lambda x: x[0])
+    else:
+        new_column = column
+    return new_column
+
 
 def from_pandas(regs, meta=None, chr_name=None, start_name=None, stop_name=None,
                 strand_name=None, sample_name=None):
