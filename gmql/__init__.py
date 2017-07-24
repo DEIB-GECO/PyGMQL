@@ -395,5 +395,9 @@ from .dataset.DataStructures.GenometricPredicates import *
 # for interacting with the remote cluster
 from .RemoteConnection.RemoteManager import RemoteManager
 
+# modules for the machine learning library
+from . import ml
+
+
 initialize_remote_manager()
 
