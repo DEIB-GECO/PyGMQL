@@ -359,7 +359,7 @@ class GMQLDataset:
             regsToMeta = expBuild.getRegionsToMeta(op_name, new_name, op_argument)
             aggregatesJavaList.append(regsToMeta)
 
-        new_index = self.opmng.extend(aggregatesJavaList)
+        new_index = self.opmng.extend(self.index, aggregatesJavaList)
         return GMQLDataset(index=new_index, location=self.location)
 
     def cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None, type="normal"):
@@ -599,14 +599,15 @@ class GMQLDataset:
         
         :param meta: list of metadata attributes
         :param meta_ascending: list of boolean values (True = ascending, False = descending)
-        :param meta_top: "top" or "topq" or None
+        :param meta_top: "top", "topq" or "topp" or None
         :param meta_k: a number specifying how many results to be retained
         :param regs: list of region attributes
         :param regs_ascending: list of boolean values (True = ascending, False = descending)
-        :param region_top: "top" or "topq" or None
+        :param region_top: "top", "topq" or "topp" or None
         :param region_k: a number specifying how many results to be retained
         :return: a new GMQLDataset
         """
+
         assert meta or regs, "There must be at least an ordering on the " \
                              "metadata or on the region data"
         assert (meta_top and meta_k) or (not meta_top and not meta_k), \
