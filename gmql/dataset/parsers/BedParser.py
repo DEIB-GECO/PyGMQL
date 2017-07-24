@@ -165,5 +165,57 @@ def getTypes(otherPos):
     return None
 
 
+class NarrowPeakParser(BedParser):
+    """
+    Parser for ENCODE NarrowPeak files.
+    """
+    def __init__(self):
+        delimiter = '\t'
+        chrPos = 0
+        startPos = 1
+        stopPos = 2
+        strandPos = 5
+        otherPos = [(3, 'name', "string"),
+                    (4, 'score', "float"),
+                    (6, 'signalValue', "float"),
+                    (7, 'pValue', "float"),
+                    (8, 'qValue', "float"),
+                    (9, 'peak', "float")]
+
+        super().__init__(parser_name='NarrowPeakParser', delimiter=delimiter,
+                         chrPos=chrPos, startPos=startPos,
+                         stopPos=stopPos, strandPos=strandPos, otherPos=otherPos)
 
 
+class Bed10(BedParser):
+    """ Standard Full BED Parser of 10 Columns
+    """
+    def __init__(self):
+        delimiter = "\t"
+        chrPos = 0
+        startPos = 1
+        stopPos = 2
+        strandPos = 5
+        otherPos = [
+            (3, "3", "string"),
+            (4, "4", "double"),
+            (6, "6", "double"),
+            (7, "7", "double"),
+            (8, "8", "double"),
+            (9, "9", "double")
+        ]
+        super().__init__(parser_name='Bed10', delimiter=delimiter,
+                         chrPos=chrPos, startPos=startPos,
+                         stopPos=stopPos, strandPos=strandPos, otherPos=otherPos)
+
+
+class ANNParser(BedParser):
+    """ Annotation Parser (6 columns)
+    """
+    def __init__(self):
+        super().__init__(chrPos=0, startPos=1, stopPos=2, strandPos=5,
+                         otherPos=[(3, "name", "string"), (4, "score", "double")],
+                         delimiter="\t", parser_name="AnnotationParser")
+
+
+# TODO: ADD THE REST OF THE PARSERS
