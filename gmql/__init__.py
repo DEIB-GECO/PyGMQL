@@ -386,7 +386,7 @@ def get_mode():
     EXPOSING INTERNAL FEATURES
 """
 from .dataset.GDataframe import from_pandas
-from .dataset.loaders.Loader import load_from_path, load_from_remote
+from .dataset.loaders.Loader import load_from_path, load_from_remote, load
 from .dataset import parsers
 # the possible aggregations
 from .dataset.DataStructures.Aggregates import *
