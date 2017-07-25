@@ -2,6 +2,7 @@ from .. import get_python_manager, get_gateway, none, Some, get_remote_manager
 from .loaders import MetaLoaderFile, RegLoaderFile
 from .DataStructures.RegField import RegField
 from .DataStructures.MetaField import MetaField
+from .DataStructures.Aggregates import Aggregate
 import shutil
 import os
 from .DataStructures import reg_fixed_fileds
@@ -708,6 +709,90 @@ class GMQLDataset:
                 groupByJavaList.append(g)
         new_index = self.opmng.merge(self.index, groupByJavaList)
         return GMQLDataset(index=new_index, location=self.location)
+
+    def group(self, meta=None, meta_aggregates=None, regs=None, regs_aggregates=None, meta_group_name="_group"):
+        """ The GROUP operator is used for grouping both regions and/or metadata of input
+        dataset samples according to distinct values of certain attributes (known as grouping
+        attributes); new grouping attributes are added to samples in the output dataset,
+        storing the results of aggregate function evaluations over metadata and/or regions
+        in each group of samples.
+        Samples having missing values for any of the grouping attributes are discarded.
+
+
+        :param meta: (optional) a list of metadata attributes
+        :param meta_aggregates: (optional) {'new_attr': fun}
+        :param regs: (optional) a list of region fields
+        :param regs_aggregates: {'new_attr': fun}
+        :param meta_group_name: (optional) the name to give to the group attribute in the
+               metadata
+        :return: a new GMQLDataset
+        """
+
+        if meta is None:
+            meta = none()
+        else:
+            if all([isinstance(x, str) for x in meta]):
+                meta = Some(meta)
+            else:
+                raise TypeError("meta must be a list of string")
+
+        if regs is None:
+            regs = none()
+        else:
+            if all([isinstance(x, str) for x in regs]):
+                regs = Some(regs)
+            else:
+                raise TypeError("regs must be a list of string")
+
+        expBuild = self.pmg.getNewExpressionBuilder(self.index)
+        if meta_aggregates is None:
+            meta_aggregates_list = none()
+        else:
+            if not isinstance(meta_aggregates, dict):
+                raise TypeError("meta_aggregates must be a dictionary")
+            meta_aggregates_list = []
+            for k in meta_aggregates.keys():
+                new_attr = k
+                aggregate = meta_aggregates[k]
+                if not isinstance(aggregate, Aggregate):
+                    raise TypeError("meta_aggregates: the values of the dictionary must be aggregate functions."
+                                    "{} was found".format(type(aggregate)))
+                regions_to_meta = expBuild.getRegionsToMeta(aggregate.get_aggregate_name(), new_attr, aggregate.get_argument())
+                meta_aggregates_list.append(regions_to_meta)
+
+            meta_aggregates_list = Some(meta_aggregates_list)
+
+        if regs_aggregates is None:
+            regs_aggregates_list = none()
+        else:
+            if not isinstance(regs_aggregates, dict):
+                raise TypeError("regs_aggregates must be a dictionary")
+            regs_aggregates_list = []
+            for k in regs_aggregates.keys():
+                new_attr = k
+                aggregate = regs_aggregates[k]
+                if not isinstance(aggregate, Aggregate):
+                    raise TypeError("meta_aggregates: the values of the dictionary must be aggregate functions."
+                                    "{} was found".format(type(aggregate)))
+                regions_to_region = expBuild.getRegionsToRegion(aggregate.get_aggregate_name(), new_attr, aggregate.get_argument())
+                regs_aggregates_list.append(regions_to_region)
+
+            regs_aggregates_list = Some(regs_aggregates_list)
+
+        new_index = self.opmng.group(self.index, meta, meta_aggregates_list, meta_group_name,
+                                     regs, regs_aggregates_list)
+
+        return GMQLDataset(index=new_index, location=self.location)
+
+    def meta_group(self, meta, meta_aggregates=None):
+        """ Group operation only for metadata. For further information check :meth:`~.group`
+        """
+        return self.group(meta=meta, meta_aggregates=meta_aggregates)
+
+    def regs_group(self, regs, regs_aggregates=None):
+        """ Group operation only for region data. For further information check :meth:`~.group`
+        """
+        return self.group(regs=regs, regs_aggregates=regs_aggregates)
     """
         Materialization utilities
     """
