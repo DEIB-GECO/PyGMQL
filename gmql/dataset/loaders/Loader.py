@@ -1,4 +1,5 @@
-from ... import get_python_manager, get_remote_manager
+from ... import get_python_manager, get_remote_manager, get_mode
+from ...FileManagment import TempFileManager
 from ..parsers.Parser import Parser
 from . import MetaLoaderFile, RegLoaderFile
 from .. import GDataframe
@@ -94,4 +95,30 @@ def load_from_remote(remote_name, owner=None):
     parser = remote_manager.get_dataset_schema(remote_name, owner)
     index = pmg.read_dataset(remote_name, parser.get_gmql_parser())
     return GMQLDataset.GMQLDataset(index=index, location="remote")
+
+
+def load(path=None, name=None, owner=None, parser=None, all_load=False):
+    mode = get_mode()
+    remote_manager = get_remote_manager()
+    if mode == 'local':
+        if isinstance(path, str) and (name is None):
+            # we are given a local path
+            return load_from_path(local_path=path, parser=parser, all_load=all_load)
+        elif isinstance(name, str) and (path is None):
+            local_path = TempFileManager.get_new_dataset_tmp_folder()
+            remote_manager.download_dataset(dataset_name=name, local_path=local_path)
+            return load_from_path(local_path=local_path, all_load=all_load)
+        else:
+            ValueError("You have to define path or name (mutually exclusive)")
+    elif mode == 'remote':
+        if isinstance(path, str) and (name is None):
+            name = TempFileManager.get_unique_identifier()
+            remote_manager.upload_dataset(dataset=path, dataset_name=name)
+            return load_from_remote(remote_name=name)
+        elif isinstance(name, str) and (path is None):
+            return load_from_remote(remote_name=name, owner=owner)
+        else:
+            ValueError("You have to define path or name (mutually exclusive)")
+    else:
+        raise ValueError("Mode: {} unknown".format(mode))
 
