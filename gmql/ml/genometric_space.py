@@ -27,6 +27,7 @@ class GenometricSpace:
     def from_memory(cls, data, meta):
         """
         Overloaded constructor to create the GenometricSpace object from memory data and meta variables.
+        The indexes of the data and meta dataframes should be the same.
         Args:
             :param data: The data model
             :param meta: The metadata
@@ -40,6 +41,8 @@ class GenometricSpace:
 
     def load(self, _path, regs=['chr', 'left', 'right', 'strand'], meta=[], values=[], full_load=False, file_extension="gdm"):
         """Parses and loads the data into instance attributes.
+        The indexes of the data and meta dataframes should be the same.
+        
 
         Args:
             :param path: The path to the dataset on the filesystem
