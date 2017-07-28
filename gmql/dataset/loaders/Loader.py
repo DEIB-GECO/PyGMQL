@@ -27,8 +27,7 @@ def check_for_dataset(files):
     return len([x for x in files if x.endswith(".meta")]) > 0
 
 
-def load_from_path(local_path=None, parser=None, meta_load=False,
-                   reg_load=False, all_load=False):
+def load_from_path(local_path=None, parser=None,  all_load=False):
     """ Loads the data from a local path into a GMQLDataset.
     The loading of the files is "lazy", which means that the files are loaded only when the
     user does a materialization (see :func:`~gmql.dataset.GMQLDataset.GMQLDataset.materialize` ).
@@ -41,8 +40,6 @@ def load_from_path(local_path=None, parser=None, meta_load=False,
     
     :param local_path: local path of the dataset
     :param parser: the parser to be used for reading the data
-    :param meta_load: if set to True, the metadata are loaded directly into memory
-    :param reg_load: if set to True, the region data are loaded directly into memory
     :param all_load: if set to True, both region and meta data are loaded in memory and an 
                      instance of GDataframe is returned
     :return: A new GMQLDataset or a GDataframe
@@ -64,6 +61,9 @@ def load_from_path(local_path=None, parser=None, meta_load=False,
     if all_load:
         reg_load = True
         meta_load = True
+    else:
+        reg_load = False
+        meta_load = False
     meta = None
     if meta_load:
         # load directly the metadata for exploration
@@ -78,7 +78,7 @@ def load_from_path(local_path=None, parser=None, meta_load=False,
     if (regs is not None) and (meta is not None):
         return GDataframe.GDataframe(regs=regs, meta=meta)
     else:
-        return GMQLDataset.GMQLDataset(index=index, parser=parser, regs=regs, meta=meta,
+        return GMQLDataset.GMQLDataset(index=index, parser=parser,
                                        location="local", path_or_name=local_path)
 
 
