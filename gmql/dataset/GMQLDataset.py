@@ -19,13 +19,11 @@ class GMQLDataset:
     affect one of these two features or both.
     """
 
-    def __init__(self, parser=None, index=None, regs=None, meta=None, location="local", path_or_name=None):
+    def __init__(self, parser=None, index=None, location="local", path_or_name=None):
         self.parser = parser
         self.index = index
-        self.regs = regs
-        self.meta = meta
         self.location = location
-        self.path_or_name=path_or_name
+        self.path_or_name = path_or_name
         self.pmg = get_python_manager()
         self.opmng = self.pmg.getOperatorManager()
 
