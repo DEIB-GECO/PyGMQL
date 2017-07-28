@@ -12,6 +12,8 @@
 # User-specific stuff:
 .idea/**/workspace.xml
 .idea/**/tasks.xml
+.idea/**/misc.xml
+.idea/**/GMQL-Python.iml
 
 # Sensitive or high-churn files:
 .idea/**/dataSources/
