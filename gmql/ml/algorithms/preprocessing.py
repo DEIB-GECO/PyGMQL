@@ -1,5 +1,7 @@
 from fancyimpute import KNN, SimpleFill, IterativeSVD
 import pandas as pd
+from sklearn.feature_selection import SelectKBest
+from sklearn.feature_selection import chi2, f_classif, mutual_info_classif
 
 class Preprocessing:
     """
@@ -25,7 +27,7 @@ class Preprocessing:
         :param df: the dataframe
         :return: the resulting dataframe
         """
-        df_norm = df / (df.max() - df.min())
+        df_norm = df / df.std()
         return df_norm
 
     @staticmethod
@@ -74,6 +76,7 @@ class Preprocessing:
     def impute_svd(df, rank=10, convergence_threshold=0.00001, max_iters=200):
         """
         Imputes the missing values by using SVD decomposition
+        Based on the following publication: 'Missing value estimation methods for DNA microarrays' by Troyanskaya et. al.
         :param df:The input dataframe that contains missing values
         :param rank: Rank value of the truncated SVD
         :param convergence_threshold: The threshold to stop the iterations
@@ -83,3 +86,33 @@ class Preprocessing:
         imputed_matrix = IterativeSVD(rank,convergence_threshold, max_iters).complete(df.values)
         imputed_df = pd.DataFrame(imputed_matrix, df.index, df.columns)
         return imputed_df
+
+    @staticmethod
+    def feature_selection(df, labels, n_features, method='chi2'):
+        """
+        Reduces the number of features in the imput dataframe.
+        Ex: labels = gs.meta['biospecimen_sample__sample_type_id'].apply(int).apply(lambda x: 0 if x < 10 else 1)
+            chi2_fs(gs.data, labels, 50)
+        :param df: The input dataframe
+        :param labels: Labels for each row in the df. Type: Pandas.Series
+        :param no_features: The desired number of features
+        :param method: The feature selection method to be employed. It is set to 'chi2' by default
+        To select the features using mutual information, the method value should be set to 'mi'
+        To select the features using ANOVA, the method value should be set to 'ANOVA'
+        :return: Returns the dataframe with the selected features
+
+        """
+        fs_obj = None
+        if method == 'chi2':
+            fs_obj = chi2
+        elif method == 'ANOVA':
+            fs_obj = f_classif
+        elif method == 'mi':
+            fs_obj = mutual_info_classif
+        else:
+            raise ValueError('The method is not recognized')
+    
+        fs = SelectKBest(fs_obj, k=n_features)
+        fs.fit_transform(df, labels)
+        df_reduced = df.loc[:, fs.get_support()]
+        return df_reduced
