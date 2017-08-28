@@ -21,3 +21,10 @@ and then using::
     pip install -e .
 
 This will install the library and its dependencies in your system.
+
+---------
+Using PIP
+---------
+The package can be also downloaded and installed directly in your python distribution using::
+
+    pip install gmql
