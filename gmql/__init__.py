@@ -15,6 +15,7 @@ import requests
     Version management
 """
 
+
 def get_version():
     version_file_name = resource_filename("gmql", os.path.join("resources", "version"))
     with open(version_file_name, "r") as f_ver:
@@ -334,9 +335,9 @@ def get_remote_manager():
     return remote_manager
 
 
-def initialize_remote_manager():
+def __initialize_remote_manager(address=None):
     global remote_manager
-    remote_manager = RemoteManager()
+    remote_manager = RemoteManager(address)
 
 
 def login(username=None, password=None):
@@ -383,6 +384,24 @@ def get_mode():
 
 
 """
+    Datasets management
+"""
+
+__source_table = None
+
+
+def __initialize_source_table():
+    global __source_table
+    from .dataset.loaders.Sources import SourcesTable
+    __source_table = SourcesTable()
+
+
+def _get_source_table():
+    global __source_table
+    return __source_table
+
+
+"""
     EXPOSING INTERNAL FEATURES
 """
 from .dataset.GDataframe import from_pandas
@@ -399,5 +418,6 @@ from .RemoteConnection.RemoteManager import RemoteManager
 from . import ml
 
 
-initialize_remote_manager()
+__initialize_remote_manager()
+__initialize_source_table()
 
