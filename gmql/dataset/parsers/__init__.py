@@ -16,3 +16,14 @@ def get_parsing_function(type_string):
         return float
     else:
         raise ValueError("This type is not supported")
+
+
+def get_type_name(type):
+    if type == str:
+        return "string"
+    elif type == int:
+        return "integer"
+    elif type == float:
+        return "double"
+    else:
+        raise ValueError("This type is not supported")
