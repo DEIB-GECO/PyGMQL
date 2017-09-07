@@ -1,4 +1,9 @@
-from .. import GMQLDataset
+from .. import GMQLDataset, GDataframe
+import os, shutil
+from ... import get_python_manager, get_remote_manager
+from . import MetaLoaderFile, RegLoaderFile, MemoryLoader, Loader
+from ...FileManagment.TempFileManager import get_unique_identifier, get_new_dataset_tmp_folder
+
 
 
 def materialize(datasets):
@@ -31,3 +36,44 @@ def materialize(datasets):
         raise TypeError("The input must be a dictionary of a list. "
                         "{} was given".format(type(datasets)))
     return result
+
+
+def materialize_local(id, output_path=None):
+    pmg = get_python_manager()
+
+    if output_path is not None:
+        # check that the folder does not exists
+        if os.path.isdir(output_path):
+            shutil.rmtree(output_path)
+
+        pmg.materialize(id, output_path)
+        pmg.execute()
+
+        # taking in memory the data structure
+        real_path = os.path.join(output_path, 'exp')
+        # metadata
+        meta = MetaLoaderFile.load_meta_from_path(real_path)
+        # region data
+        regs = RegLoaderFile.load_reg_from_path(real_path)
+    else:
+        # We load the structure directly from the memory
+        collected = pmg.collect(id)
+        regs = MemoryLoader.load_regions(collected)
+        meta = MemoryLoader.load_metadata(collected)
+
+    result = GDataframe.GDataframe(regs=regs, meta=meta)
+    return result
+
+
+def materialize_remote(id, output_name=None, download_path=None, all_load=True):
+    pmg = get_python_manager()
+    if not isinstance(output_name, str):
+        output_name = get_unique_identifier()
+    pmg.materialize(id, output_name)
+    remote_manager = get_remote_manager()
+    if (download_path is None) and all_load:
+        download_path = get_new_dataset_tmp_folder()
+    result = remote_manager.execute_remote_all(output_path=download_path)
+    if len(result) == 1:  # TODO: change this!!!
+        path = result[0]
+        return Loader.load_from_path(local_path=path, all_load=all_load)
