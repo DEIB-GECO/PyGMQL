@@ -115,7 +115,9 @@ class BedParser(Parser):
         return attr_arr[idx_sort].tolist()
 
     def get_types(self):
-        types = [str, int, int, str]
+        types = [str, int, int]
+        if self.strandPos is not None:
+            types.append(str)
         if self.otherPos:
             for o in self.otherPos:
                 types.append(o[2])
@@ -134,7 +136,9 @@ class BedParser(Parser):
     def get_ordered_types(self):
         types = self.get_types()
         types_arr = np.array(types)
-        poss = [self.chrPos, self.startPos, self.stopPos, self.strandPos]
+        poss = [self.chrPos, self.startPos, self.stopPos]
+        if self.strandPos is not None:
+            poss.append(self.strandPos)
         if self.otherPos:
             for o in self.otherPos:
                 poss.append(o[0])
@@ -145,6 +149,9 @@ class BedParser(Parser):
 
     def get_gmql_parser(self):
         return self.gmql_parser
+
+    def get_parser_type(self):
+        return "bed"
 
 
 def getTypes(otherPos):
