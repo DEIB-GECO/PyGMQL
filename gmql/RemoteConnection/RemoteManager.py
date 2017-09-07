@@ -11,6 +11,7 @@ from ..dataset.loaders import Loader
 from ..FileManagment import TempFileManager
 import os, shutil, zipfile, sys
 from tqdm import tqdm
+from ..dataset.storers.parserToXML import parserToXML
 
 
 # import http.client as http_client
@@ -38,6 +39,8 @@ class RemoteManager:
         """
         if address is None:
             self.address = default_address
+        else:
+            self.address = address
         self.logger = logging.getLogger("PyGML logger")
         self.auth_token = None
         self.json_encoder = json.JSONEncoder()
@@ -198,8 +201,8 @@ class RemoteManager:
         chrPos, startPos, stopPos, strandPos = None, None, None, None
         otherPos = []
         for i,f in enumerate(fields):
-            fieldName = f.get("name")
-            fieldType = f.get("type")
+            fieldName = f.get("name").lower()
+            fieldType = f.get("type").lower()
             if fieldName in chr_aliases:
                 chrPos = i
             elif fieldName in start_aliases:
@@ -209,7 +212,7 @@ class RemoteManager:
             elif fieldName in strand_aliases:
                 strandPos = i
             else:
-                otherPos.append((i, fieldName, fieldType.lower()))
+                otherPos.append((i, fieldName, fieldType))
 
         return BedParser(parser_name=name, chrPos=chrPos, startPos=startPos, delimiter="\t",
                          stopPos=stopPos, strandPos=strandPos, otherPos=otherPos)
@@ -278,16 +281,29 @@ class RemoteManager:
         Download repository
     """
 
-    def download_dataset(self, dataset_name, local_path):
+    def download_dataset(self, dataset_name, local_path, how="stream"):
         """ It downloads from the repository the specified dataset and puts it
         in the specified local folder
 
         :param dataset_name: the name the dataset has in the repository
         :param local_path: where you want to save the dataset
+        :param how: 'zip' downloads the whole dataset as a zip file and decompress it; 'stream'
+               downloads the dataset sample by sample
         :return: None
         """
-        url = self.address + "/datasets/" + dataset_name + "/zip"
+        if not os.path.isdir(local_path):
+            os.makedirs(local_path)
+
+        if how == 'zip':
+            return self.download_as_zip(dataset_name, local_path)
+        elif how == 'stream':
+            return self.download_as_stream(dataset_name, local_path)
+        else:
+            raise ValueError("how must be {'zip', 'stream'}")
+
+    def download_as_zip(self, dataset_name, local_path):
         header = self.__check_authentication()
+        url = self.address + "/datasets/" + dataset_name + "/zip"
         self.logger.info("Downloading dataset {} to {}".format(dataset_name, local_path))
         response = requests.get(url, stream=True, headers=header)
         if response.status_code != 200:
@@ -306,6 +322,57 @@ class RemoteManager:
         with zipfile.ZipFile(tmp_zip, "r") as zip_ref:
             zip_ref.extractall(local_path)
         os.remove(tmp_zip)
+
+    def download_as_stream(self, dataset_name, local_path):
+        samples = self.get_dataset_samples(dataset_name)
+        ids = samples.id.unique()
+        from .. import disable_progress
+        # download the data
+        for id in tqdm(ids, disable=disable_progress):
+            name = samples[samples.id == id].name.values[0]
+            self.download_sample(dataset_name=dataset_name,
+                                 sample_name=name,
+                                 local_path=local_path,
+                                 how="all",
+                                 header=False)
+
+        # download the schema
+        schema = self.get_dataset_schema(dataset_name=dataset_name)
+        parserToXML(parser=schema, datasetName=dataset_name, path=os.path.join(local_path, dataset_name + ".schema"))
+
+    def download_sample(self, dataset_name, sample_name, local_path, how="all", header=False):
+        header_get = self.__check_authentication()
+        url = self.address + "/datasets/{}/{}/{}?header={}"
+        region = False
+        meta = False
+
+        sample_path = os.path.join(local_path, sample_name)
+        region_path = sample_path
+        meta_path = sample_path + ".meta"
+
+        if how == 'regs':
+            region = True
+        elif how == 'meta':
+            meta = True
+        elif how == 'all':
+            region = True
+            meta = True
+        else:
+            raise ValueError("how must be {'regs', 'meta', 'all'}")
+
+        header = "true" if header else "false"
+
+        if region:
+            url_region = url.format(dataset_name, sample_name, "region", header)
+            response = requests.get(url_region, stream=True, headers=header_get)
+            with open(region_path, "wb") as f:
+                f.write(response.content)
+
+        if meta:
+            url_meta = url.format(dataset_name, sample_name, "metadata", header)
+            response = requests.get(url_meta, stream=True, headers=header_get)
+            with open(meta_path, "wb") as f:
+                f.write(response.content)
 
     """
         Query
