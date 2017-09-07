@@ -1,4 +1,4 @@
-from ... import get_python_manager, get_remote_manager, get_mode
+from ... import get_python_manager, get_remote_manager, get_mode, _get_source_table
 from ...FileManagment import TempFileManager
 from ..parsers.Parser import Parser
 from . import MetaLoaderFile, RegLoaderFile
@@ -47,39 +47,40 @@ def load_from_path(local_path=None, parser=None,  all_load=False):
     pmg = get_python_manager()
 
     local_path = preprocess_path(local_path)
-    index = None
-    if parser:
-        if type(parser) is str:
-            index = pmg.read_dataset(local_path, parser)
-        elif isinstance(parser, Parser):
-            index = pmg.read_dataset(local_path, parser.get_gmql_parser())
-        else:
-            raise ValueError("parser must be a string or a Parser")
-    elif all_load is False:
-        index = pmg.read_dataset(local_path)
 
     if all_load:
-        reg_load = True
-        meta_load = True
-    else:
-        reg_load = False
-        meta_load = False
-    meta = None
-    if meta_load:
         # load directly the metadata for exploration
         meta = MetaLoaderFile.load_meta_from_path(local_path)
-    regs = None
-    if reg_load:
         if isinstance(parser, Parser):
             # region data
             regs = RegLoaderFile.load_reg_from_path(local_path, parser)
         else:
             regs = RegLoaderFile.load_reg_from_path(local_path)
-    if (regs is not None) and (meta is not None):
+
         return GDataframe.GDataframe(regs=regs, meta=meta)
     else:
+        source_table = _get_source_table()
+        id = source_table.search_source(local=local_path)
+        if id is None:
+            id = source_table.add_source(local=local_path)
+        local_sources = [id]
+
+        index = None
+        if parser is not None:
+            if type(parser) is str:
+                index = pmg.read_dataset(str(id), parser)
+            elif isinstance(parser, Parser):
+                index = pmg.read_dataset(str(id), parser.get_gmql_parser())
+            else:
+                raise ValueError("parser must be a string or a Parser")
+        else:
+            # find the parser
+            parser = RegLoaderFile.get_parser(local_path)
+            index = pmg.read_dataset(str(id), parser.get_gmql_parser())
+
         return GMQLDataset.GMQLDataset(index=index, parser=parser,
-                                       location="local", path_or_name=local_path)
+                                       location="local", path_or_name=local_path,
+                                       local_sources=local_sources)
 
 
 def load_from_remote(remote_name, owner=None):
@@ -93,11 +94,19 @@ def load_from_remote(remote_name, owner=None):
     pmg = get_python_manager()
     remote_manager = get_remote_manager()
     parser = remote_manager.get_dataset_schema(remote_name, owner)
-    index = pmg.read_dataset(remote_name, parser.get_gmql_parser())
-    return GMQLDataset.GMQLDataset(index=index, location="remote")
+
+    source_table = _get_source_table()
+    id = source_table.search_source(remote=remote_name)
+    if id is None:
+        id = source_table.add_source(remote=remote_name)
+    index = pmg.read_dataset(str(id), parser.get_gmql_parser())
+    remote_sources = [id]
+    return GMQLDataset.GMQLDataset(index=index, location="remote", path_or_name=remote_name,
+                                   remote_sources=remote_sources)
 
 
 def load(path=None, name=None, owner=None, parser=None, all_load=False):
+    # TODO: think if this method is useful or not...
     mode = get_mode()
     remote_manager = get_remote_manager()
     if mode == 'local':
