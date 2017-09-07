@@ -1,5 +1,6 @@
-from .. import get_python_manager, get_gateway, none, Some, get_remote_manager
-from .loaders import MetaLoaderFile, RegLoaderFile
+from .. import get_python_manager, get_gateway, none, Some, \
+    get_remote_manager, get_mode, _get_source_table
+from .loaders import MetaLoaderFile, RegLoaderFile, Materializations
 from .DataStructures.RegField import RegField
 from .DataStructures.MetaField import MetaField
 from .DataStructures.Aggregates import Aggregate
@@ -19,13 +20,24 @@ class GMQLDataset:
     affect one of these two features or both.
     """
 
-    def __init__(self, parser=None, index=None, location="local", path_or_name=None):
+    def __init__(self, parser=None, index=None, location="local", path_or_name=None,
+                 local_sources=None, remote_sources=None):
         self.parser = parser
         self.index = index
         self.location = location
         self.path_or_name = path_or_name
         self.pmg = get_python_manager()
         self.opmng = self.pmg.getOperatorManager()
+
+        # provenance
+        if isinstance(local_sources, list):
+            self._local_sources = local_sources
+        else:
+            self._local_sources = []
+        if isinstance(remote_sources, list):
+            self._remote_sources = remote_sources
+        else:
+            self._remote_sources = []
 
         # get the schema of the dataset
         schemaJava = self.pmg.getVariableSchemaNames(self.index)
@@ -176,7 +188,8 @@ class GMQLDataset:
         else:
             raise ValueError("semiJoinDataset <=> semiJoinMeta")
 
-        return GMQLDataset(index=new_index, location=self.location)
+        return GMQLDataset(index=new_index, location=self.location, local_sources=self._local_sources,
+                           remote_sources=self._remote_sources)
 
     def reg_select(self, predicate=None, semiJoinDataset=None, semiJoinMeta=None):
         """
@@ -221,7 +234,8 @@ class GMQLDataset:
         else:
             raise ValueError("semiJoinDataset <=> semiJoinMeta")
 
-        return GMQLDataset(index=new_index, location=self.location)
+        return GMQLDataset(index=new_index, location=self.location,
+                           local_sources=self._local_sources, remote_sources=self._remote_sources)
 
     def meta_project(self, attr_list=None, all_but=None, new_attr_dict=None):
         """
@@ -271,7 +285,8 @@ class GMQLDataset:
                                        projected_meta,
                                        meta_ext, all_but_value, none(), none(), none())
 
-        return GMQLDataset(index=new_index, location=self.location)
+        return GMQLDataset(index=new_index, location=self.location,
+                           local_sources=self._local_sources, remote_sources=self._remote_sources)
 
     def reg_project(self, field_list=None, all_but=None, new_field_dict=None):
         """
@@ -326,7 +341,8 @@ class GMQLDataset:
 
         new_index = self.opmng.project(self.index, none(), none(), False,
                                        projected_regs, all_but_f, regs_ext)
-        return GMQLDataset(index=new_index, location=self.location)
+        return GMQLDataset(index=new_index, location=self.location,
+                           local_sources=self._local_sources, remote_sources=self._remote_sources)
 
     def extend(self, new_attr_dict):
         """
@@ -359,7 +375,9 @@ class GMQLDataset:
             aggregatesJavaList.append(regsToMeta)
 
         new_index = self.opmng.extend(self.index, aggregatesJavaList)
-        return GMQLDataset(index=new_index, location=self.location)
+        return GMQLDataset(index=new_index, location=self.location,
+                           local_sources=self._local_sources,
+                           remote_sources=self._remote_sources)
 
     def cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None, type="normal"):
         """
@@ -413,7 +431,9 @@ class GMQLDataset:
                 aggregatesJavaList.append(regsToReg)
         new_index = self.opmng.cover(self.index, coverFlag, minAccParam, maxAccParam,
                                      groupByJavaList, aggregatesJavaList)
-        return GMQLDataset(index=new_index, location=self.location)
+        return GMQLDataset(index=new_index, location=self.location,
+                           local_sources=self._local_sources,
+                           remote_sources=self._remote_sources)
 
     def normal_cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None):
         """
@@ -528,8 +548,10 @@ class GMQLDataset:
         new_index = self.opmng.join(self.index, experiment.index,
                                     metaJoinCondition, regionJoinCondition, regionBuilder,
                                     refName, expName)
-
-        return GMQLDataset(index=new_index, location=self.location)
+        new_local_sources, new_remote_sources = combine_sources(self, experiment)
+        new_location = combine_locations(self, experiment)
+        return GMQLDataset(index=new_index, location=new_location,
+                           local_sources=new_local_sources, remote_sources=new_remote_sources)
 
     def map(self, experiment, new_reg_fields=None, joinBy=None, refName=None, expName=None):
         """
@@ -584,7 +606,10 @@ class GMQLDataset:
 
         new_index = self.opmng.map(self.index, experiment.index, metaJoinCondition,
                                    aggregatesJavaList, refName, expName)
-        return GMQLDataset(index=new_index, location=self.location)
+        new_local_sources, new_remote_sources = combine_sources(self, experiment)
+        new_location = combine_locations(self, experiment)
+        return GMQLDataset(index=new_index, location=new_location,
+                           local_sources=new_local_sources, remote_sources=new_remote_sources)
 
     def order(self, meta=None, meta_ascending=None, meta_top=None, meta_k=None,
               regs=None, regs_ascending=None, region_top=None, region_k=None):
@@ -636,7 +661,9 @@ class GMQLDataset:
 
         new_index = self.opmng.order(self.index, meta, meta_ascending, meta_top, str(meta_k),
                                      regs, regs_ascending, region_top, str(region_k))
-        return GMQLDataset(index=new_index, location=self.location)
+        return GMQLDataset(index=new_index, location=self.location,
+                           local_sources=self._local_sources,
+                           remote_sources=self._remote_sources)
 
     def difference(self, other, joinBy=None, exact=None):
         """
@@ -659,7 +686,11 @@ class GMQLDataset:
             exact = False
         metaJoinCondition = self.opmng.getMetaJoinCondition(metaJoinByJavaList)
         new_index = self.opmng.difference(self.index, other.index, metaJoinCondition, exact)
-        return GMQLDataset(index=new_index, location=self.location)
+
+        new_local_sources, new_remote_sources = combine_sources(self, other)
+        new_location = combine_locations(self, other)
+        return GMQLDataset(index=new_index, location=new_location,
+                           local_sources=new_local_sources, remote_sources=new_remote_sources)
 
     def union(self, other, left_name="", right_name=""):
         """
@@ -680,7 +711,10 @@ class GMQLDataset:
         :return: a new GMQLDataset
         """
         new_index = self.opmng.union(self.index, other.index, left_name, right_name)
-        return GMQLDataset(index=new_index, location=self.location)
+        new_local_sources, new_remote_sources = combine_sources(self, other)
+        new_location = combine_locations(self, other)
+        return GMQLDataset(index=new_index, location=new_location,
+                           local_sources=new_local_sources, remote_sources=new_remote_sources)
 
     def merge(self, groupBy=None):
         """
@@ -706,7 +740,9 @@ class GMQLDataset:
             for g in groupBy:
                 groupByJavaList.append(g)
         new_index = self.opmng.merge(self.index, groupByJavaList)
-        return GMQLDataset(index=new_index, location=self.location)
+        return GMQLDataset(index=new_index, location=self.location,
+                           local_sources=self._local_sources,
+                           remote_sources=self._remote_sources)
 
     def group(self, meta=None, meta_aggregates=None, regs=None, regs_aggregates=None, meta_group_name="_group"):
         """ The GROUP operator is used for grouping both regions and/or metadata of input
@@ -780,7 +816,9 @@ class GMQLDataset:
         new_index = self.opmng.group(self.index, meta, meta_aggregates_list, meta_group_name,
                                      regs, regs_aggregates_list)
 
-        return GMQLDataset(index=new_index, location=self.location)
+        return GMQLDataset(index=new_index, location=self.location,
+                           local_sources=self._local_sources,
+                           remote_sources=self._remote_sources)
 
     def meta_group(self, meta, meta_aggregates=None):
         """ Group operation only for metadata. For further information check :meth:`~.group`
@@ -810,15 +848,23 @@ class GMQLDataset:
                          GMQLDataset (False) for future local queries.
         :return: A GDataframe or a GMQLDataset
         """
-
-        if self.location == 'remote':
-            return self._materialize_remote(output_name, output_path, all_load)
-        elif self.location == 'local':
-            if output_name is not None:
-                raise ValueError("This dataset is local. You cannot specify a result name.")
-            return self._materialize_local(output_path)
+        current_mode = get_mode()
+        new_index = modify_dag(current_mode, self)
+        if current_mode == 'local':
+            return Materializations.materialize_local(new_index, output_path)
+        elif current_mode == 'remote':
+            return Materializations.materialize_remote(new_index, output_name, output_path, all_load)
         else:
-            raise ValueError("GMQLDataset location unknown: {}".format(self.location))
+            raise ValueError("Current mode is not defined. {} given".format(current_mode))
+
+        # if self.location == 'remote':
+        #     return self._materialize_remote(output_name, output_path, all_load)
+        # elif self.location == 'local':
+        #     if output_name is not None:
+        #         raise ValueError("This dataset is local. You cannot specify a result name.")
+        #     return self._materialize_local(output_path)
+        # else:
+        #     raise ValueError("GMQLDataset location unknown: {}".format(self.location))
 
     def _materialize_remote(self, output_name=None, download_path=None, all_load=True):
         if not isinstance(output_name, str):
@@ -877,3 +923,80 @@ class GMQLDataset:
     def _get_serialized_dag(self):
         serialized_dag = self.pmg.serializeVariable(self.index)
         return serialized_dag
+
+
+def combine_sources(d1, d2):
+    if (not isinstance(d1, GMQLDataset)) or (not isinstance(d2, GMQLDataset)):
+        raise TypeError("The function takes only GMQLDataset")
+    local_sources_1 = d1._local_sources
+    remote_sources_1 = d1._remote_sources
+    local_sources_2 = d2._local_sources
+    remote_sources_2 = d2._remote_sources
+
+    new_local_sources = list(set(local_sources_1 + local_sources_2))
+    new_remote_sources = list(set(remote_sources_1 + remote_sources_2))
+
+    return new_local_sources, new_remote_sources
+
+
+def combine_locations(d1, d2):
+    if (not isinstance(d1, GMQLDataset)) or (not isinstance(d2, GMQLDataset)):
+        raise TypeError("The function takes only GMQLDataset")
+
+    location_1 = d1.location
+    location_2 = d2.location
+
+    if location_1 == location_2:
+        return location_1
+    else:
+        return "mixed"
+
+
+def modify_dag(mode, dataset):
+    if not isinstance(dataset, GMQLDataset):
+        raise TypeError("The function takes only GMQLDataset")
+    remote_manager = get_remote_manager()
+    index = dataset.index
+    pmg = get_python_manager()
+    sources = _get_source_table()
+    # create a new id having the exact same DAG inside, for modification
+    new_index = pmg.cloneVariable(index)
+    if mode == "local":
+        for d in dataset._remote_sources:
+            # for each remote source, we have to download it locally in a temporary folder
+            local, remote = sources.get_source(id=d)
+            if local is None:
+                new_name = get_new_dataset_tmp_folder()
+                remote_manager.download_dataset(dataset_name=d, local_path=new_name, how="stream")
+                sources.modify_source(id=d, local=new_name)
+            else:
+                new_name = local
+            pmg.modify_dag_source(new_index, str(d), new_name)
+        for d in dataset._local_sources:
+            # for each local source, just take its path
+            local, remote  = sources.get_source(id=d)
+            if local is None:
+                raise ValueError("Impossible state. Local source must have a local path")
+            else:
+                pmg.modify_dag_source(new_index, str(d), local)
+    elif mode == "remote":
+        for d in dataset._local_sources:
+            # for each local source, we have to upload it remotely
+            local, remote = sources.get_source(id=d)
+            if remote is None:
+                new_name = os.path.basename(local)
+                remote_manager.upload_dataset(dataset=local, dataset_name=new_name)
+                sources.modify_source(id=d, remote=new_name)
+            else:
+                new_name = remote
+            pmg.modify_dag_source(new_index, str(d), new_name)
+        for d in dataset._remote_sources:
+            local, remote = sources.get_source(id=d)
+            if remote is None:
+                raise ValueError("Impossible state. Remote source must have a remote name")
+            else:
+                pmg.modify_dag_source(new_index, str(d), remote)
+    else:
+        raise ValueError("Unknown mode {}".format(mode))
+
+    return new_index
