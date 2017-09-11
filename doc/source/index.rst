@@ -18,6 +18,7 @@ PyGMQL is a python module that enables the user to perform operation on genomic 
    GDataframe
    remote
    settings
+   ml
 
 * :ref:`genindex`
 * :ref:`modindex`
