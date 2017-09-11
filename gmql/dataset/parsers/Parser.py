@@ -54,6 +54,9 @@ class Parser:
     def get_gmql_parser(self):
         pass
 
+    def get_parser_type(self):
+        pass
+
 def parse_strand(strand):
     if strand in ['+', '-', '*']:
         return strand

@@ -15,6 +15,7 @@ import requests
     Version management
 """
 
+
 def get_version():
     version_file_name = resource_filename("gmql", os.path.join("resources", "version"))
     with open(version_file_name, "r") as f_ver:
@@ -330,21 +331,46 @@ remote_manager = None
 
 
 def get_remote_manager():
+    """ Returns the current remote manager
+
+    :return: a RemoteManager
+    """
     global remote_manager
     return remote_manager
 
 
-def initialize_remote_manager():
+def __initialize_remote_manager(address=None):
     global remote_manager
-    remote_manager = RemoteManager()
+    remote_manager = RemoteManager(address)
 
 
 def login(username=None, password=None):
+    """ Enables the user to login to the remote GMQL service.
+    If both username and password are None, the user will be connected as guest.
+
+    :param username: (optional) the username
+    :param password: (optional) the password
+    :return: None
+    """
     global remote_manager
     remote_manager.login(username, password)
 
 
+def set_remote_address(address):
+    """ Enables the user to set the address of the GMQL remote service
+
+    :param address: a string representing the URL of GMQL remote service
+    :return: None
+    """
+    global remote_manager
+    remote_manager.address = address
+
+
 def logout():
+    """ The user can use this command to logout from the remote service
+
+    :return: None
+    """
     global remote_manager
     remote_manager.logout()
 
@@ -383,6 +409,24 @@ def get_mode():
 
 
 """
+    Datasets management
+"""
+
+__source_table = None
+
+
+def __initialize_source_table():
+    global __source_table
+    from .dataset.loaders.Sources import SourcesTable
+    __source_table = SourcesTable()
+
+
+def _get_source_table():
+    global __source_table
+    return __source_table
+
+
+"""
     EXPOSING INTERNAL FEATURES
 """
 from .dataset.GDataframe import from_pandas
@@ -399,5 +443,6 @@ from .RemoteConnection.RemoteManager import RemoteManager
 from . import ml
 
 
-initialize_remote_manager()
+__initialize_remote_manager()
+__initialize_source_table()
 
