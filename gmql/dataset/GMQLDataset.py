@@ -267,8 +267,6 @@ class GMQLDataset:
         elif not isinstance(new_attr_dict, dict):
             raise ValueError("new_attr_list must be a dictionary")
         else:
-            if len(new_attr_dict) != 1:
-                raise ValueError("The dictionary must have only one mapping")
             meta_ext_list = []
             for k in new_attr_dict.keys():
                 name = k
@@ -279,7 +277,7 @@ class GMQLDataset:
                 meta_extension = self.pmg.getNewExpressionBuilder(self.index) \
                     .createMetaExtension(name, meNode)
                 meta_ext_list.append(meta_extension)
-            meta_ext = Some(meta_ext_list[0])
+            meta_ext = Some(meta_ext_list)
 
         new_index = self.opmng.project(self.index,
                                        projected_meta,
