@@ -27,7 +27,7 @@ setup(name='gmql',
             'Development Status :: 3 - Alpha',
             'Intended Audience :: Science/Research',
             'Topic :: Scientific/Engineering :: Bio-Informatics',
-            
+             'Topic :: Scientific/Engineering :: Information Analysis',
             'Programming Language :: Python :: 3'
       ],
       keywords="genomics big data pandas python",
