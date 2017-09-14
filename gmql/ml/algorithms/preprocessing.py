@@ -14,6 +14,7 @@ class Preprocessing:
     def to_zero_mean(df):
         """
         Standardizes the data by shifting the mean value to zero
+
         :param df: the input dataframe
         :return: the resulting dataframe
         """
@@ -24,6 +25,7 @@ class Preprocessing:
     def to_unit_variance(df):
         """
         Makes the variance of each gene equal to one
+
         :param df: the dataframe
         :return: the resulting dataframe
         """
@@ -34,6 +36,7 @@ class Preprocessing:
     def prune_by_missing_percent(df, percentage=0.4):
         """
         The method to remove the attributes (genes) with more than a percentage of missing values
+
         :param df: the dataframe containing the attributes to be pruned
         :param percentage: the percentage threshold (0.4 by default)
         :return: the pruned dataframe
@@ -46,6 +49,7 @@ class Preprocessing:
     def impute_using_statistics(df, method='min'):
         """
         Imputes the missing values by the selected statistical property of each column
+
         :param df: The input dataframe that contains missing values
         :param method: The imputation method (min by default)
             "zero": fill missing entries with zeros
@@ -64,6 +68,7 @@ class Preprocessing:
     def impute_knn(df, k=3):
         """
         Nearest neighbour imputations which weights samples using the mean squared difference on features for which two rows both have observed data.
+
         :param df: The input dataframe that contains missing values
         :param k: The number of neighbours
         :return: the imputed dataframe
@@ -77,6 +82,7 @@ class Preprocessing:
         """
         Imputes the missing values by using SVD decomposition
         Based on the following publication: 'Missing value estimation methods for DNA microarrays' by Troyanskaya et. al.
+
         :param df:The input dataframe that contains missing values
         :param rank: Rank value of the truncated SVD
         :param convergence_threshold: The threshold to stop the iterations
@@ -93,6 +99,7 @@ class Preprocessing:
         Reduces the number of features in the imput dataframe.
         Ex: labels = gs.meta['biospecimen_sample__sample_type_id'].apply(int).apply(lambda x: 0 if x < 10 else 1)
             chi2_fs(gs.data, labels, 50)
+
         :param df: The input dataframe
         :param labels: Labels for each row in the df. Type: Pandas.Series
         :param no_features: The desired number of features
