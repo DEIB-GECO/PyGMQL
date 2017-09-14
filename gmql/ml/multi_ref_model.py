@@ -31,7 +31,7 @@ class MultiRefModel:
         values in order to speed up and save memory. However, while creating the matrix, those zero values are going to be put into the matrix.
         (unless a row contains "all zero columns". This parsing is strongly recommended for sparse datasets.
         If the full_load parameter is True then all the zero(0) data are going to be read.
-        :return: 
+
         """
 
         if not full_load:
@@ -57,8 +57,10 @@ class MultiRefModel:
     def merge(self, samples_uuid):
         """
         The method to merge the datamodels belonging to different references
+
         :param samples_uuid: The unique identifier metadata column name to identify the identical samples having different references
         :return: Returns the merged dataframe
+
         """
 
         all_meta_data = pd.DataFrame()
@@ -92,10 +94,12 @@ class MultiRefModel:
         """
         Creates and returns the compact view where the index of the dataframe is a multi index of the selected metadata.
         Side effect: Alters the merged_data parameter
+
         :param merged_data: The merged data that is to be used to create the compact view
         :param selected_meta: The selected metadata to create the multi index
         :param reference_no: The reference number that the metadata are going to be taken
         :return: Returns the multi-indexed dataframe w.r.t. the selected metadata
+
         """
         meta_names = list(selected_meta)
         meta_index = []
