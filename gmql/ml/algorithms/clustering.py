@@ -25,14 +25,15 @@ class Clustering:
     @classmethod
     def xmeans(cls, initial_centers=None, kmax=20, tolerance=0.025, criterion=splitting_type.BAYESIAN_INFORMATION_CRITERION, ccore=False):
         """
-        Constructor of the x-means clustering algorithm
+        Constructor of the x-means clustering.rst algorithm
+
         :param initial_centers: Initial coordinates of centers of clusters that are represented by list: [center1, center2, ...]
         Note: The dimensions of the initial centers should be same as of the dataset.
         :param kmax: Maximum number of clusters that can be allocated.
         :param tolerance: Stop condition for each iteration: if maximum value of change of centers of clusters is less than tolerance than algorithm will stop processing
         :param criterion: Type of splitting creation.
         :param ccore: Defines should be CCORE (C++ pyclustering library) used instead of Python code or not.
-        :return: returns the clustering object
+        :return: returns the clustering.rst object
         """
         model = xmeans(None, initial_centers, kmax, tolerance, criterion, ccore)
         return cls(model)
@@ -40,11 +41,12 @@ class Clustering:
     @classmethod
     def clarans(cls, number_clusters, num_local, max_neighbour):
         """
-        Constructor of the CLARANS clustering algorithm
+        Constructor of the CLARANS clustering.rst algorithm
+
         :param number_clusters: the number of clusters to be allocated
         :param num_local: the number of local minima obtained (amount of iterations for solving the problem).
         :param max_neighbour: the number of local minima obtained (amount of iterations for solving the problem).
-        :return: the resulting clustering object
+        :return: the resulting clustering.rst object
         """
         model = clarans(None, number_clusters, num_local, max_neighbour)
         return cls(model)
@@ -53,11 +55,12 @@ class Clustering:
     def rock(cls, data, eps, number_clusters, threshold=0.5, ccore=False):
         """
         Constructor of the ROCK cluster analysis algorithm
+
         :param eps: Connectivity radius (similarity threshold), points are neighbors if distance between them is less than connectivity radius
         :param number_clusters: Defines number of clusters that should be allocated from the input data set
         :param threshold: Value that defines degree of normalization that influences on choice of clusters for merging during processing
         :param ccore: Defines should be CCORE (C++ pyclustering library) used instead of Python code or not.
-        :return: The resulting clustering object
+        :return: The resulting clustering.rst object
         """
         data = cls.input_preprocess(data)
         model = rock(data, eps, number_clusters, threshold, ccore)
@@ -74,7 +77,8 @@ class Clustering:
     @classmethod
     def optics(cls, data, eps, minpts, ccore=False):
         """
-        Constructor of OPTICS clustering algorithm 
+        Constructor of OPTICS clustering.rst algorithm
+
         :param data: Input data that is presented as a list of points (objects), where each point is represented by list or tuple
         :param eps: Connectivity radius between points, points may be connected if distance between them less than the radius
         :param minpts: Minimum number of shared neighbors that is required for establishing links between points
@@ -82,7 +86,7 @@ class Clustering:
                     In case of usage 'amount_clusters' connectivity radius can be greater than real, in other words, there is place for mistake
                     in connectivity radius usage.
         :param ccore: if True than DLL CCORE (C++ solution) will be used for solving the problem
-        :return: the resulting clustering object
+        :return: the resulting clustering.rst object
         """
         data = cls.input_preprocess(data)
         model = optics(data, eps, minpts)
@@ -92,7 +96,8 @@ class Clustering:
     @classmethod
     def kmeans(cls, *args):
         """
-            Constructor of the k-means clustering algorithm
+            Constructor of the k-means clustering.rst algorithm
+
             :param args: the arguments to be sent to the sci-kit implementation
             :return: returns the Clustering object
         """
@@ -103,7 +108,8 @@ class Clustering:
     @classmethod
     def affinity_propagation(cls, *args):
         """
-            Constructor of the affinity propagation clustering algorithm
+            Constructor of the affinity propagation clustering.rst algorithm
+
             :param args: the arguments to be sent to the sci-kit implementation
             :return: returns the Clustering object
         """
@@ -114,7 +120,8 @@ class Clustering:
     @classmethod
     def hierarchical(cls, *args):
         """
-            Constructor of the agglomerative clustering algorithm
+            Constructor of the agglomerative clustering.rst algorithm
+
             :param args: the arguments to be sent to the sci-kit implementation
             :return: returns the Clustering object
         """
@@ -125,7 +132,8 @@ class Clustering:
     @classmethod
     def birch(cls, *args):
         """
-            Constructor of the birch clustering algorithm
+            Constructor of the birch clustering.rst algorithm
+
             :param args: the arguments to be sent to the sci-kit implementation
             :return: returns the Clustering object
         """
@@ -136,7 +144,8 @@ class Clustering:
     @classmethod
     def dbscan(cls, *args):
         """
-            Constructor of the DBSCAN clustering algorithm
+            Constructor of the DBSCAN clustering.rst algorithm
+
             :param args: the arguments to be sent to the sci-kit implementation
             :return: returns the Clustering object
         """
@@ -147,7 +156,8 @@ class Clustering:
     @classmethod
     def feature_agglomeration(cls, *args):
         """
-            Constructor of the feature agglomeration clustering algorithm
+            Constructor of the feature agglomeration clustering.rst algorithm
+
             :param args: the arguments to be sent to the sci-kit implementation
             :return: returns the Clustering object
         """
@@ -158,7 +168,8 @@ class Clustering:
     @classmethod
     def mini_batch_kmeans(cls, *args):
         """
-            Constructor of the mini batch k-means clustering algorithm
+            Constructor of the mini batch k-means clustering.rst algorithm
+
             :param args: the arguments to be sent to the sci-kit implementation
             :return: returns the Clustering object
         """
@@ -169,7 +180,8 @@ class Clustering:
     @classmethod
     def mean_shift(cls, *args):
         """
-            Constructor of the mean shift clustering algorithm
+            Constructor of the mean shift clustering.rst algorithm
+
             :param args: the arguments to be sent to the sci-kit implementation
             :return: returns the Clustering object
         """
@@ -180,7 +192,8 @@ class Clustering:
     @classmethod
     def spectral_clustering(cls, *args):
         """
-            Constructor of the spectral clustering algorithm
+            Constructor of the spectral clustering.rst algorithm
+
             :param args: the arguments to be sent to the sci-kit implementation
             :return: returns the Clustering object
         """
@@ -191,17 +204,19 @@ class Clustering:
     @staticmethod
     def is_pyclustering_instance(model):
         """
-        Checks if the clustering algorithm belongs to pyclustering
-        :param model: the clustering algorithm model
+        Checks if the clustering.rst algorithm belongs to pyclustering
+
+        :param model: the clustering.rst algorithm model
         :return: the truth value (Boolean)
         """
         return any(isinstance(model, i) for i in [xmeans, clarans, rock, optics])
 
     def fit(self, data=None):
         """
-        Performs clustering
+        Performs clustering.rst
+
         :param data: Data to be fit
-        :return: the clustering object
+        :return: the clustering.rst object
         """
         if self.is_pyclustering_instance(self.model):
             if isinstance(self.model, xmeans):
@@ -220,6 +235,7 @@ class Clustering:
     def _labels_from_pyclusters(self):
         """
         Computes and returns the list of labels indicating the data points and the corresponding cluster ids.
+
         :return: The list of labels
         """
         clusters = self.model.get_clusters()
@@ -232,6 +248,7 @@ class Clustering:
     def retrieve_cluster(self, df, cluster_no):
         """
         Extracts the cluster at the given index from the input dataframe
+
         :param df: the dataframe that contains the clusters
         :param cluster_no: the cluster number
         :return: returns the extracted cluster
@@ -248,8 +265,9 @@ class Clustering:
     @staticmethod
     def get_labels(obj):
         """
-        Retrieve the labels of a clustering object
-        :param obj: the clustering object
+        Retrieve the labels of a clustering.rst object
+
+        :param obj: the clustering.rst object
         :return: the resulting labels
         """
         if Clustering.is_pyclustering_instance(obj.model):
@@ -261,6 +279,7 @@ class Clustering:
     def silhouette_n_clusters(data, k_min, k_max, distance='euclidean'):
         """
         Computes and plot the silhouette score vs number of clusters graph to help selecting the number of clusters visually
+
         :param data: The data object
         :param k_min: lowerbound of the cluster range
         :param k_max: upperbound of the cluster range
@@ -288,7 +307,8 @@ class Clustering:
     def elbow_method(data, k_min, k_max, distance='euclidean'):
         """
         Calculates and plots the plot of variance explained - number of clusters
-        Implementation reference: https://github.com/sarguido/k-means-clustering
+        Implementation reference: https://github.com/sarguido/k-means-clustering.rst
+
         :param data: The dataset
         :param k_min: lowerbound of the cluster range
         :param k_max: upperbound of the cluster range
@@ -332,6 +352,7 @@ class Clustering:
     def adjusted_mutual_info(self, reference_clusters):
         """
         Calculates the adjusted mutual information score w.r.t. the reference clusters (explicit evaluation)
+
         :param reference_clusters: Clusters that are to be used as reference
         :return: returns the value of the adjusted mutual information score
         """
@@ -340,6 +361,7 @@ class Clustering:
     def adjusted_rand_score(self, reference_clusters):
         """
         Calculates the adjusted rand score w.r.t. the reference clusters (explicit evaluation)
+
         :param reference_clusters: Clusters that are to be used as reference
         :return: returns the value of the adjusted rand score
         """
@@ -348,6 +370,7 @@ class Clustering:
     def calinski_harabasz(self, data):
         """
         Calculates the Calinski-Harabarsz score for a set of clusters (implicit evaluation).
+
         :param data: The original dataset that the clusters are generated from
         :return: The resulting Calinski-Harabarsz score
         """
@@ -356,6 +379,7 @@ class Clustering:
     def completeness_score(self, reference_clusters):
         """
         Calculates the completeness score w.r.t. the reference clusters (explicit evaluation)
+
         :param reference_clusters: Clusters that are to be used as reference
         :return: the resulting completeness score
         """
@@ -364,6 +388,7 @@ class Clustering:
     def fowlkes_mallows(self, reference_clusters):
         """
         Calculates the Fowlkes-Mallows index (FMI) w.r.t. the reference clusters (explicit evaluation)
+
         :param reference_clusters: Clusters that are to be used as reference
         :return: The resulting Fowlkes-Mallows score.
         """
@@ -372,6 +397,7 @@ class Clustering:
     def homogeneity_score(self, reference_clusters):
         """
         Calculates the homogeneity score w.r.t. the reference clusters (explicit evaluation)
+
         :param reference_clusters: Clusters that are to be used as reference
         :return: The resulting homogeneity score.
         """
@@ -380,6 +406,7 @@ class Clustering:
     def mutual_info_score(self, reference_clusters):
         """
         Calculates the MI (mutual information) w.r.t. the reference clusters (explicit evaluation)
+
         :param reference_clusters: Clusters that are to be used as reference
         :return: The resulting MI score.
         """
@@ -388,6 +415,7 @@ class Clustering:
     def normalized_mutual_info_score(self, reference_clusters):
         """
         Calculates the normalized mutual information w.r.t. the reference clusters (explicit evaluation)
+
         :param reference_clusters: Clusters that are to be used as reference
         :return: The resulting normalized mutual information score.
         """
@@ -396,6 +424,7 @@ class Clustering:
     def silhouette_score(self, data,  metric='euclidean', sample_size=None, random_state=None, **kwds):
         """
         Computes the mean Silhouette Coefficient of all samples (implicit evaluation)
+
         :param data: The data that the clusters are generated from
         :param metric: the pairwise distance metric
         :param sample_size: the size of the sample to use computing the Silhouette Coefficient
