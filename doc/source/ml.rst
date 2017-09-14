@@ -8,3 +8,6 @@ In this section, the main features of the genomic machine learning module are ex
 
     genometric_space
     multi_ref_model
+    biclustering
+    clustering
+    preprocessing

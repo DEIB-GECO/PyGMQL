@@ -28,10 +28,11 @@ class GenometricSpace:
         """
         Overloaded constructor to create the GenometricSpace object from memory data and meta variables.
         The indexes of the data and meta dataframes should be the same.
-        Args:
-            :param data: The data model
-            :param meta: The metadata
-            :return: A GenometricSpace object
+
+
+        :param data: The data model
+        :param meta: The metadata
+        :return: A GenometricSpace object
         """
 
         obj = cls()
@@ -42,17 +43,15 @@ class GenometricSpace:
     def load(self, _path, regs=['chr', 'left', 'right', 'strand'], meta=[], values=[], full_load=False, file_extension="gdm"):
         """Parses and loads the data into instance attributes.
         The indexes of the data and meta dataframes should be the same.
-        
 
-        Args:
-            :param path: The path to the dataset on the filesystem
-            :param regs: the regions that are to be analyzed
-            :param meta: the meta-data that are to be analyzed
-            :param values: the values that are to be selected
-            :param full_load: Specifies the method of parsing the data. If False then parser omits the parsing of zero(0)
-            values in order to speed up and save memory. However, while creating the matrix, those zero values are going to be put into the matrix.
-            (unless a row contains "all zero columns". This parsing is strongly recommended for sparse datasets.
-            If the full_load parameter is True then all the zero(0) data are going to be read.
+        :param path: The path to the dataset on the filesystem
+        :param regs: the regions that are to be analyzed
+        :param meta: the meta-data that are to be analyzed
+        :param values: the values that are to be selected
+        :param full_load: Specifies the method of parsing the data. If False then parser omits the parsing of zero(0)
+        values in order to speed up and save memory. However, while creating the matrix, those zero values are going to be put into the matrix.
+        (unless a row contains "all zero columns". This parsing is strongly recommended for sparse datasets.
+        If the full_load parameter is True then all the zero(0) data are going to be read.
 
         """
         if not full_load:
@@ -68,8 +67,7 @@ class GenometricSpace:
         """Sets one axis of the 2D multi-indexed dataframe
             index to the selected meta data.
 
-        Args:
-            :param selected_meta: The list of the metadata users want to index with.
+        :param selected_meta: The list of the metadata users want to index with.
 
         """
         meta_names = list(selected_meta)
@@ -112,6 +110,7 @@ class GenometricSpace:
     def get_values(self, set, selected_meta):
         """
         Retrieves the selected metadata values of the given set
+
         :param set: cluster that contains the data
         :param selected_meta: the values of the selected_meta
         :return: the values of the selected meta of the cluster
@@ -131,10 +130,11 @@ class GenometricSpace:
     def group_statistics(self, group, selected_meta, stat_code='mean'):
         """
         Provides statistics of a group based on the meta data selected.
-        :param group:The result of a classification or clustering or biclustering algorithm
+
+        :param group:The result of a classification or clustering.rst or biclustering algorithm
         :param selected_meta: The metadata that we are interested in
         :param stat_code: 'mean' for mean or 'variance' for variance or 'std' for standard deviation
-        :return: returns the
+        :return: returns the statistics properties of the selected metadata
         """
         values = self.get_values(group, selected_meta)
         if stat_code == 'mean':
@@ -150,8 +150,8 @@ class GenometricSpace:
         Creates a bag of genomes representation for data mining purposes
         Each document (genome) in the representation is a set of metadata key and value pairs belonging to the same cluster.
         The bag of genomes are saved under ./bag_of_genomes/ directory
-        :param clustering_object: The clustering object
-        :return: None
+
+        :param clustering_object: The clustering.rst object
         """
 
         meta_files = Parser._get_files('meta', self._path)
@@ -192,6 +192,7 @@ class GenometricSpace:
         """
         Creates a term-document matrix which is a mathematical matrix that describes the frequency of terms
         that occur in a collection of documents (in our case a collection of genomes).
+
         :param path_to_bag_of_genomes: Path to the documents (genomes)
         :param max_df: To prune the terms that are existing in the given portion of documents (if set to 1 then it does not prune)
         :return: returns the term-document dataframe
@@ -221,6 +222,7 @@ class GenometricSpace:
     def tf(cluster):
         """
         Computes the term frequency and stores it as a dictionary
+
         :param cluster: the cluster that contains the metadata
         :return: tf dictionary
         """
@@ -234,6 +236,7 @@ class GenometricSpace:
     def validate_uuid(str):
         """
         Returns true if the string is a UUID code
+
         :param str: input string
         :return: the truth value
         """
@@ -248,6 +251,7 @@ class GenometricSpace:
     def best_descriptive_meta_dict(path_to_bag_of_genomes, cluster_no):
         """
         Computes the importance of each metadata by using tf * coverage (the percentage of the term occuring in a cluster)
+
         :param path_to_bag_of_genomes: The directory path
         :param cluster_no: cluster number
         :param preprocess: to remove the redundant information from the metadata
@@ -300,9 +304,10 @@ class GenometricSpace:
     def visualize_cloud_of_words(dictionary, image_path=None):
         """
         Renders the cloud of words representation for a given dictionary of frequencies
+
         :param dictionary: the dictionary object that contains key-frequency pairs
         :param image_path: the path to the image mask, None if no masking is needed
-        :return:
+
         """
         from PIL import Image
 
@@ -327,10 +332,11 @@ class GenometricSpace:
     def cloud_of_words(path_to_bog, cluster_no, image_path=None):
         """
         Draws the cloud of words representation
+
         :param path_to_bog: path to bag of words
         :param cluster_no: the number of document to be visualized
         :param image_path: path to the image file for the masking, None if no masking is needed
-        :return:
+
         """
         dictionary = GenometricSpace.best_descriptive_meta_dict(path_to_bog, cluster_no)
         GenometricSpace.visualize_cloud_of_words(dictionary, image_path)
