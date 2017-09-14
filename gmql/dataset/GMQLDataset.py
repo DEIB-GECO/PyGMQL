@@ -412,11 +412,12 @@ class GMQLDataset:
         coverFlag = self.opmng.getCoverTypes(type)
         minAccParam = self.opmng.getCoverParam(str(minAcc))
         maxAccParam = self.opmng.getCoverParam(str(maxAcc))
-        groupByJavaList = get_gateway().jvm.java.util.ArrayList()
-        if groupBy:
-            # translate to java list
-            for g in groupBy:
-                groupByJavaList.append(g)
+
+        if groupBy is None:
+            groupBy_result = none()
+        else:
+            groupBy_result = Some(groupBy)
+
         aggregatesJavaList = get_gateway().jvm.java.util.ArrayList()
         if new_reg_fields:
             expBuild = self.pmg.getNewExpressionBuilder(self.index)
@@ -428,7 +429,7 @@ class GMQLDataset:
                 regsToReg = expBuild.getRegionsToRegion(op_name, new_name, op_argument)
                 aggregatesJavaList.append(regsToReg)
         new_index = self.opmng.cover(self.index, coverFlag, minAccParam, maxAccParam,
-                                     groupByJavaList, aggregatesJavaList)
+                                     groupBy_result, aggregatesJavaList)
         return GMQLDataset(index=new_index, location=self.location,
                            local_sources=self._local_sources,
                            remote_sources=self._remote_sources)
@@ -732,12 +733,13 @@ class GMQLDataset:
         :param groupBy: list of metadata attributes
         :return: a new GMQLDataset
         """
-        groupByJavaList = get_gateway().jvm.java.util.ArrayList()
-        if groupBy:
-            # translate to java list
-            for g in groupBy:
-                groupByJavaList.append(g)
-        new_index = self.opmng.merge(self.index, groupByJavaList)
+        groupBy_result = None
+        if groupBy is None:
+            groupBy_result = none()
+        else:
+            groupBy_result = Some(groupBy)
+
+        new_index = self.opmng.merge(self.index, groupBy_result)
         return GMQLDataset(index=new_index, location=self.location,
                            local_sources=self._local_sources,
                            remote_sources=self._remote_sources)
