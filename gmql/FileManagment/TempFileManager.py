@@ -4,17 +4,17 @@ import os, shutil, uuid
 
 resource_folder = resource_filename("gmql", "resources")
 tmp_folder_name = os.path.join(resource_folder, "tmp")
-tmp_folder_spark = os.path.join(tmp_folder_name, "spark")
-tmp_folder_datasets = os.path.join(tmp_folder_name, "datasets")
+tmp_folder_instance = os.path.join(tmp_folder_name, str(uuid.uuid4()))
+tmp_folder_spark = os.path.join(tmp_folder_instance, "spark")
+tmp_folder_datasets = os.path.join(tmp_folder_instance, "datasets")
 
-tmp_folders = [tmp_folder_name, tmp_folder_spark, tmp_folder_datasets]
+tmp_folders = [tmp_folder_name, tmp_folder_instance, tmp_folder_spark, tmp_folder_datasets]
 
 
 def initialize_tmp_folders():
     for tf in tmp_folders:
-        if os.path.isdir(tf):
-            shutil.rmtree(tf)
-        os.mkdir(tf)
+        if not os.path.isdir(tf):
+            os.mkdir(tf)
 
 
 def get_unique_identifier():
@@ -37,5 +37,8 @@ def flush_tmp_folder(folder):
 
 
 def flush_everything():
-    flush_tmp_folder(tmp_folder_name)
+    flush_tmp_folder(tmp_folder_instance)
+    # check if the top folder is empty or not
+    if not os.listdir(tmp_folder_name):
+        flush_tmp_folder(tmp_folder_name)
 

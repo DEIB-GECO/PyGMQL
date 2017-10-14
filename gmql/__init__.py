@@ -1,10 +1,9 @@
 """
 Setting up the environment of the library
 """
-import logging, os, time, atexit, psutil
-import subprocess as sp
+import logging, os, atexit
 from sys import stdout
-from py4j.java_gateway import JavaGateway, GatewayParameters
+from py4j.java_gateway import JavaGateway
 from py4j.java_collections import ListConverter
 from .FileManagment import TempFileManager
 from pkg_resources import resource_filename
@@ -119,24 +118,6 @@ def set_logging(how):
 """
 
 
-def start_gateway_server(gmql_jar, instances_file):
-    port_n = check_instances(instances_file)
-    # print("Using port {}".format(port_n))
-    java_home = os.environ.get("JAVA_HOME")
-    if java_home is None:
-        raise SystemError("The environment variable JAVA_HOME is not setted")
-    java_path = os.path.join(java_home, "bin", "java")
-    gmql_jar_fn = resource_filename(
-        "gmql", os.path.join("resources", gmql_jar))
-    gmql_jar_fn = check_backend(gmql_jar_fn)
-    command = [java_path, '-jar', gmql_jar_fn, str(port_n)]
-    proc = sp.Popen(command)
-    synchronize()
-    gateway = JavaGateway(gateway_parameters=GatewayParameters(
-        auto_convert=True, port=port_n))
-    return proc, gateway, port_n
-
-
 def check_backend(gmql_jar_fn):
     if os.path.isfile(gmql_jar_fn):
         return gmql_jar_fn
@@ -157,66 +138,11 @@ def check_backend(gmql_jar_fn):
         return gmql_jar_fn
 
 
-def check_instances(instances_file):
-    instances_fn = resource_filename(
-        "gmql", os.path.join("resources", instances_file))
-    port = 25335
-    ports = get_open_instances()
-    # print("Current open ports {}".format(ports))
-    if len(ports) > 0:
-        port = ports[-1] + 1
-    ports.append(port)
-    ports_string = list(map(lambda x: str(x) + os.linesep, ports))
-    with open(instances_fn, "w") as f:
-        f.writelines(ports_string)
-    return port
-
-
-def remove_instance(port_n, instances_file):
-    instances_fn = resource_filename(
-        "gmql", os.path.join("resources", instances_file))
-    ports = get_open_instances()
-    if port_n not in ports:
-        raise ValueError(
-            "Port number {} is not in the current instances".format(port_n))
-    ports.remove(port_n)
-    ports = list(map(lambda x: str(x) + os.linesep, ports))
-    with open(instances_fn, "w") as f:
-        f.writelines(ports)
-
-
-def get_open_instances():
-    global instances_file
-    instances_fn = resource_filename(
-        "gmql", os.path.join("resources", instances_file))
-    # print("Instances file: {}".format(instances_fn))
-    ports = None
-    with open(instances_fn, "r") as f:
-        lines = list(map(str.strip, f.readlines()))
-        lines = list(filter(lambda x: len(x) > 0, lines))
-        ports = list(map(int, lines))
-    return ports
-
-
-def synchronize():
-    on = False
-    while not on:
-        try:
-            f = open(synchfile, 'r')
-            on = True
-            f.close()
-            os.remove(synchfile)
-        except Exception:
-            time.sleep(2)
-            continue
-    return
-
-
-def get_python_api_package(gateway):
+def __get_python_api_package(gateway):
     return gateway.jvm.it.polimi.genomics.pythonapi
 
 
-def start_gmql_manager(python_api_package):
+def __start_gmql_manager(python_api_package):
     pythonManager = python_api_package.PythonManager
     pythonManager.startEngine()
     return pythonManager
@@ -230,6 +156,7 @@ def get_gateway():
 def get_python_manager():
     global pythonManager
     return pythonManager
+
 """
     GMQL Logger configuration
 """
@@ -239,60 +166,32 @@ logger = set_logger(logger_name)
 """
     Initializing the JVM with the 
 """
-synchfile = 'sync.txt'
-instances_file = "instances"
-server_process, gateway, pythonManager, port_n = None, None, None, None
+gateway, pythonManager = None, None
 
 
 def start():
-    global server_process, gateway, pythonManager, instances_file, port_n
-    process_cleaning()
-    server_process, gateway, port_n = start_gateway_server(
-        gmql_jar, instances_file)
-    python_api_package = get_python_api_package(gateway)
-    pythonManager = start_gmql_manager(python_api_package)
+    global pythonManager, gateway
 
+    java_home = os.environ.get("JAVA_HOME")
+    if java_home is None:
+        raise SystemError("The environment variable JAVA_HOME is not setted")
+    java_path = os.path.join(java_home, "bin", "java")
 
-def process_cleaning():
-    global gmql_jar
-    active_ports = get_open_instances()
-    gmql_jar_name = resource_filename(
+    gmql_jar_fn = resource_filename(
         "gmql", os.path.join("resources", gmql_jar))
-    for p in psutil.process_iter():
-        name = p.name()
-        if name.startswith('java'):
-            cmd = p.cmdline()
-            if len(cmd) == 4 and cmd[2] == gmql_jar_name:
-                port = int(cmd[3])
-                if port not in active_ports:
-                    logger.info("Previous JVM killed: {}".format(cmd[2]))
-                    p.kill()   # kill it
-                else:
-                    active_ports.remove(port)
-    global instances_file
-    # print("Ports to be removed: {}".format(active_ports))
-    for a in active_ports:
-        remove_instance(a, instances_file)
+    gmql_jar_fn = check_backend(gmql_jar_fn)
+    gateway = JavaGateway.launch_gateway(classpath=gmql_jar_fn, die_on_exit=True,
+                                         java_path=java_path)
+    python_api_package = __get_python_api_package(gateway)
+    pythonManager = __start_gmql_manager(python_api_package)
 
 
 def stop():
-    global pythonManager, server_process, gateway, port_n, instances_file
-
+    global gateway
     # flushing the tmp files
     TempFileManager.flush_everything()
-    remove_instance(port_n, instances_file)
-    try:
-        os.remove(synchfile)
-    except Exception:
-        pass
-    try:
-        gateway.shutdown()
-    except Exception:
-        pass
-    try:
-        process_cleaning()
-    except Exception:
-        pass
+    gateway.shutdown()
+
 
 atexit.register(stop)
 
