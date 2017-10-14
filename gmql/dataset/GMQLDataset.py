@@ -984,7 +984,7 @@ def modify_dag(mode, dataset):
             # for each local source, we have to upload it remotely
             local, remote = sources.get_source(id=d)
             if remote is None:
-                new_name = os.path.basename(local)
+                new_name = get_unique_identifier()
                 remote_manager.upload_dataset(dataset=local, dataset_name=new_name)
                 sources.modify_source(id=d, remote=new_name)
             else:
