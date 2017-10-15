@@ -203,7 +203,9 @@ class GMQLManagerNotInitializedError(Exception):
 # Starting the GMQL manager
 start()
 # Setting up the temporary files folder
-TempFileManager.initialize_tmp_folders()
+folders = TempFileManager.initialize_tmp_folders()
+# setting the spark tmp folder
+pythonManager.setSparkLocalDir(folders['spark'])
 
 
 """
