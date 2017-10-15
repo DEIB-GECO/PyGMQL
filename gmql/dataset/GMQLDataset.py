@@ -77,7 +77,7 @@ class GMQLDataset:
 
     def __get_metadata_local(self):
         meta = MetaLoaderFile.load_meta_from_path(self.path_or_name)
-        return GDataframe.GDataframe(meta=meta)
+        return meta
 
     def __get_metadata_remote(self):
         pass
