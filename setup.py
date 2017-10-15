@@ -21,7 +21,7 @@ setup(name='gmql',
       download_url='{}/tarball/{}'.format(github_url, version),
       packages=find_packages(),
       install_requires=['pandas', 'tqdm', 'numpy', 'py4j',
-                        'psutil', 'requests', 'requests-toolbelt','sklearn',
+                        'psutil', 'requests', 'requests-toolbelt', 'sklearn',
                         'pyclustering','matplotlib','scipy','wordcloud', 'fancyimpute'],
       classifiers=[
             'Development Status :: 3 - Alpha',
