@@ -15,6 +15,13 @@ def initialize_tmp_folders():
     for tf in tmp_folders:
         if not os.path.isdir(tf):
             os.mkdir(tf)
+    result = {
+        'tmp': tmp_folder_name,
+        'instance': tmp_folder_instance,
+        'spark': tmp_folder_spark,
+        'datasets': tmp_folder_datasets
+    }
+    return result
 
 
 def get_unique_identifier():
