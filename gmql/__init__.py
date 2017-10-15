@@ -3,7 +3,7 @@ Setting up the environment of the library
 """
 import logging, os, atexit
 from sys import stdout
-from py4j.java_gateway import JavaGateway
+from py4j.java_gateway import JavaGateway, launch_gateway, GatewayParameters
 from py4j.java_collections import ListConverter
 from .FileManagment import TempFileManager
 from pkg_resources import resource_filename
@@ -180,8 +180,13 @@ def start():
     gmql_jar_fn = resource_filename(
         "gmql", os.path.join("resources", gmql_jar))
     gmql_jar_fn = check_backend(gmql_jar_fn)
-    gateway = JavaGateway.launch_gateway(classpath=gmql_jar_fn, die_on_exit=True,
-                                         java_path=java_path)
+
+    _port = launch_gateway(classpath=gmql_jar_fn, die_on_exit=True,
+                           java_path=java_path)
+    # gateway = JavaGateway.launch_gateway(classpath=gmql_jar_fn, die_on_exit=True,
+    #                                      java_path=java_path)
+    gateway = JavaGateway(gateway_parameters=GatewayParameters(port=_port,
+                                                               auto_convert=True))
     python_api_package = __get_python_api_package(gateway)
     pythonManager = __start_gmql_manager(python_api_package)
 
