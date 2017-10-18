@@ -340,6 +340,7 @@ from .dataset.loaders.Loader import load_from_path, load_from_remote, load
 from .dataset import parsers
 # the possible aggregations
 from .dataset.DataStructures.Aggregates import *
+from .dataset.DataStructures.ExpressionNodes import *
 # the possible join conditions
 from .dataset.DataStructures.GenometricPredicates import *
 # for interacting with the remote cluster
