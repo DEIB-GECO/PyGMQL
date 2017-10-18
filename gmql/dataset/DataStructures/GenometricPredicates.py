@@ -38,6 +38,20 @@ class DGE(GenometricCondition):
         super(DGE, self).__init__(condition_name="DGE", argument=limit)
 
 
+class DL(GenometricCondition):
+    """ Less than distance clause, which selects all the regions of the experiment
+    such that their distance from the anchor region is less than N bases"""
+    def __init__(self, limit):
+        super(DL, self).__init__(condition_name="DL", argument=limit)
+
+
+class DG(GenometricCondition):
+    """ Greater than distance clause, which selects all the regions of the experiment
+    such that their distance from the anchor region is greater than N bases"""
+    def __init__(self, limit):
+        super(DG, self).__init__(condition_name="DG", argument=limit)
+
+
 class MD(GenometricCondition):
     """ Denotes the minimum distance clause, which selects the first K regions of an 
     experiment sample at minimal distance from an anchor region of an anchor dataset 

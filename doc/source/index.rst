@@ -88,6 +88,17 @@ Genometric predicates
 
    MD
    DLE
+   DL
    DGE
+   DG
    UP
    DOWN
+
+----------------------
+Mathematical operators
+----------------------
+
+.. currentmodule:: gmql.dataset.DataStructures.ExpressionNodes
+.. autosummary::
+
+   SQRT
