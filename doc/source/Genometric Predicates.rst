@@ -10,7 +10,13 @@ Genometric predicates
 .. autoclass:: DLE
    :members:
 
+.. autoclass:: DL
+   :members:
+
 .. autoclass:: DGE
+   :members:
+
+.. autoclass:: DG
    :members:
 
 An additional clause that can be specified in a genometric predicate is UP/DOWN, called
