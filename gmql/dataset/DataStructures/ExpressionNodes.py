@@ -6,7 +6,6 @@ def SQRT(argument):
     """ Computes the square matrix of the argument
 
     :param argument: a dataset region field (dataset.field) or metadata (dataset['field'])
-    :return:
     """
     if isinstance(argument, MetaField):
         new_name = "SQRT({})".format(argument.name)
