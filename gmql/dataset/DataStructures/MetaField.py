@@ -58,6 +58,12 @@ class MetaField:
         return MetaField(name=new_name, meta_condition=predicate, index=self.index)
 
     def isin(self, values):
+        """ Selects the samples having the metadata attribute between the values provided
+        as input
+
+        :param values: a list of elements
+        :return a new complex condition
+        """
         if not isinstance(values, list):
             raise TypeError("Input should be a string. {} was provided".format(type(values)))
         if not (self.name.startswith("(") and self.name.endswith(")")):
