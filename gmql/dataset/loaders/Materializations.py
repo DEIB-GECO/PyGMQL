@@ -5,7 +5,6 @@ from . import MetaLoaderFile, RegLoaderFile, MemoryLoader, Loader
 from ...FileManagment.TempFileManager import get_unique_identifier, get_new_dataset_tmp_folder
 
 
-
 def materialize(datasets):
     """ Multiple materializations. Enables the user to specify a set of GMQLDataset to be materialized.
     The engine will perform all the materializations at the same time, if an output path is provided,
