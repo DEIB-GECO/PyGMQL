@@ -14,6 +14,7 @@ class MetaField:
         
         if not (name.startswith("(") and name.endswith(")")) and meNode is None:
             self.meNode = self.exp_build.getMENode(name)
+            # self.metaAccessor = self.exp_build.getMetaAccessor(name)
         else:
             self.meNode = meNode
             
@@ -55,6 +56,24 @@ class MetaField:
         new_name = '(' + self.name + ' <= ' + str(other) + ')'
         predicate = self.exp_build.createMetaPredicate(self.name, "LTE", str(other))
         return MetaField(name=new_name, meta_condition=predicate, index=self.index)
+
+    def isin(self, values):
+        if not isinstance(values, list):
+            raise TypeError("Input should be a string. {} was provided".format(type(values)))
+        if not (self.name.startswith("(") and self.name.endswith(")")):
+            first = True
+            new_condition = None
+            for v in values:
+                if first:
+                    first = False
+                    new_condition = self.__eq__(v)
+                else:
+                    new_condition = new_condition.__or__(self.__eq__(v))
+            return new_condition
+        else:
+            raise SyntaxError("You cannot use 'isin' with a complex condition")
+
+
     """
         CONDITIONS
     """
