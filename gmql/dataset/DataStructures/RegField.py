@@ -76,6 +76,28 @@ class RegField:
         condition = self.exp_build.createRegionUnaryCondition(self.region_condition, "NOT")
         return RegField(name=new_name, region_condition=condition, index=self.index)
 
+    def isin(self, values):
+        """ Selects the samples having the metadata attribute between the values provided
+        as input
+
+        :param values: a list of elements
+        :return a new complex condition
+        """
+        if not isinstance(values, list):
+            raise TypeError("Input should be a string. {} was provided".format(type(values)))
+        if not (self.name.startswith("(") and self.name.endswith(")")):
+            first = True
+            new_condition = None
+            for v in values:
+                if first:
+                    first = False
+                    new_condition = self.__eq__(v)
+                else:
+                    new_condition = new_condition.__or__(self.__eq__(v))
+            return new_condition
+        else:
+            raise SyntaxError("You cannot use 'isin' with a complex condition")
+
     """
         EXPRESSIONS
     """
