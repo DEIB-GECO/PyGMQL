@@ -62,6 +62,7 @@ def set_logger(logger_name):
     logger.addHandler(handler)
     return logger
 
+
 disable_progress = False
 
 
@@ -112,6 +113,24 @@ def set_logging(how):
     else:
         raise ValueError(
             "how must be a boolean. {} was found".format(type(how)))
+
+
+_metadata_profiling = True
+
+
+def set_meta_profiling(how):
+    """ Enables or disables the profiling of metadata at the loading of a GMQLDataset
+
+    :param how: True if you want to analyze the metadata when a GMQLDataset is created
+                by a load_from_*. False otherwise. (Default=True)
+    :return: None
+    """
+    global _metadata_profiling
+    if isinstance(how, bool):
+        _metadata_profiling = how
+    else:
+        raise TypeError("how must be boolean. {} was provided".format(type(how)))
+
 
 """
     Backend management

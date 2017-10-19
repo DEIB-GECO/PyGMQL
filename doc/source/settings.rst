@@ -33,3 +33,5 @@ Execution Mode
 
 .. autofunction:: set_mode
 
+.. autofunction:: set_meta_profiling
+
