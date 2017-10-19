@@ -6,6 +6,7 @@ from .. import GDataframe
 from .. import GMQLDataset
 import os
 import glob
+from .MetadataProfiler import create_metadata_profile
 
 
 def get_file_paths(path):
@@ -65,6 +66,12 @@ def load_from_path(local_path=None, parser=None,  all_load=False):
             id = source_table.add_source(local=local_path)
         local_sources = [id]
 
+        from ... import _metadata_profiling
+        if _metadata_profiling:
+            meta_profile = create_metadata_profile(local_path)
+        else:
+            meta_profile = None
+
         index = None
         if parser is not None:
             if type(parser) is str:
@@ -80,7 +87,8 @@ def load_from_path(local_path=None, parser=None,  all_load=False):
 
         return GMQLDataset.GMQLDataset(index=index, parser=parser,
                                        location="local", path_or_name=local_path,
-                                       local_sources=local_sources)
+                                       local_sources=local_sources,
+                                       meta_profile=meta_profile)
 
 
 def load_from_remote(remote_name, owner=None):

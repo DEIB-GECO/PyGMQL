@@ -21,10 +21,12 @@ class GMQLDataset:
     """
 
     def __init__(self, parser=None, index=None, location="local", path_or_name=None,
-                 local_sources=None, remote_sources=None):
+                 local_sources=None, remote_sources=None,
+                 meta_profile=None):
         self.parser = parser
         self.index = index
         self.location = location
+        self.meta_profile = meta_profile
         self.path_or_name = path_or_name
         self.pmg = get_python_manager()
         self.opmng = self.pmg.getOperatorManager()
