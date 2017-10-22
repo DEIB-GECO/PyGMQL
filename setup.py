@@ -22,7 +22,7 @@ setup(name='gmql',
       packages=find_packages(),
       install_requires=['pandas', 'tqdm', 'numpy', 'py4j',
                         'psutil', 'requests', 'requests-toolbelt', 'sklearn',
-                        'pyclustering','matplotlib','scipy','wordcloud', 'fancyimpute'],
+                        'pyclustering','matplotlib','scipy','wordcloud', 'fancyimpute', 'strconv'],
       classifiers=[
             'Development Status :: 3 - Alpha',
             'Intended Audience :: Science/Research',
