@@ -221,8 +221,6 @@ def start():
     python_api_package = __get_python_api_package(gateway)
     pythonManager = __start_gmql_manager(python_api_package)
 
-    # Setting up the temporary files folder
-    folders = TempFileManager.initialize_tmp_folders()
     # setting the spark tmp folder
     pythonManager.setSparkLocalDir(folders['spark'])
 
@@ -231,7 +229,8 @@ def stop():
     global gateway
     # flushing the tmp files
     TempFileManager.flush_everything()
-    gateway.shutdown()
+    if gateway is not None:
+        gateway.shutdown()
 
 
 atexit.register(stop)
@@ -241,7 +240,8 @@ class GMQLManagerNotInitializedError(Exception):
     pass
 
 
-
+# Setting up the temporary files folder
+folders = TempFileManager.initialize_tmp_folders()
 
 
 """
