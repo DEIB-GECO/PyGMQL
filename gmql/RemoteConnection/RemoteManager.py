@@ -314,8 +314,8 @@ class RemoteManager:
         tmp_zip = os.path.join(local_path, "tmp.zip")
         f = open(tmp_zip, "wb")
         # TODO: find a better way to display the download progression
-        from .. import disable_progress
-        for chunk in tqdm(response.iter_content(chunk_size=512), disable=disable_progress):
+        from .. import __disable_progress
+        for chunk in tqdm(response.iter_content(chunk_size=512), disable=__disable_progress):
             if chunk:
                 f.write(chunk)
         f.close()
@@ -326,9 +326,9 @@ class RemoteManager:
     def download_as_stream(self, dataset_name, local_path):
         samples = self.get_dataset_samples(dataset_name)
         ids = samples.id.unique()
-        from .. import disable_progress
+        from .. import __disable_progress
         # download the data
-        for id in tqdm(ids, disable=disable_progress):
+        for id in tqdm(ids, disable=__disable_progress):
             name = samples[samples.id == id].name.values[0]
             self.download_sample(dataset_name=dataset_name,
                                  sample_name=name,
@@ -507,8 +507,8 @@ def create_callback(encoder, n_files=None):
     else:
         tot_len = encoder_len
 
-    from .. import disable_progress
-    bar = tqdm(total=tot_len, disable=disable_progress)
+    from .. import __disable_progress
+    bar = tqdm(total=tot_len, disable=__disable_progress)
 
     if n_files is not None:
         def callback(monitor):

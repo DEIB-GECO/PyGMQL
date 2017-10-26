@@ -25,8 +25,8 @@ def load_regions(collected_result):
     result = []
     executor = ThreadPoolExecutor()
 
-    from ... import disable_progress
-    for i in tqdm(range(divisions), disable=disable_progress):
+    from ... import __disable_progress
+    for i in tqdm(range(divisions), disable=__disable_progress):
         # get the full string
         regions_string = collected_result.getRegionsAsString(chunk_size)
         if regions_string:
@@ -106,8 +106,8 @@ def load_metadata(collected_result):
 
         logger.info("Building metadata dataframe")
         result_df = pd.DataFrame()
-        from ... import disable_progress
-        for col in tqdm(columns, total=len(columns), disable=disable_progress):
+        from ... import __disable_progress
+        for col in tqdm(columns, total=len(columns), disable=__disable_progress):
             if col != 'id_sample':
                 result_df[col] = g[col].apply(to_list)
     else:

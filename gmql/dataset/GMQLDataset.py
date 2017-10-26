@@ -1,4 +1,4 @@
-from .. import get_python_manager, get_gateway, none, Some, \
+from .. import get_python_manager, none, Some, _get_gateway, \
     get_remote_manager, get_mode, _get_source_table
 from .loaders import MetaLoaderFile, RegLoaderFile, Materializations
 from .DataStructures.RegField import RegField
@@ -8,7 +8,7 @@ import shutil
 import os
 from .DataStructures import reg_fixed_fileds
 from .import GDataframe
-from .loaders import MemoryLoader, Loader
+from .loaders import MemoryLoader, Loader, MetadataProfiler
 from ..FileManagment.TempFileManager import get_unique_identifier, get_new_dataset_tmp_folder
 
 
@@ -26,7 +26,10 @@ class GMQLDataset:
         self.parser = parser
         self.index = index
         self.location = location
-        self.meta_profile = meta_profile
+        if isinstance(meta_profile, MetadataProfiler.MetadataProfile):
+            self.meta_profile = meta_profile
+        else:
+            raise TypeError("meta_profile must be MetadataProfiler")
         self.path_or_name = path_or_name
         self.pmg = get_python_manager()
         self.opmng = self.pmg.getOperatorManager()
@@ -103,7 +106,8 @@ class GMQLDataset:
         :param name: the name of the metadata that is considered
         :return: a MetaField instance
         """
-        return MetaField(name=name, index=self.index)
+        t = self.meta_profile.get_metadata_type(name)
+        return MetaField(name=name, index=self.index, t=t)
 
     def RegField(self, name):
         """
@@ -169,7 +173,7 @@ class GMQLDataset:
         if (semiJoinDataset is not None) and  \
                 (semiJoinMeta is not None):
             other_idx = semiJoinDataset.index
-            metaJoinByJavaList = get_gateway().jvm.java.util.ArrayList()
+            metaJoinByJavaList = _get_gateway().jvm.java.util.ArrayList()
             for meta in semiJoinMeta:
                 metaJoinByJavaList.append(meta)
             metaJoinCondition = self.opmng.getMetaJoinCondition(metaJoinByJavaList)
@@ -191,7 +195,7 @@ class GMQLDataset:
             raise ValueError("semiJoinDataset <=> semiJoinMeta")
 
         return GMQLDataset(index=new_index, location=self.location, local_sources=self._local_sources,
-                           remote_sources=self._remote_sources)
+                           remote_sources=self._remote_sources, meta_profile=self.meta_profile)
 
     def reg_select(self, predicate=None, semiJoinDataset=None, semiJoinMeta=None):
         """
@@ -215,7 +219,7 @@ class GMQLDataset:
         if (semiJoinDataset is not None) and \
                 (semiJoinMeta is not None):
             other_idx = semiJoinDataset.index
-            metaJoinByJavaList = get_gateway().jvm.java.util.ArrayList()
+            metaJoinByJavaList = _get_gateway().jvm.java.util.ArrayList()
             for meta in semiJoinMeta:
                 metaJoinByJavaList.append(meta)
             metaJoinCondition = self.opmng.getMetaJoinCondition(metaJoinByJavaList)
@@ -237,7 +241,8 @@ class GMQLDataset:
             raise ValueError("semiJoinDataset <=> semiJoinMeta")
 
         return GMQLDataset(index=new_index, location=self.location,
-                           local_sources=self._local_sources, remote_sources=self._remote_sources)
+                           local_sources=self._local_sources, remote_sources=self._remote_sources,
+                           meta_profile=self.meta_profile)
 
     def meta_project(self, attr_list=None, all_but=None, new_attr_dict=None):
         """
@@ -249,6 +254,11 @@ class GMQLDataset:
                the new field based on the values of the others
         :return: a new GMQLDataset
         """
+
+        # updating metadata profile
+        self.meta_profile.select_attributes(attr_list)
+        self.meta_profile.add_metadata({(k, None) for k in new_attr_dict.keys()})
+
         if (attr_list is not None) and (all_but is not None):
             raise ValueError("You can specifiy only one of attr_list or all_but. Not both")
         all_but_value = False
@@ -286,7 +296,8 @@ class GMQLDataset:
                                        meta_ext, all_but_value, none(), none(), none())
 
         return GMQLDataset(index=new_index, location=self.location,
-                           local_sources=self._local_sources, remote_sources=self._remote_sources)
+                           local_sources=self._local_sources, remote_sources=self._remote_sources,
+                           meta_profile=self.meta_profile)
 
     def reg_project(self, field_list=None, all_but=None, new_field_dict=None):
         """
@@ -342,7 +353,8 @@ class GMQLDataset:
         new_index = self.opmng.project(self.index, none(), none(), False,
                                        projected_regs, all_but_f, regs_ext)
         return GMQLDataset(index=new_index, location=self.location,
-                           local_sources=self._local_sources, remote_sources=self._remote_sources)
+                           local_sources=self._local_sources,
+                           remote_sources=self._remote_sources, meta_profile=self.meta_profile)
 
     def extend(self, new_attr_dict):
         """
@@ -365,7 +377,7 @@ class GMQLDataset:
                                           'minPValue' : gl.MIN('pValue')})
         """
         expBuild = self.pmg.getNewExpressionBuilder(self.index)
-        aggregatesJavaList = get_gateway().jvm.java.util.ArrayList()
+        aggregatesJavaList = _get_gateway().jvm.java.util.ArrayList()
         for k in new_attr_dict.keys():
             new_name = k
             op = new_attr_dict[k]
@@ -377,7 +389,7 @@ class GMQLDataset:
         new_index = self.opmng.extend(self.index, aggregatesJavaList)
         return GMQLDataset(index=new_index, location=self.location,
                            local_sources=self._local_sources,
-                           remote_sources=self._remote_sources)
+                           remote_sources=self._remote_sources, meta_profile=self.meta_profile)
 
     def cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None, type="normal"):
         """
@@ -420,7 +432,7 @@ class GMQLDataset:
         else:
             groupBy_result = Some(groupBy)
 
-        aggregatesJavaList = get_gateway().jvm.java.util.ArrayList()
+        aggregatesJavaList = _get_gateway().jvm.java.util.ArrayList()
         if new_reg_fields:
             expBuild = self.pmg.getNewExpressionBuilder(self.index)
             for k in new_reg_fields.keys():
@@ -434,7 +446,7 @@ class GMQLDataset:
                                      groupBy_result, aggregatesJavaList)
         return GMQLDataset(index=new_index, location=self.location,
                            local_sources=self._local_sources,
-                           remote_sources=self._remote_sources)
+                           remote_sources=self._remote_sources, meta_profile=self.meta_profile)
 
     def normal_cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None):
         """
@@ -530,11 +542,11 @@ class GMQLDataset:
                                                     genometric_predicate=[gl.MD(1), gl.DGE(120000)], 
                                                     output="right")
         """
-        atomicConditionsJavaList = get_gateway().jvm.java.util.ArrayList()
+        atomicConditionsJavaList = _get_gateway().jvm.java.util.ArrayList()
         for a in genometric_predicate:
             atomicConditionsJavaList.append(a.get_gen_condition())
         regionJoinCondition = self.opmng.getRegionJoinCondition(atomicConditionsJavaList)
-        metaJoinByJavaList = get_gateway().jvm.java.util.ArrayList()
+        metaJoinByJavaList = _get_gateway().jvm.java.util.ArrayList()
         if joinBy:
             for m in joinBy:
                 metaJoinByJavaList.append(m)
@@ -552,7 +564,8 @@ class GMQLDataset:
         new_local_sources, new_remote_sources = combine_sources(self, experiment)
         new_location = combine_locations(self, experiment)
         return GMQLDataset(index=new_index, location=new_location,
-                           local_sources=new_local_sources, remote_sources=new_remote_sources)
+                           local_sources=new_local_sources,
+                           remote_sources=new_remote_sources, meta_profile=self.meta_profile)
 
     def map(self, experiment, new_reg_fields=None, joinBy=None, refName=None, expName=None):
         """
@@ -584,7 +597,7 @@ class GMQLDataset:
         :param expName: name that you want to assign to the experiment dataset
         :return: a new GMQLDataset
         """
-        aggregatesJavaList = get_gateway().jvm.java.util.ArrayList()
+        aggregatesJavaList = _get_gateway().jvm.java.util.ArrayList()
         if new_reg_fields:
             expBuild = self.pmg.getNewExpressionBuilder(experiment.index)
             for k in new_reg_fields.keys():
@@ -594,7 +607,7 @@ class GMQLDataset:
                 op_argument = op.get_argument()
                 regsToReg = expBuild.getRegionsToRegion(op_name, new_name, op_argument)
                 aggregatesJavaList.append(regsToReg)
-        metaJoinByJavaList = get_gateway().jvm.java.util.ArrayList()
+        metaJoinByJavaList = _get_gateway().jvm.java.util.ArrayList()
         if joinBy:
             for m in joinBy:
                 metaJoinByJavaList.append(m)
@@ -610,7 +623,9 @@ class GMQLDataset:
         new_local_sources, new_remote_sources = combine_sources(self, experiment)
         new_location = combine_locations(self, experiment)
         return GMQLDataset(index=new_index, location=new_location,
-                           local_sources=new_local_sources, remote_sources=new_remote_sources)
+                           local_sources=new_local_sources,
+                           remote_sources=new_remote_sources,
+                           meta_profile=self.meta_profile)
 
     def order(self, meta=None, meta_ascending=None, meta_top=None, meta_k=None,
               regs=None, regs_ascending=None, region_top=None, region_k=None):
@@ -664,7 +679,8 @@ class GMQLDataset:
                                      regs, regs_ascending, region_top, str(region_k))
         return GMQLDataset(index=new_index, location=self.location,
                            local_sources=self._local_sources,
-                           remote_sources=self._remote_sources)
+                           remote_sources=self._remote_sources,
+                           meta_profile=self.meta_profile)
 
     def difference(self, other, joinBy=None, exact=None):
         """
@@ -679,7 +695,7 @@ class GMQLDataset:
         :param exact: boolean
         :return: a new GMQLDataset
         """
-        metaJoinByJavaList = get_gateway().jvm.java.util.ArrayList()
+        metaJoinByJavaList = _get_gateway().jvm.java.util.ArrayList()
         if joinBy:
             for m in joinBy:
                 metaJoinByJavaList.append(m)
@@ -691,7 +707,9 @@ class GMQLDataset:
         new_local_sources, new_remote_sources = combine_sources(self, other)
         new_location = combine_locations(self, other)
         return GMQLDataset(index=new_index, location=new_location,
-                           local_sources=new_local_sources, remote_sources=new_remote_sources)
+                           local_sources=new_local_sources,
+                           remote_sources=new_remote_sources,
+                           meta_profile=self.meta_profile)
 
     def union(self, other, left_name="", right_name=""):
         """
@@ -715,7 +733,9 @@ class GMQLDataset:
         new_local_sources, new_remote_sources = combine_sources(self, other)
         new_location = combine_locations(self, other)
         return GMQLDataset(index=new_index, location=new_location,
-                           local_sources=new_local_sources, remote_sources=new_remote_sources)
+                           local_sources=new_local_sources,
+                           remote_sources=new_remote_sources,
+                           meta_profile=self.meta_profile)
 
     def merge(self, groupBy=None):
         """
@@ -744,7 +764,8 @@ class GMQLDataset:
         new_index = self.opmng.merge(self.index, groupBy_result)
         return GMQLDataset(index=new_index, location=self.location,
                            local_sources=self._local_sources,
-                           remote_sources=self._remote_sources)
+                           remote_sources=self._remote_sources,
+                           meta_profile=self.meta_profile)
 
     def group(self, meta=None, meta_aggregates=None, regs=None, regs_aggregates=None, meta_group_name="_group"):
         """ The GROUP operator is used for grouping both regions and/or metadata of input
@@ -820,7 +841,8 @@ class GMQLDataset:
 
         return GMQLDataset(index=new_index, location=self.location,
                            local_sources=self._local_sources,
-                           remote_sources=self._remote_sources)
+                           remote_sources=self._remote_sources,
+                           meta_profile=self.meta_profile)
 
     def meta_group(self, meta, meta_aggregates=None):
         """ Group operation only for metadata. For further information check :meth:`~.group`

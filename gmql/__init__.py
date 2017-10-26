@@ -24,15 +24,15 @@ def get_version():
 __version__ = get_version()
 
 
-def get_github_url():
+def __get_github_url():
     github_fn = resource_filename("gmql", os.path.join("resources", "github_url"))
     with open(github_fn, "r") as f_ver:
         url = f_ver.read().strip()
     return url
 
 
-gmql_jar = "pythonAPI-{}.jar".format(__version__)
-backend_download_url = get_github_url()
+__gmql_jar = "pythonAPI-{}.jar".format(__version__)
+__backend_download_url = __get_github_url()
 
 """
     Logging and progress bars
@@ -63,7 +63,7 @@ def set_logger(logger_name):
     return logger
 
 
-disable_progress = False
+__disable_progress = False
 
 
 def set_progress(how):
@@ -82,9 +82,9 @@ def set_progress(how):
         gl.set_progress(False)  # removes progress bars
         # ....do something...
     """
-    global disable_progress
+    global __disable_progress
     if isinstance(how, bool):
-        disable_progress = ~how
+        __disable_progress = ~how
     else:
         raise ValueError(
             "how must be a boolean. {} was found".format(type(how)))
@@ -137,15 +137,15 @@ def set_meta_profiling(how):
 """
 
 
-def check_backend(gmql_jar_fn):
+def __check_backend(gmql_jar_fn):
     if os.path.isfile(gmql_jar_fn):
         return gmql_jar_fn
     else:
         # we need to download it
-        global backend_download_url, __version__, gmql_jar
-        full_url = '{}/{}/{}/{}'.format(backend_download_url,
+        global __backend_download_url, __version__, __gmql_jar
+        full_url = '{}/{}/{}/{}'.format(__backend_download_url,
                                         "releases/download",
-                                        __version__, gmql_jar)
+                                        __version__, __gmql_jar)
         logger.info("Downloading updated backend version ({})".format(full_url))
 
         r = requests.get(full_url, stream=True)
@@ -167,14 +167,26 @@ def __start_gmql_manager(python_api_package):
     return pythonManager
 
 
-def get_gateway():
+def _get_gateway():
     global gateway
-    return gateway
+
+    if gateway is None:
+        # Starting the GMQL manager
+        start()
+        return gateway
+    else:
+        return gateway
 
 
 def get_python_manager():
     global pythonManager
-    return pythonManager
+
+    if pythonManager is None:
+        # Starting the GMQL manager
+        start()
+        return pythonManager
+    else:
+        return pythonManager
 
 """
     GMQL Logger configuration
@@ -193,12 +205,12 @@ def start():
 
     java_home = os.environ.get("JAVA_HOME")
     if java_home is None:
-        raise SystemError("The environment variable JAVA_HOME is not setted")
+        raise SystemError("The environment variable JAVA_HOME is not set")
     java_path = os.path.join(java_home, "bin", "java")
 
     gmql_jar_fn = resource_filename(
-        "gmql", os.path.join("resources", gmql_jar))
-    gmql_jar_fn = check_backend(gmql_jar_fn)
+        "gmql", os.path.join("resources", __gmql_jar))
+    gmql_jar_fn = __check_backend(gmql_jar_fn)
 
     _port = launch_gateway(classpath=gmql_jar_fn, die_on_exit=True,
                            java_path=java_path)
@@ -208,6 +220,11 @@ def start():
                                                                auto_convert=True))
     python_api_package = __get_python_api_package(gateway)
     pythonManager = __start_gmql_manager(python_api_package)
+
+    # Setting up the temporary files folder
+    folders = TempFileManager.initialize_tmp_folders()
+    # setting the spark tmp folder
+    pythonManager.setSparkLocalDir(folders['spark'])
 
 
 def stop():
@@ -224,12 +241,7 @@ class GMQLManagerNotInitializedError(Exception):
     pass
 
 
-# Starting the GMQL manager
-start()
-# Setting up the temporary files folder
-folders = TempFileManager.initialize_tmp_folders()
-# setting the spark tmp folder
-pythonManager.setSparkLocalDir(folders['spark'])
+
 
 
 """

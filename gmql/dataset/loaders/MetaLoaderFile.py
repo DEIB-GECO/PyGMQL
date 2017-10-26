@@ -15,8 +15,8 @@ def load_meta_from_path(path):
     parsed = []
     parser = GenericMetaParser()
     logger.info("Loading meta data from path {}".format(path))
-    from ... import disable_progress
-    for f in tqdm(meta_files, total=len(meta_files), disable=disable_progress):
+    from ... import __disable_progress
+    for f in tqdm(meta_files, total=len(meta_files), disable=__disable_progress):
         abs_path = os.path.abspath(f)
         abs_path_no_meta = abs_path[:-5]
         key = generateNameKey(abs_path_no_meta)
@@ -39,8 +39,8 @@ def to_pandas(meta_list):
 
         logger.info("dataframe construction")
         result_df = pd.DataFrame()
-        from ... import disable_progress
-        for col in tqdm(columns, total=len(columns), disable=disable_progress):
+        from ... import __disable_progress
+        for col in tqdm(columns, total=len(columns), disable=__disable_progress):
             if col != 'id_sample':
                 result_df[col] = g[col].apply(to_list)
     else:
