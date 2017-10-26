@@ -1,5 +1,5 @@
 from .Parser import Parser, parse_strand
-from ... import get_python_manager, get_gateway
+from ... import get_python_manager, _get_gateway
 import numpy as np
 
 
@@ -33,14 +33,14 @@ class BedParser(Parser):
         if self.strandPos is not None:
             strand = self.strandPos
 
-        otherPosJavaList = get_gateway().jvm.java.util.ArrayList()
+        otherPosJavaList = _get_gateway().jvm.java.util.ArrayList()
 
         if otherPos:
             for o in otherPos:
                 pos = o[0]
                 name = o[1]
                 type = o[2]
-                posJavaList = get_gateway().jvm.java.util.ArrayList()
+                posJavaList = _get_gateway().jvm.java.util.ArrayList()
                 posJavaList.append(str(pos))
                 posJavaList.append(str(name))
                 posJavaList.append(str(type))

@@ -29,8 +29,8 @@ def load_reg_from_path(path, parser=None):
 
     n_files = len(only_region_files)
     dfs = []
-    from ... import disable_progress
-    for file in tqdm.tqdm(only_region_files, total=n_files, disable=disable_progress):
+    from ... import __disable_progress
+    for file in tqdm.tqdm(only_region_files, total=n_files, disable=__disable_progress):
         if file.endswith("schema") or file.endswith("_SUCCESS"):
             continue
         abs_path = os.path.abspath(file)
