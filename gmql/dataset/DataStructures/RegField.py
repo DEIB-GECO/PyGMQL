@@ -1,5 +1,5 @@
 from ... import get_python_manager
-
+from .MetaField import MetaField
 
 class RegField:
 
@@ -29,32 +29,38 @@ class RegField:
 
     def __eq__(self, other):
         new_name = '(' + self.name + ' == ' + str(other) + ')'
-        predicate = self.exp_build.createRegionPredicate(self.name, "EQ", str(other))
+        other = _process_other(other)
+        predicate = self.exp_build.createRegionPredicate(self.name, "EQ", other)
         return RegField(name=new_name, region_condition=predicate, index=self.index)
 
     def __ne__(self, other):
         new_name = '(' + self.name + ' != ' + str(other) + ')'
-        predicate = self.exp_build.createRegionPredicate(self.name, "NOTEQ", str(other))
+        other = _process_other(other)
+        predicate = self.exp_build.createRegionPredicate(self.name, "NOTEQ", other)
         return RegField(name=new_name, region_condition=predicate, index=self.index)
 
     def __gt__(self, other):
         new_name = '(' + self.name + ' > ' + str(other) + ')'
-        predicate = self.exp_build.createRegionPredicate(self.name, "GT", str(other))
+        other = _process_other(other)
+        predicate = self.exp_build.createRegionPredicate(self.name, "GT", other)
         return RegField(name=new_name, region_condition=predicate, index=self.index)
 
     def __ge__(self, other):
         new_name = '(' + self.name + ' >= ' + str(other) + ')'
-        predicate = self.exp_build.createRegionPredicate(self.name, "GTE", str(other))
+        other = _process_other(other)
+        predicate = self.exp_build.createRegionPredicate(self.name, "GTE", other)
         return RegField(name=new_name, region_condition=predicate, index=self.index)
 
     def __lt__(self, other):
         new_name = '(' + self.name + ' < ' + str(other) + ')'
-        predicate = self.exp_build.createRegionPredicate(self.name, "LT", str(other))
+        other = _process_other(other)
+        predicate = self.exp_build.createRegionPredicate(self.name, "LT", other)
         return RegField(name=new_name, region_condition=predicate, index=self.index)
 
     def __le__(self, other):
         new_name = '(' + self.name + ' <= ' + str(other) + ')'
-        predicate = self.exp_build.createRegionPredicate(self.name, "LTE", str(other))
+        other = _process_other(other)
+        predicate = self.exp_build.createRegionPredicate(self.name, "LTE", other)
         return RegField(name=new_name, region_condition=predicate, index=self.index)
 
     """
@@ -184,3 +190,16 @@ class RegField:
             new_name = '(' + str(other) + ' / ' + self.name + ')'
             node = self.exp_build.getBinaryRegionExpression(other, "DIV", self.reNode)
         return RegField(name=new_name, index=self.index, reNode=node)
+
+
+def _process_other(other):
+    if isinstance(other, MetaField):
+        return other.metaAccessor
+    elif isinstance(other, str):
+        return other
+    elif isinstance(other, int) or \
+         isinstance(other, float):
+        return str(other)
+    else:
+        raise TypeError("Other is of unknown type. "
+                        "{} provided".format(type(other)))

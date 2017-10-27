@@ -14,7 +14,7 @@ class MetaField:
         
         if not (name.startswith("(") and name.endswith(")")) and meNode is None:
             self.meNode = self.exp_build.getMENode(name)
-            # self.metaAccessor = self.exp_build.getMetaAccessor(name)
+            self.metaAccessor = self.exp_build.getMetaAccessor(name)
         else:
             self.meNode = meNode
             

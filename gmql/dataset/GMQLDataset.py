@@ -106,8 +106,7 @@ class GMQLDataset:
         :param name: the name of the metadata that is considered
         :return: a MetaField instance
         """
-        t = self.meta_profile.get_metadata_type(name)
-        return MetaField(name=name, index=self.index, t=t)
+        return MetaField(name=name, index=self.index)
 
     def RegField(self, name):
         """
