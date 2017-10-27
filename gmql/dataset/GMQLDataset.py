@@ -208,6 +208,18 @@ class GMQLDataset:
         An example of usage::
 
             new_dataset = dataset.reg_select(dataset.chr == 'chr1' || dataset.pValue < 0.9)
+
+        You can also use Metadata attributes in selection::
+
+            new_dataset = dataset.reg_select(dataset.score > dataset['size'])
+
+        This statement selects all the regions whose field score is strictly higher than the sample
+        metadata attribute size.
+        Be careful when using metadata attributes in the selection expressions. The metadata field *must
+        always be at the right of the expression*.
+
+        In order to be sure about the correctness of the expression, please use parenthesis to delimit
+        the various predicates.
         """
         reg_condition = None
         other_idx = None
