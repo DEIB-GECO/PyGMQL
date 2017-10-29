@@ -58,13 +58,16 @@ class GMQLDataset:
         self.left = self.RegField("left")
         self.right = self.RegField("right")
 
-    def __getitem__(self, item):
-        if isinstance(item, str):
-            return self.MetaField(item)
-        elif isinstance(item, MetaField):
-            return self.meta_select(predicate=item)
+    def __getitem__(self, arg):
+        if isinstance(arg, tuple) and len(arg) == 2:
+            item, t = arg
+            return self.MetaField(name=item, t=t)
+        elif isinstance(arg, str):
+            return self.MetaField(name=arg)
+        elif isinstance(arg, MetaField):
+            return self.meta_select(predicate=arg)
         else:
-            raise ValueError("Input must be a string or a MetaField. {} was found".format(type(item)))
+            raise ValueError("Input must be a string or a MetaField. {} was found".format(type(arg)))
 
     def __show_info(self):
         print("GMQLDataset")
@@ -95,7 +98,7 @@ class GMQLDataset:
         """
         return self.schema
 
-    def MetaField(self, name):
+    def MetaField(self, name, t=None):
         """
         Creates an instance of a metadata field of the dataset. It can be used in building expressions
         or conditions for projection or selection.
@@ -104,9 +107,11 @@ class GMQLDataset:
             dataset[name]
         
         :param name: the name of the metadata that is considered
+        :param t: the type of the metadata attribute
+
         :return: a MetaField instance
         """
-        return MetaField(name=name, index=self.index)
+        return MetaField(name=name, index=self.index, t=t)
 
     def RegField(self, name):
         """
@@ -268,7 +273,8 @@ class GMQLDataset:
 
         # updating metadata profile
         self.meta_profile.select_attributes(attr_list)
-        self.meta_profile.add_metadata({(k, None) for k in new_attr_dict.keys()})
+        if isinstance(new_attr_dict, dict):
+            self.meta_profile.add_metadata({(k, None) for k in new_attr_dict.keys()})
 
         if (attr_list is not None) and (all_but is not None):
             raise ValueError("You can specifiy only one of attr_list or all_but. Not both")
