@@ -34,6 +34,10 @@ The expressions in PyGMQL can be of two types:
           # region predicate with access to metadata attributes
           dataset.score > dataset['size']
 
+      It is possible, based on the function that requires a predicate, to mix region fields and
+      metadata attributes in a region condition. Of course it is not possible to mix metadata and
+      region conditions in a metadata selection (this is due to the fact that to each metadata
+      attribute can be associated multiple values for each region field).
 
     * *Extension*: a mathematical expression describing how to build new metadata
       or region fields based on the existent ones. Some examples of expression follow::
@@ -45,3 +49,7 @@ The expressions in PyGMQL can be of two types:
           dataset['size'] * 8.9
           dataset['score'] / dataset['size']
 
+      It is possible to mix region fields and metadata attributes in region extensions::
+
+          # region expression using metadata attributes
+          (dataset.pvalue / 2) + dataset['metadata'] + 1

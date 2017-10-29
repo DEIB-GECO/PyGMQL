@@ -136,7 +136,7 @@ class GMQLDataset:
         
             * *Metadata predicates*: selection based on the existence and values of certain 
               metadata attributes in each sample. In predicates, attribute-value conditions 
-              can be composed using logical predicates && (and), || (or) and ~ (not)
+              can be composed using logical predicates & (and), | (or) and ~ (not)
             * *SemiJoin clauses*: selection based on the existence of certain metadata :attr:`~.semiJoinMeta`
               attributes and the matching of their values with those associated with at 
               least one sample in an external dataset :attr:`~.semiJoinDataset`
@@ -155,16 +155,20 @@ class GMQLDataset:
 
         Example 2::
 
-            output_dataset = dataset.meta_select( (dataset['tissue_status'] == 'tumoral') &&
-                                                (tumor_tag == 'gbm') || (tumor_tag == 'brca'))
+            output_dataset = dataset.meta_select( (dataset['tissue_status'] == 'tumoral') &
+                                                (tumor_tag != 'gbm') | (tumor_tag == 'brca'))
             # This statement can be written also as
-            output_dataset = dataset[ (dataset['tissue_status'] == 'tumoral') &&
-                                    (tumor_tag == 'gbm') || (tumor_tag == 'brca') ]
+            output_dataset = dataset[ (dataset['tissue_status'] == 'tumoral') &
+                                    (tumor_tag != 'gbm') | (tumor_tag == 'brca') ]
 
         Example 3::
 
             JUN_POLR2A_TF = HG19_ENCODE_NARROW.meta_select( JUN_POLR2A_TF['antibody_target'] == 'JUN',
                                                             semiJoinDataset=POLR2A_TF, semiJoinMeta=['cell'])
+
+        The meta selection predicate can use all the classical equalities and disequalities
+        {>, <, >=, <=, ==, !=} and predicates can be connected by the classical logical symbols
+        {& (AND), | (OR), ~ (NOT)} plus the *isin* function.
 
         """
 
@@ -212,7 +216,7 @@ class GMQLDataset:
 
         An example of usage::
 
-            new_dataset = dataset.reg_select(dataset.chr == 'chr1' || dataset.pValue < 0.9)
+            new_dataset = dataset.reg_select((dataset.chr == 'chr1') | (dataset.pValue < 0.9))
 
         You can also use Metadata attributes in selection::
 
@@ -220,8 +224,10 @@ class GMQLDataset:
 
         This statement selects all the regions whose field score is strictly higher than the sample
         metadata attribute size.
-        Be careful when using metadata attributes in the selection expressions. The metadata field *must
-        always be at the right of the expression*.
+
+        The region selection predicate can use all the classical equalities and disequalities
+        {>, <, >=, <=, ==, !=} and predicates can be connected by the classical logical symbols
+        {& (AND), | (OR), ~ (NOT)} plus the *isin* function.
 
         In order to be sure about the correctness of the expression, please use parenthesis to delimit
         the various predicates.
@@ -265,10 +271,19 @@ class GMQLDataset:
         Project the metadata based on a list of attribute names
         
         :param attr_list: list of the metadata fields to select
+        :param all_but: list of metadata that must be excluded from the projection.
         :param new_attr_dict: an optional dictionary of the form {'new_field_1': function1,
                'new_field_2': function2, ...} in which every function computes
                the new field based on the values of the others
         :return: a new GMQLDataset
+
+        Notice that if attr_list is specified, all_but cannot be specified and viceversa.
+
+        Examples::
+
+            new_dataset = dataset.meta_project(attr_list=['antibody', 'ID'],
+                                               new_attr_dict={'new_meta': dataset['ID'] + 100})
+
         """
 
         # updating metadata profile
@@ -332,6 +347,17 @@ class GMQLDataset:
 
             new_dataset = dataset.reg_project(['pValue', 'name'],
                                             {'new_field': dataset.pValue / 2})
+
+            new_dataset = dataset.reg_project(field_list=['peak', 'pvalue'],
+                                              new_field_dict={'new_field': dataset.pvalue * dataset['cell_age', 'float']})
+
+        Notice that you can use metadata attributes for building new region fields.
+        The only thing to remember when doing so is to define also the type of the output region field
+        in the metadata attribute definition (for example, :code:`dataset['cell_age', 'float']` is
+        required for defining the new attribute :code:`new_field` as float).
+        In particular, the following type names are accepted: 'string', 'char', 'long', 'integer',
+        'boolean', 'float', 'double'.
+
         """
         projected_regs = None
         if field_list is None:
