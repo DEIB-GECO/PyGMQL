@@ -2,7 +2,7 @@ from glob import glob
 import os
 from tqdm import tqdm
 import strconv
-from functools import reduce
+import pandas as pd
 
 
 class MetadataProfile:
@@ -60,6 +60,19 @@ class MetadataProfile:
     def add_metadata(self, d):
         self.metadata_info.update(d)
 
+    def to_df(self):
+        df = pd.DataFrame.from_dict(self.metadata_info, orient="index")
+        df.columns = ['Type', 'Values']
+        # df['Type'] = df['Type'].map(str)
+        df = df.sort_index()
+        return df
+
+    def show(self):
+        print(self.to_df())
+
+    def _repr_html_(self):
+        return self.to_df().to_html()
+
 
 def create_metadata_profile(dataset_path):
     meta_files = glob(pathname=dataset_path + '/*.meta')
@@ -88,4 +101,14 @@ def analyze_line(line, d):
     if name not in d.keys():
         d[name] = (value_type, set([value_type(value)]))
     else:
+        current_type = d[name][0]
+        # not agreement between types
+        if current_type != value_type:
+            # if one of the two is a string...str always wins
+            if value_type == str or current_type == str:
+                d[name] = (str, d[name][1])
+            # between int and float...float always wins
+            elif (current_type == int and value_type == float) or \
+                 (current_type == float and value_type == int):
+                d[name][0] = (float, d[name][1])
         d[name][1].add(value_type(value))
