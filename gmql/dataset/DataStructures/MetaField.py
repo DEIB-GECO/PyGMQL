@@ -1,61 +1,74 @@
 from ... import get_python_manager
+from . import RegField, _get_opposite_operator
 
 
 class MetaField:
-    
-    def __init__(self, name, index=None, meta_condition=None, meNode=None):
+    def __init__(self, name, index=None, meta_condition=None, meNode=None, t=None):
         if (meta_condition is not None) and (meNode is not None):
             raise ValueError("you cannot mix conditions and expressions")
+
+        if isinstance(name, str):
+            self.name = name
+        else:
+            raise TypeError("name of the metadata attribute must be a string")
         self.index = index
-        self.name = name
-        self.metaCondition = meta_condition
         pymg = get_python_manager()
         self.exp_build = pymg.getNewExpressionBuilder(self.index)
-        
+
+        if t is not None:
+            if isinstance(t, str):
+                self.t = t
+                self.reMetaNode = self.exp_build.getREMetaAccessor(self.name, pymg.getParseTypeFromString(t))
+            else:
+                raise TypeError("Type of MetaField must be string")
+        else:
+            self.t = t
+
+        self.metaCondition = meta_condition
+
         if not (name.startswith("(") and name.endswith(")")) and meNode is None:
             self.meNode = self.exp_build.getMENode(name)
             self.metaAccessor = self.exp_build.getMetaAccessor(name)
         else:
             self.meNode = meNode
-            
+
     def getMetaCondition(self):
         return self.metaCondition
-    
+
     def getMetaExpression(self):
         return self.meNode
 
     """
         PREDICATES
     """
+
     def __eq__(self, other):
-        new_name = '(' + self.name + ' == ' + str(other) + ')'
-        predicate = self.exp_build.createMetaPredicate(self.name, "EQ", str(other))
-        return MetaField(name=new_name, meta_condition=predicate, index=self.index)
+        return self._predicate(other, "EQ")
 
     def __ne__(self, other):
-        new_name = '(' + self.name + ' != ' + str(other) + ')'
-        predicate = self.exp_build.createMetaPredicate(self.name, "NOTEQ", str(other))
-        return MetaField(name=new_name, meta_condition=predicate, index=self.index)
+        return self._predicate(other, "NOTEQ")
 
     def __gt__(self, other):
-        new_name = '(' + self.name + ' > ' + str(other) + ')'
-        predicate = self.exp_build.createMetaPredicate(self.name, "GT", str(other))
-        return MetaField(name=new_name, meta_condition=predicate, index=self.index)
+        return self._predicate(other, "GT")
 
     def __ge__(self, other):
-        new_name = '(' + self.name + ' >= ' + str(other) + ')'
-        predicate = self.exp_build.createMetaPredicate(self.name, "GTE", str(other))
-        return MetaField(name=new_name, meta_condition=predicate, index=self.index)
+        return self._predicate(other, "GTE")
 
     def __lt__(self, other):
-        new_name = '(' + self.name + ' < ' + str(other) + ')'
-        predicate = self.exp_build.createMetaPredicate(self.name, "LT", str(other))
-        return MetaField(name=new_name, meta_condition=predicate, index=self.index)
+        return self._predicate(other, "LT")
 
     def __le__(self, other):
-        new_name = '(' + self.name + ' <= ' + str(other) + ')'
-        predicate = self.exp_build.createMetaPredicate(self.name, "LTE", str(other))
-        return MetaField(name=new_name, meta_condition=predicate, index=self.index)
+        return self._predicate(other, "LTE")
+
+    def _predicate(self, other, operator):
+        if isinstance(other, (int, str, float)):
+            new_name = '(' + self.name + operator + str(other) + ')'
+            predicate = self.exp_build.createMetaPredicate(self.name, operator, str(other))
+            return MetaField(name=new_name, meta_condition=predicate, index=self.index)
+        elif isinstance(other, RegField.RegField):
+            return other._predicate(self, _get_opposite_operator(operator))
+        else:
+            raise TypeError("You can create predicates only using primitive types")
 
     def isin(self, values):
         """ Selects the samples having the metadata attribute between the values provided
@@ -79,108 +92,112 @@ class MetaField:
         else:
             raise SyntaxError("You cannot use 'isin' with a complex condition")
 
-
     """
         CONDITIONS
     """
+
     def __and__(self, other):
-        new_name = '(' + self.name + ' and ' + other.name + ')'
-        condition = self.exp_build.createMetaBinaryCondition(self.metaCondition, "AND", other.metaCondition)
-        return MetaField(name=new_name, meta_condition=condition, index=self.index)
+        return self._binary_condition(other, "AND")
 
     def __or__(self, other):
-        new_name = '(' + self.name + ' or ' + other.name + ')'
-        condition = self.exp_build.createMetaBinaryCondition(self.metaCondition, "OR", other.metaCondition)
-        return MetaField(name=new_name, meta_condition=condition, index=self.index)
+        return self._binary_condition(other, "OR")
 
     def __invert__(self):
-        new_name = 'not (' + self.name + ')'
-        condition = self.exp_build.createMetaUnaryCondition(self.metaCondition, "NOT")
+        return self._unary_condition("NOT")
+
+    def _binary_condition(self, other, operator):
+        if isinstance(other, MetaField):
+            if other.index != self.index:
+                raise ValueError("You cannot create conditions using different datasets")
+            if other.metaCondition is None or \
+                    self.metaCondition is None:
+                raise ValueError("One of the two sides of the {} operator"
+                                 " is not a condition".format(operator))
+            new_name = '(' + self.name + operator + other.name + ')'
+            condition = self.exp_build.createMetaBinaryCondition(self.metaCondition, operator, other.metaCondition)
+            return MetaField(name=new_name, meta_condition=condition, index=self.index)
+        else:
+            raise TypeError("Binary conditions can be done only between MetaFields")
+
+    def _unary_condition(self, operator):
+        if self.metaCondition is None:
+            raise ValueError("The inner part of the {} operator is not"
+                             " a condition".format(operator))
+        new_name = operator + '(' + self.name + ')'
+        condition = self.exp_build.createMetaUnaryCondition(self.metaCondition, operator)
         return MetaField(name=new_name, meta_condition=condition, index=self.index)
 
     """
         EXPRESSIONS
     """
 
-    def __get_return_type(self, other):
-        if isinstance(other, str):
-            other = self.exp_build.getMEType("string", other)
-        elif isinstance(other, int):
-            other = self.exp_build.getMEType("int", str(other))
-        elif isinstance(other, float):
-            other = self.exp_build.getMEType("float", str(other))
-        else:
-            raise ValueError("Expected string, float or integer. {} was found".format(type(other)))
-        return other
-
     def __add__(self, other):
-        if isinstance(other, MetaField):
-            # we are dealing with an other MetaField
-            new_name = '(' + self.name + ' + ' + other.name + ')'
-            node = self.exp_build.getBinaryMetaExpression(self.meNode, "ADD", other.meNode)
-        else:
-            other = self.__get_return_type(other)
-            new_name = '(' + self.name + ' + ' + str(other) + ')'
-            node = self.exp_build.getBinaryMetaExpression(self.meNode, "ADD", other)
-        return MetaField(name=new_name, index=self.index, meNode=node)
+        return self._binary_expression(other, "ADD")
 
     def __radd__(self, other):
         return self.__add__(other)
 
     def __sub__(self, other):
-        if isinstance(other, MetaField):
-            # we are dealing with an other MetaField
-            new_name = '(' + self.name + ' - ' + other.name + ')'
-            node = self.exp_build.getBinaryMetaExpression(self.meNode, "SUB", other.meNode)
-        else:
-            other = self.__get_return_type(other)
-            new_name = '(' + self.name + ' - ' + str(other) + ')'
-            node = self.exp_build.getBinaryMetaExpression(self.meNode, "SUB", other)
-        return MetaField(name=new_name, index=self.index, meNode=node)
+        return self._binary_expression(other, "SUB", order="left")
 
     def __rsub__(self, other):
-        if isinstance(other, MetaField):
-            # we are dealing with an other MetaField
-            new_name = '(' + other.name + ' - ' + self.name + ')'
-            node = self.exp_build.getBinaryMetaExpression(other.meNode, "SUB", self.meNode)
-        else:
-            other = self.__get_return_type(other)
-            new_name = '(' + str(other) + ' - ' + self.name + ')'
-            node = self.exp_build.getBinaryMetaExpression(other, "SUB", self.meNode)
-        return MetaField(name=new_name, index=self.index, meNode=node)
+        return self._binary_expression(other, "SUB", order="right")
 
     def __mul__(self, other):
-        if isinstance(other, MetaField):
-            # we are dealing with an other MetaField
-            new_name = '(' + self.name + ' * ' + other.name + ')'
-            node = self.exp_build.getBinaryMetaExpression(self.meNode, "MUL", other.meNode)
-        else:
-            other = self.__get_return_type(other)
-            new_name = '(' + self.name + ' * ' + str(other) + ')'
-            node = self.exp_build.getBinaryMetaExpression(self.meNode, "MUL", other)
-        return MetaField(name=new_name, index=self.index, meNode=node)
+        return self._binary_expression(other, "MUL")
 
     def __rmul__(self, other):
         return self.__mul__(other)
 
     def __truediv__(self, other):
-        if isinstance(other, MetaField):
-            # we are dealing with an other MetaField
-            new_name = '(' + self.name + ' / ' + other.name + ')'
-            node = self.exp_build.getBinaryMetaExpression(self.meNode, "DIV", other.meNode)
-        else:
-            other = self.__get_return_type(other)
-            new_name = '(' + self.name + ' / ' + str(other) + ')'
-            node = self.exp_build.getBinaryMetaExpression(self.meNode, "DIV", other)
-        return MetaField(name=new_name, index=self.index, meNode=node)
+        return self._binary_expression(other, "DIV", order="left")
 
     def __rtruediv__(self, other):
-        if isinstance(other, MetaField):
-            # we are dealing with an other MetaField
-            new_name = '(' + other.name + ' / ' + self.name + ')'
-            node = self.exp_build.getBinaryMetaExpression(other.meNode, "DIV", self.meNode)
+        return self._binary_expression(other, "DIV", order="right")
+
+    def __neg__(self):
+        return self._unary_expression("NEG")
+
+    def _binary_expression(self, other, operation, order="left"):
+        if self.meNode is None:
+            raise ValueError("Cannot mix expressions and conditions")
+        if isinstance(other, RegField.RegField):
+            return other._binary_expression(self, operation, "right" if order == "left" else "right")
+        other, other_name = self.__get_return_type(other)
+        if order == 'left':
+            new_name = '(' + self.name + operation + other_name + ')'
+            node = self.exp_build.getBinaryMetaExpression(self.meNode, operation, other)
         else:
-            other = self.__get_return_type(other)
-            new_name = '(' + str(other) + ' / ' + self.name + ')'
-            node = self.exp_build.getBinaryMetaExpression(other, "DIV", self.meNode)
+            new_name = '(' + other_name + operation + self.name + ')'
+            node = self.exp_build.getBinaryMetaExpression(other, operation, self.meNode)
+
         return MetaField(name=new_name, index=self.index, meNode=node)
+
+    def _unary_expression(self, operation):
+        if self.meNode is None:
+            raise ValueError("Cannot mix expressions and conditions")
+        new_name = operation + "(" + self.name + ")"
+        node = self.exp_build.getUnaryMetaExpression(self.meNode, operation)
+        return MetaField(name=new_name, index=self.index, meNode=node)
+
+    def __get_return_type(self, other):
+        if isinstance(other, str):
+            other_name = other
+            other = self.exp_build.getMEType("string", other)
+        elif isinstance(other, int):
+            other_name = str(other)
+            other = self.exp_build.getMEType("int", str(other))
+        elif isinstance(other, float):
+            other_name = str(other)
+            other = self.exp_build.getMEType("float", str(other))
+        elif isinstance(other, MetaField):
+            other_name = other.name
+            if other.index != self.index:
+                raise ValueError("You cannot mix fields or attributes of different"
+                                 "dataset in a condition or expression")
+            if other.meNode is None:
+                raise ValueError("You cannot mix conditions and expressions")
+            other = other.meNode
+        else:
+            raise ValueError("Expected string, float, integer or MetaField. {} was found".format(type(other)))
+        return other, other_name
