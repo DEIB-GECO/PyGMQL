@@ -3,7 +3,7 @@ from . import RegField, _get_opposite_operator
 
 
 class MetaField:
-    def __init__(self, name, index=None, meta_condition=None, meNode=None, t=None):
+    def __init__(self, name, index=None, meta_condition=None, meNode=None, t=None, reMetaNode=None):
         if (meta_condition is not None) and (meNode is not None):
             raise ValueError("you cannot mix conditions and expressions")
 
@@ -23,6 +23,7 @@ class MetaField:
                 raise TypeError("Type of MetaField must be string")
         else:
             self.t = t
+            self.reMetaNode = reMetaNode
 
         self.metaCondition = meta_condition
 
@@ -162,32 +163,40 @@ class MetaField:
         if self.meNode is None:
             raise ValueError("Cannot mix expressions and conditions")
         if isinstance(other, RegField.RegField):
-            return other._binary_expression(self, operation, "right" if order == "left" else "right")
-        other, other_name = self.__get_return_type(other)
+            return other._binary_expression(self, operation, "right" if order == "left" else "left")
+        other, other_name, other_reNode = self.__get_return_type(other)
+        renode = None
         if order == 'left':
             new_name = '(' + self.name + operation + other_name + ')'
             node = self.exp_build.getBinaryMetaExpression(self.meNode, operation, other)
+            if other_reNode is not None:
+                renode = self.exp_build.getBinaryRegionExpression(self.reMetaNode, operation, other_reNode)
         else:
             new_name = '(' + other_name + operation + self.name + ')'
             node = self.exp_build.getBinaryMetaExpression(other, operation, self.meNode)
-
-        return MetaField(name=new_name, index=self.index, meNode=node)
+            if other_reNode is not None:
+                renode = self.exp_build.getBinaryRegionExpression(other_reNode, operation, self.reMetaNode)
+        return MetaField(name=new_name, index=self.index, meNode=node, reMetaNode=renode)
 
     def _unary_expression(self, operation):
         if self.meNode is None:
             raise ValueError("Cannot mix expressions and conditions")
         new_name = operation + "(" + self.name + ")"
         node = self.exp_build.getUnaryMetaExpression(self.meNode, operation)
-        return MetaField(name=new_name, index=self.index, meNode=node)
+        renode = self.exp_build.getUnaryRegionExpression(self.reMetaNode, operation)
+        return MetaField(name=new_name, index=self.index, meNode=node, reMetaNode=renode)
 
     def __get_return_type(self, other):
         if isinstance(other, str):
+            other_reNode = self.exp_build.getREType("string", other)
             other_name = other
             other = self.exp_build.getMEType("string", other)
         elif isinstance(other, int):
+            other_reNode = self.exp_build.getREType("int", str(other))
             other_name = str(other)
             other = self.exp_build.getMEType("int", str(other))
         elif isinstance(other, float):
+            other_reNode = self.exp_build.getREType("float", str(other))
             other_name = str(other)
             other = self.exp_build.getMEType("float", str(other))
         elif isinstance(other, MetaField):
@@ -197,7 +206,8 @@ class MetaField:
                                  "dataset in a condition or expression")
             if other.meNode is None:
                 raise ValueError("You cannot mix conditions and expressions")
+            other_reNode = other.reMetaNode
             other = other.meNode
         else:
             raise ValueError("Expected string, float, integer or MetaField. {} was found".format(type(other)))
-        return other, other_name
+        return other, other_name, other_reNode
