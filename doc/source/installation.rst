@@ -39,7 +39,8 @@ In that case the following steps must be perfomed:
    3. Windows:
 
       1. Right click My Computer and select Properties
-      2. On the Advanced tab, select Environment Variables, and then edit JAVA_HOME to point to where the JDK software is located, for example, C:\\Program Files\\Java\\jdk1.6.0_02
+      2. On the Advanced tab, select Environment Variables, and then edit JAVA_HOME to point to where the JDK software is located,
+         for example, C:\\Program Files\\Java\\jdk1.6.0_02
 
 ++++++
 Python
