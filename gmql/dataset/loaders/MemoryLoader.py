@@ -2,15 +2,17 @@ from ..parsers import get_parsing_function
 import pandas as pd
 from tqdm import tqdm
 import logging
-from concurrent.futures import ThreadPoolExecutor
+# from concurrent.futures import ThreadPoolExecutor
 import math
 from ..DataStructures import reg_fixed_fileds
+from multiprocessing import pool
+from functools import partial
 
 # global logger
 logger = logging.getLogger("PyGML logger")
 
 # number of divisions
-divisions = 100
+divisions = 1
 
 
 def load_regions(collected_result):
@@ -23,22 +25,25 @@ def load_regions(collected_result):
     # get how the strings are structured
     names, types = get_schema(collected_result)
     result = []
-    executor = ThreadPoolExecutor()
+    # executor = ThreadPoolExecutor()
+    p = pool.Pool()
+
+    std_partial = partial(string_to_dictionary, values_delimiter=values_delimiter,
+                          names=names, types=types)
 
     from ... import __disable_progress
-    for i in tqdm(range(divisions), disable=__disable_progress):
+    logger.info("Loading the result")
+    for _ in tqdm(range(divisions), disable=__disable_progress):
         # get the full string
         regions_string = collected_result.getRegionsAsString(chunk_size)
         if regions_string:
             # convert to list of strings
             regions_string = regions_string.split(regions_delimiter)
-            iterator = executor.map(lambda row:
-                                    string_to_dictionary(row,
-                                                         values_delimiter,
-                                                         names,
-                                                         types), regions_string)
-            result.extend(list(iterator))
 
+            iterator = p.map(std_partial, regions_string)
+            result.extend(iterator)
+
+    p.close()
     columns = reg_fixed_fileds + names
     if len(result) > 0:
         df = pd.DataFrame.from_dict(result)
