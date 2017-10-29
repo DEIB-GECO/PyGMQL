@@ -7,6 +7,14 @@ Welcome to PyGMQL's documentation!
 ==================================
 PyGMQL is a python module that enables the user to perform operation on genomic data in a scalable way.
 
+This library is part of the bigger project `GMQL <http://www.bioinformatics.deib.polimi.it/genomic_computing/>`_
+which aims at designing and developing a genomic data management and analysis software on top of
+big data engines for helping biologists, researchers and data scientists.
+
+GMQL is a declarative language with a SQL-like syntax. PyGMQL translates this paradigm to the
+interactive and script-oriented world of python, enabling the integration of genomic data with
+classical Python packages for machine learning and data science.
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
