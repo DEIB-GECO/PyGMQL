@@ -1,3 +1,5 @@
+from dask.bag.core import inline_singleton_lists
+
 from .. import get_python_manager, none, Some, _get_gateway, \
     get_remote_manager, get_mode, _get_source_table
 from .loaders import MetaLoaderFile, RegLoaderFile, Materializations
@@ -385,9 +387,14 @@ class GMQLDataset:
             for k in new_field_dict.keys():
                 name = k
                 reNode = new_field_dict[k]
-                if not isinstance(reNode, RegField):
-                    raise ValueError("the values of the dictionary must be RegField")
-                reNode = reNode.getRegionExpression()
+                if isinstance(reNode, RegField):
+                    reNode = reNode.getRegionExpression()
+                elif isinstance(reNode, MetaField):
+                    reNode = reNode.reMetaNode
+                else:
+                    raise ValueError("the values of the dictionary must be RegField or a MetaField")
+                if reNode is None:
+                    raise ValueError("Invalid region expression")
                 reg_extension = self.pmg.getNewExpressionBuilder(self.index)\
                     .createRegionExtension(name, reNode)
                 regs_ext_list.append(reg_extension)
