@@ -1,5 +1,3 @@
-from dask.bag.core import inline_singleton_lists
-
 from .. import get_python_manager, none, Some, _get_gateway, \
     get_remote_manager, get_mode, _get_source_table
 from .loaders import MetaLoaderFile, RegLoaderFile, Materializations
