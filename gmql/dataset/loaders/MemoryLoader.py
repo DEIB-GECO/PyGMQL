@@ -5,7 +5,7 @@ import logging
 # from concurrent.futures import ThreadPoolExecutor
 import math
 from ..DataStructures import reg_fixed_fileds
-from multiprocessing import pool
+from multiprocessing import pool, cpu_count
 from functools import partial
 
 # global logger
@@ -26,7 +26,7 @@ def load_regions(collected_result):
     names, types = get_schema(collected_result)
     result = []
     # executor = ThreadPoolExecutor()
-    p = pool.Pool()
+    p = pool.Pool(min(4, cpu_count()))
 
     std_partial = partial(string_to_dictionary, values_delimiter=values_delimiter,
                           names=names, types=types)
