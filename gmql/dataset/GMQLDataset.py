@@ -28,7 +28,7 @@ class GMQLDataset:
         self.location = location
         if isinstance(meta_profile, MetadataProfiler.MetadataProfile):
             self.meta_profile = meta_profile
-        else:
+        elif meta_profile is not None:
             raise TypeError("meta_profile must be MetadataProfiler")
         self.path_or_name = path_or_name
         self.pmg = get_python_manager()
