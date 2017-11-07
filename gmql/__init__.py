@@ -90,6 +90,10 @@ def set_progress(how):
             "how must be a boolean. {} was found".format(type(how)))
 
 
+def is_progress_enabled():
+    return not __disable_progress
+
+
 def set_logging(how):
     """ Enables or disables the logging mechanism of PyGMQL.
 
