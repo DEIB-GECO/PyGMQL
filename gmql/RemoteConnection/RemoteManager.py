@@ -1,5 +1,5 @@
 from . import default_address, headers
-from .. import get_python_manager
+from .. import get_python_manager, is_progress_enabled
 import requests, time, logging, json
 from requests_toolbelt.multipart.encoder import MultipartEncoderMonitor, MultipartEncoder
 import pandas as pd
@@ -308,14 +308,10 @@ class RemoteManager:
         response = requests.get(url, stream=True, headers=header)
         if response.status_code != 200:
             raise ValueError("Code {}: {}".format(response.status_code, response.json().get("error")))
-        if os.path.isdir(local_path):
-            shutil.rmtree(local_path)
-        os.makedirs(local_path)
         tmp_zip = os.path.join(local_path, "tmp.zip")
         f = open(tmp_zip, "wb")
         # TODO: find a better way to display the download progression
-        from .. import __disable_progress
-        for chunk in tqdm(response.iter_content(chunk_size=512), disable=__disable_progress):
+        for chunk in tqdm(response.iter_content(chunk_size=512), disable=not is_progress_enabled()):
             if chunk:
                 f.write(chunk)
         f.close()
@@ -326,9 +322,8 @@ class RemoteManager:
     def download_as_stream(self, dataset_name, local_path):
         samples = self.get_dataset_samples(dataset_name)
         ids = samples.id.unique()
-        from .. import __disable_progress
         # download the data
-        for id in tqdm(ids, disable=__disable_progress):
+        for id in tqdm(ids, disable=not is_progress_enabled()):
             name = samples[samples.id == id].name.values[0]
             self.download_sample(dataset_name=dataset_name,
                                  sample_name=name,
@@ -509,8 +504,7 @@ def create_callback(encoder, n_files=None):
     else:
         tot_len = encoder_len
 
-    from .. import __disable_progress
-    bar = tqdm(total=tot_len, disable=__disable_progress)
+    bar = tqdm(total=tot_len, disable=not is_progress_enabled())
 
     if n_files is not None:
         def callback(monitor):
