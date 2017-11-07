@@ -1,1 +1,1 @@
-*.jar binary
+*.jar filter=lfs binary
