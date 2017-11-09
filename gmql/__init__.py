@@ -269,6 +269,7 @@ def Some(thing):
 """
 
 remote_manager = None
+remote_address = None
 
 
 def get_remote_manager():
@@ -293,7 +294,8 @@ def login(username=None, password=None):
     :param password: (optional) the password
     :return: None
     """
-    global remote_manager
+    global remote_manager, remote_address
+    remote_manager = RemoteManager(address=remote_address)
     remote_manager.login(username, password)
 
 
@@ -303,8 +305,8 @@ def set_remote_address(address):
     :param address: a string representing the URL of GMQL remote service
     :return: None
     """
-    global remote_manager
-    remote_manager.address = address
+    global remote_address
+    remote_address = address
 
 
 def logout():
@@ -385,6 +387,6 @@ from .RemoteConnection.RemoteManager import RemoteManager
 from . import ml
 
 
-__initialize_remote_manager()
+# __initialize_remote_manager()
 __initialize_source_table()
 
