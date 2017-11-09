@@ -9,7 +9,7 @@ from ..dataset.parsers import allowed_types
 from ..dataset.DataStructures import chr_aliases, start_aliases, stop_aliases, strand_aliases
 from ..dataset.loaders import Loader
 from ..FileManagment import TempFileManager
-import os, shutil, zipfile, sys
+import os, zipfile
 from tqdm import tqdm
 from ..dataset.storers.parserToXML import parserToXML
 
@@ -38,9 +38,21 @@ class RemoteManager:
         :param address: (optional) the address of the remote GMQL service
         """
         if address is None:
+            # normalize the address
             self.address = default_address
+        elif isinstance(address, str):
+            address = address.strip()
+            if address.endswith("/"):
+                self.address = address[:-1]
         else:
-            self.address = address
+            raise TypeError("The remote URL must be a string."
+                            " {} was provided".format(type(address)))
+
+        # checking the existance of the remote service
+        req = requests.get(self.address + "/")
+        if req.status_code != 200:
+            raise ConnectionError("The server at {} is not responding".format(self.address))
+
         self.logger = logging.getLogger("PyGML logger")
         self.auth_token = None
         self.json_encoder = json.JSONEncoder()
@@ -476,6 +488,23 @@ class RemoteManager:
                 self.download_dataset(dataset_name=name, local_path=path)
 
         return result
+
+    def get_memory_usage(self):
+        header = self.__check_authentication()
+        url = self.address + "/getMemoryUsage"
+        response = requests.get(url, headers=header)
+        if response.status_code != 200:
+            raise ValueError("Code {}. {}".format(response.status_code, response.json().get("error")))
+        response = response.json()
+        info_list = response.get("infoList")
+        index = []
+        values = []
+        for d in info_list:
+            key = d['key']
+            index.append(key)
+            value = d['value']
+            values.append(value)
+        return pd.Series(data=values, index=index)
 
 
     """
