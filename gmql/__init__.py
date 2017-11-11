@@ -216,7 +216,10 @@ def start():
         "gmql", os.path.join("resources", __gmql_jar))
     gmql_jar_fn = __check_backend(gmql_jar_fn)
 
-    _port = launch_gateway(classpath=gmql_jar_fn, die_on_exit=True,
+    libs_folder = resource_filename(
+        "gmql", os.path.join("resources", "lib"))
+    classpath = gmql_jar_fn + ":" + libs_folder + "/*"
+    _port = launch_gateway(classpath=classpath, die_on_exit=True,
                            java_path=java_path, javaopts=['-Xmx4096m'])
     # gateway = JavaGateway.launch_gateway(classpath=gmql_jar_fn, die_on_exit=True,
     #                                      java_path=java_path)
