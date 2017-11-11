@@ -192,3 +192,5 @@ ENV/
 /tests/
 test
 gmql/resources/instances
+
+!/gmql/resources/lib/
