@@ -44,6 +44,8 @@ class RemoteManager:
             address = address.strip()
             if address.endswith("/"):
                 self.address = address[:-1]
+            else:
+                self.address = address
         else:
             raise TypeError("The remote URL must be a string."
                             " {} was provided".format(type(address)))
