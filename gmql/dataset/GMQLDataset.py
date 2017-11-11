@@ -26,6 +26,7 @@ class GMQLDataset:
         self.parser = parser
         self.index = index
         self.location = location
+        self.meta_profile = None
         if isinstance(meta_profile, MetadataProfiler.MetadataProfile):
             self.meta_profile = meta_profile
         elif meta_profile is not None:
