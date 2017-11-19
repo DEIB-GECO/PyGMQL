@@ -87,7 +87,7 @@ class GDataframe:
 def _normalize_column(column):
     lengths = column.map(len)
     if len(list(filter(lambda x: x > 1, lengths))) == 0:
-        new_column = column.map(lambda x: x[0])
+        new_column = column.map(lambda x: x[0] if len(x) > 0 else np.nan)
     else:
         new_column = column
     return new_column
