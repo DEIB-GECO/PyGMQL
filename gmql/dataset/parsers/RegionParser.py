@@ -10,6 +10,18 @@ class RegionParser:
                  strandPos=None, otherPos=None, delimiter="\t",
                  coordinate_system='0-based', schema_format="del",
                  parser_name="parser"):
+        """ Creates a custom region dataset
+
+        :param chrPos: position of the chromosome column
+        :param startPos: position of the start column
+        :param stopPos: position of the stop column
+        :param strandPos: (optional) position of the strand column. Default is None
+        :param otherPos: (optional) list of tuples of the type [(pos, attr_name, typeFun), ...]. Default is None
+        :param delimiter: (optional) delimiter of the columns of the file. Default "\t"
+        :param coordinate_system: can be {'0-based', '1-based', 'default'}. Default is '0-based'
+        :param schema_format: (optional) type of file. Can be {'tab', 'gtf', 'vcf', 'del'}. Default is 'del'
+        :param parser_name: (optional) name of the parser. Default is 'parser'
+        """
         if isinstance(delimiter, str):
             self.delimiter = delimiter
         if isinstance(chrPos, int) and chrPos >= 0:
@@ -60,16 +72,36 @@ class RegionParser:
                                            self.stopPos, strandGmql, otherPosGmql,
                                            self.schema_format, self.coordinate_system)
 
+    def get_coordinates_system(self):
+        return self.coordinate_system
+
+    def get_parser_type(self):
+        return self.schema_format
+
     def get_gmql_parser(self):
+        """ Gets the Scala implementation of the parser
+
+        :return: a Java Object
+        """
         return self.gmql_parser
 
     def parse_strand(self, strand):
+        """ Defines how to parse the strand column
+
+        :param strand: a string representing the strand
+        :return: the parsed result
+        """
         if strand in ['+', '-', '*']:
             return strand
         else:
             return '*'
 
     def parse_regions(self, path):
+        """ Given a file path, it loads it into memory as a Pandas dataframe
+
+        :param path: file path
+        :return: a Pandas Dataframe
+        """
         if self.schema_format.lower() == GTF.lower():
             res = self._parse_gtf_regions(path)
         else:
@@ -107,8 +139,11 @@ class RegionParser:
             .drop("attributes", axis=1)
         return df
 
-
     def get_attributes(self):
+        """ Returns the unordered list of attributes
+
+        :return: list of strings
+        """
         attr = ['chr', 'start', 'stop']
         if self.strandPos is not None:
             attr.append('strand')
@@ -119,6 +154,10 @@ class RegionParser:
         return attr
 
     def get_ordered_attributes(self):
+        """ Returns the ordered list of attributes
+
+        :return: list of strings
+        """
         attrs = self.get_attributes()
         attr_arr = np.array(attrs)
         poss = [self.chrPos, self.startPos, self.stopPos]
@@ -132,6 +171,10 @@ class RegionParser:
         return attr_arr[idx_sort].tolist()
 
     def get_types(self):
+        """ Returns the unordered list of data types
+
+        :return: list of data types
+        """
         types = [str, int, int]
         if self.strandPos is not None:
             types.append(str)
@@ -142,6 +185,11 @@ class RegionParser:
         return types
 
     def get_name_type_dict(self):
+        """ Returns a dictionary of the type
+        {'column_name': data_type, ...}
+
+        :return: dict
+        """
         attrs = self.get_attributes()
         types = self.get_types()
         d = dict()
@@ -151,6 +199,10 @@ class RegionParser:
         return d
 
     def get_ordered_types(self):
+        """ Returns the ordered list of data types
+
+        :return: list of data types
+        """
         types = self.get_types()
         types_arr = np.array(types)
         poss = [self.chrPos, self.startPos, self.stopPos]
@@ -202,8 +254,3 @@ def convert_to_gmql(otherPos):
                 posJavaList.append(tpos[2])
         otherPosJavaList.append(posJavaList)
     return otherPosJavaList
-
-
-class BedParser(RegionParser):
-    def __init__(self):
-        pass

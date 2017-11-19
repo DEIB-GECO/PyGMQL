@@ -3,6 +3,7 @@ from .BedParser import *
 
 NULL = "null"
 GTF = "gtf"
+TAB = "tab"
 
 string_aliases = ['string', 'char']
 int_aliases = ['long', 'int', 'integer']

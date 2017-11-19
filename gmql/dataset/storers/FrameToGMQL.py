@@ -4,6 +4,7 @@ import logging
 from . import *
 import os
 import shutil
+from ..parsers import TAB, COORDS_DEFAULT
 
 logger = logging.getLogger("PyGML logger")
 
@@ -44,7 +45,7 @@ def to_local(gframe, path_local):
 
     # save the schema
     dataset_name = os.path.basename(os.path.normpath(path_local))
-    save_schema(regs, dataset_name, "Peak", path_local + "/" + "schema.schema")
+    save_schema(regs, dataset_name, TAB, os.path.join(path_local, "schema.schema"), COORDS_DEFAULT)
 
 
 def meta_to_file(meta_df, filename):
@@ -61,12 +62,12 @@ def meta_to_file(meta_df, filename):
     f.close()
 
 
-def save_schema(regs_df, dataset_name, dataset_type, schema_file_name):
+def save_schema(regs_df, dataset_name, dataset_type, schema_file_name, coordinate_system):
     column_names = regs_df.columns.tolist()
     types = regs_df.dtypes
     result = schema_header
     result += schema_collection_template.format(dataset_name)
-    result += schema_dataset_type_template.format(dataset_type)
+    result += schema_dataset_type_template.format(dataset_type, coordinate_system)
     for c in column_names:
         t = pyType_to_scalaType[types[c].name].upper()
         result += schema_field_template.format(t, c)

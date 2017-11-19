@@ -1,6 +1,6 @@
 from ... import get_python_manager, get_remote_manager, get_mode, _get_source_table
 from ...FileManagment import TempFileManager
-from ..parsers.Parser import Parser
+from ..parsers.RegionParser import RegionParser
 from . import MetaLoaderFile, RegLoaderFile
 from .. import GDataframe
 from .. import GMQLDataset
@@ -52,7 +52,7 @@ def load_from_path(local_path=None, parser=None,  all_load=False):
     if all_load:
         # load directly the metadata for exploration
         meta = MetaLoaderFile.load_meta_from_path(local_path)
-        if isinstance(parser, Parser):
+        if isinstance(parser, RegionParser):
             # region data
             regs = RegLoaderFile.load_reg_from_path(local_path, parser)
         else:
@@ -76,7 +76,7 @@ def load_from_path(local_path=None, parser=None,  all_load=False):
         if parser is not None:
             if type(parser) is str:
                 index = pmg.read_dataset(str(id), parser)
-            elif isinstance(parser, Parser):
+            elif isinstance(parser, RegionParser):
                 index = pmg.read_dataset(str(id), parser.get_gmql_parser())
             else:
                 raise ValueError("parser must be a string or a Parser")
