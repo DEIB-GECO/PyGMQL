@@ -760,7 +760,7 @@ class GMQLDataset:
                            remote_sources=new_remote_sources,
                            meta_profile=self.meta_profile)
 
-    def union(self, other, left_name="", right_name=""):
+    def union(self, other, left_name="LEFT", right_name="RIGHT"):
         """
         The UNION operation is used to integrate homogeneous or heterogeneous samples of two
         datasets within a single dataset; for each sample of either one of the input datasets, a
@@ -778,6 +778,8 @@ class GMQLDataset:
         :param right_name: name that you want to assign to the right dataset
         :return: a new GMQLDataset
         """
+        if len(left_name) == 0 or len(right_name) == 0:
+            raise ValueError("left_name and right_name must not be empty")
         new_index = self.opmng.union(self.index, other.index, left_name, right_name)
         new_local_sources, new_remote_sources = combine_sources(self, other)
         new_location = combine_locations(self, other)
