@@ -261,11 +261,11 @@ def to_java_list(l):
 
 
 def none():
-    return pythonManager.getNone()
+    return get_python_manager().getNone()
 
 
 def Some(thing):
-    return pythonManager.getSome(thing)
+    return get_python_manager().getSome(thing)
 
 """
     Remote manager management

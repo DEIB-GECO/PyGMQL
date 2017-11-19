@@ -1,10 +1,19 @@
 from .BedParser import *
 
+
+NULL = "null"
+GTF = "gtf"
+
 string_aliases = ['string', 'char']
 int_aliases = ['long', 'int', 'integer']
 float_aliases = ['double', 'float']
-
 allowed_types = ['bed', 'tab']
+
+
+COORDS_ZERO_BASED = '0-based'
+COORDS_ONE_BASED = '1-based'
+COORDS_DEFAULT = 'default'
+coordinate_systems = {COORDS_ZERO_BASED, COORDS_ONE_BASED, COORDS_DEFAULT}
 
 
 def get_parsing_function(type_string):
@@ -27,3 +36,6 @@ def get_type_name(type):
         return "double"
     else:
         raise ValueError("This type is not supported")
+
+
+from .RegionParser import *
