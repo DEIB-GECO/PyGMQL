@@ -473,8 +473,8 @@ class GMQLDataset:
                                             groupBy=['cell', 'antibody_target'])    
         """
         coverFlag = self.opmng.getCoverTypes(type)
-        minAccParam = self.opmng.getCoverParam(str(minAcc))
-        maxAccParam = self.opmng.getCoverParam(str(maxAcc))
+        minAccParam = self.opmng.getCoverParam(str(minAcc).lower())
+        maxAccParam = self.opmng.getCoverParam(str(maxAcc).lower())
 
         if groupBy is None:
             groupBy_result = none()
