@@ -1,20 +1,7 @@
 
 
 class Parser:
-    """
-    Each dataset is inside a folder and it is constituted by
-        multiple files. For example:
-        folder/
-            genes.bed
-            genes.bed.meta
-            genes1.bed
-            genes1.bed.meta
-            ...
-            genesN.bed
-            genesN.bed.meta
-        For each region file (.bed extension only) there is a
-        metadata file (.bed.meta extension).
-    """
+
     def parse_line_reg(self, id_record, line):
         """
         Parses a line of region data
@@ -56,6 +43,7 @@ class Parser:
 
     def get_parser_type(self):
         pass
+
 
 def parse_strand(strand):
     if strand in ['+', '-', '*']:
