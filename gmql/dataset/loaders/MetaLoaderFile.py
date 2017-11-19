@@ -2,7 +2,7 @@ from glob import glob
 from tqdm import tqdm
 import logging
 
-from ..parsers.GenericMetaParser import GenericMetaParser
+from ..parsers.MetadataParser import GenericMetaParser
 from . import generateNameKey
 import os
 import pandas as pd
@@ -20,10 +20,10 @@ def load_meta_from_path(path):
         abs_path = os.path.abspath(f)
         abs_path_no_meta = abs_path[:-5]
         key = generateNameKey(abs_path_no_meta)
-        fo = open(abs_path)
-        lines = fo.readlines()
+        ps = parser.parse_metadata(abs_path)                # [(attr_name, value), ...]
+        ps = list(map(lambda x: (key, (x[0], x[1])), ps))   # [(id, (attr_name, value)),...]
         # parsing
-        parsed.extend(list(map(lambda row: parser.parse_line_meta(key, row), lines)))  # [(id, (attr_name, value)),...]
+        parsed.extend(ps)
     return to_pandas(parsed)
 
 

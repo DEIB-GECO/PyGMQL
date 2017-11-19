@@ -30,10 +30,10 @@ directory is already GMQL standard (has the xml schema file), you only need to d
     dataset = gl.load_from_path(local_path="path/to/local/dataset")
 
 while, if the dataset has no schema, you need to provide it manually. This can be done by
-creating a custom parser using :class:`~gmql.dataset.parsers.BedParser.BedParser` like in the following::
+creating a custom parser using :class:`~gmql.dataset.parsers.RegionParser.RegionParser` like in the following::
 
-    custom_parser = gl.parsers.BedParser(chrPos=0, startPos=1, stopPos=2,
-                                         otherPos=[(3, "gene", "string")])
+    custom_parser = gl.parsers.RegionParser(chrPos=0, startPos=1, stopPos=2,
+                                            otherPos=[(3, "gene", "string")])
     dataset = gl.load_from_path(local_path="path/to/local/dataset", parser=custom_parser)
 
 --------------------

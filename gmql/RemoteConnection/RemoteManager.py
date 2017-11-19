@@ -4,7 +4,8 @@ import requests, time, logging, json
 from requests_toolbelt.multipart.encoder import MultipartEncoderMonitor, MultipartEncoder
 import pandas as pd
 from ..dataset.GDataframe import GDataframe
-from ..dataset.parsers.BedParser import BedParser
+from ..dataset.parsers.RegionParser import RegionParser
+from ..dataset.parsers import GTF
 from ..dataset.parsers import allowed_types
 from ..dataset.DataStructures import chr_aliases, start_aliases, stop_aliases, strand_aliases
 from ..dataset.loaders import Loader
@@ -208,28 +209,55 @@ class RemoteManager:
         response = response.json()
         name = response.get("name")
         schemaType = response.get("type")
-        if schemaType.lower() not in allowed_types:
-            raise TypeError("This dataset is not of type {}. {} was found".format(allowed_types, schemaType))
-
+        coordinates_system = response.get("coordinate_system")
         fields = response.get("fields")
+
+        i = 0
         chrPos, startPos, stopPos, strandPos = None, None, None, None
         otherPos = []
-        for i,f in enumerate(fields):
-            fieldName = f.get("name").lower()
-            fieldType = f.get("type").lower()
-            if fieldName in chr_aliases:
-                chrPos = i
-            elif fieldName in start_aliases:
-                startPos = i
-            elif fieldName in stop_aliases:
-                stopPos = i
-            elif fieldName in strand_aliases:
-                strandPos = i
-            else:
-                otherPos.append((i, fieldName, fieldType))
+        if schemaType == GTF:
+            chrPos = 0  # seqname
+            startPos = 3  # start
+            stopPos = 4  # end
+            strandPos = 6  # strand
+            otherPos = [(1, 'source', 'string'), (2, 'feature', 'string'),
+                        (5, 'score', 'float'), (7, 'frame', 'string')]
 
-        return BedParser(parser_name=name, chrPos=chrPos, startPos=startPos, delimiter="\t",
-                         stopPos=stopPos, strandPos=strandPos, otherPos=otherPos)
+            for field in fields:
+                fieldName = field.get("name").lower()
+                fieldType = field.get("type").lower()
+                if fieldName not in {'seqname', 'start', 'end', 'strand',
+                                     'source', 'feature', 'score', 'frame'}:
+                    otherPos.append((i, fieldName, fieldType))
+                i += 1
+
+        else:
+            for field in fields:
+                fieldName = field.get("name").lower()
+                fieldType = field.get("type").lower()
+
+                if fieldName in chr_aliases and chrPos is None:
+                    chrPos = i
+                elif fieldName in start_aliases and startPos is None:
+                    startPos = i
+                elif fieldName in stop_aliases and stopPos is None:
+                    stopPos = i
+                elif fieldName in strand_aliases and strandPos is None:
+                    strandPos = i
+                else:  # other positions
+                    otherPos.append((i, fieldName, fieldType))
+                i += 1
+        if len(otherPos) == 0:
+            otherPos = None
+
+        return RegionParser(chrPos=chrPos,
+                            startPos=startPos,
+                            stopPos=stopPos,
+                            strandPos=strandPos,
+                            otherPos=otherPos,
+                            schema_format=schemaType,
+                            coordinate_system=coordinates_system,
+                            delimiter="\t", parser_name=name)
 
     def upload_dataset(self, dataset, dataset_name):
         """ Upload to the repository an entire dataset from a local path

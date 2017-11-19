@@ -61,12 +61,13 @@ Dataset loading functions
 -------
 Parsing
 -------
+For the list of the available parsers go to:
 
-.. currentmodule:: gmql.dataset.parsers
-.. autosummary::
-   :nosignatures:
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
 
-   BedParser.BedParser
+   parsers
 
 
 --------------------
