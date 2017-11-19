@@ -1,6 +1,3 @@
-from .BedParser import *
-
-
 NULL = "null"
 GTF = "gtf"
 TAB = "tab"
