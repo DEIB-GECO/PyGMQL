@@ -1,7 +1,10 @@
 """
 Setting up the environment of the library
 """
-import logging, os, atexit
+import logging
+import os
+import sys
+import atexit
 from sys import stdout
 from py4j.java_gateway import JavaGateway, launch_gateway, GatewayParameters
 from py4j.java_collections import ListConverter
@@ -218,7 +221,12 @@ def start():
 
     libs_folder = resource_filename(
         "gmql", os.path.join("resources", "lib"))
-    classpath = gmql_jar_fn + ":" + os.path.join(libs_folder, "*")
+
+    if sys.platform.startswith("win32"):
+        classpath_separator = ";"
+    else:
+        classpath_separator = ":"
+    classpath = gmql_jar_fn + classpath_separator + os.path.join(libs_folder, "*")
     _port = launch_gateway(classpath=classpath, die_on_exit=True,
                            java_path=java_path, javaopts=['-Xmx4096m'])
     # gateway = JavaGateway.launch_gateway(classpath=gmql_jar_fn, die_on_exit=True,
