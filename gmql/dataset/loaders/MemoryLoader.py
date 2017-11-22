@@ -7,43 +7,55 @@ import math
 from ..DataStructures import reg_fixed_fileds
 from multiprocessing import pool, cpu_count
 from functools import partial
+from ... import none, Some
 
-# global logger
-logger = logging.getLogger("PyGML logger")
-
-# number of divisions
-divisions = 1
+# Loading strategy
+loading_strategy = "single_core"
 
 
 def load_regions(collected_result):
     # get the number of regions
     n_regions = collected_result.getNumberOfRegions()
-    chunk_size = math.ceil(n_regions / divisions)
     # get the string delimiters
     regions_delimiter = collected_result.REGIONS_DELIMITER()
     values_delimiter = collected_result.VALUES_DELIMITER()
     # get how the strings are structured
     names, types = get_schema(collected_result)
     result = []
-    # executor = ThreadPoolExecutor()
-    p = pool.Pool(min(4, cpu_count()))
 
-    std_partial = partial(string_to_dictionary, values_delimiter=values_delimiter,
-                          names=names, types=types)
-
-    from ... import __disable_progress
-    logger.info("Loading the result")
-    for _ in tqdm(range(divisions), disable=__disable_progress):
+    from ... import is_progress_enabled
+    if loading_strategy == 'single_core':
         # get the full string
-        regions_string = collected_result.getRegionsAsString(chunk_size)
+        regions_string = collected_result.getRegionsAsString(none())
         if regions_string:
             # convert to list of strings
             regions_string = regions_string.split(regions_delimiter)
-
-            iterator = p.map(std_partial, regions_string)
+            iterator = map(lambda x: string_to_dictionary(x, values_delimiter, names, types),
+                           tqdm(regions_string, disable=not is_progress_enabled()))
             result.extend(iterator)
+    elif loading_strategy == 'multi_core':
+        # number of divisions
+        divisions = 10
+        chunk_size = math.ceil(n_regions / divisions)
+        p = pool.Pool(min(4, cpu_count()))
 
-    p.close()
+        std_partial = partial(string_to_dictionary, values_delimiter=values_delimiter,
+                              names=names, types=types)
+
+        for _ in tqdm(range(divisions), disable=not is_progress_enabled()):
+            # get the full string
+            regions_string = collected_result.getRegionsAsString(Some(chunk_size))
+            if regions_string:
+                # convert to list of strings
+                regions_string = regions_string.split(regions_delimiter)
+
+                iterator = p.map(std_partial, regions_string)
+                result.extend(iterator)
+
+        p.close()
+    else:
+        raise ValueError("Unknown loading mode ({})".format(loading_strategy))
+
     columns = reg_fixed_fileds + names
     if len(result) > 0:
         df = pd.DataFrame.from_dict(result)
@@ -95,7 +107,6 @@ def to_dictionary(region, names, types):
 def load_metadata(collected_result):
     meta_Java = collected_result.getMetadata()
     meta_list = []
-    logger.info("Loading metadata")
     for meta in meta_Java:
         id = int(meta[0])
         name = meta[1]
@@ -109,7 +120,6 @@ def load_metadata(collected_result):
         # grouping by 'id_sample'
         g = df.groupby('id_sample')
 
-        logger.info("Building metadata dataframe")
         result_df = pd.DataFrame()
         from ... import __disable_progress
         for col in tqdm(columns, total=len(columns), disable=__disable_progress):
