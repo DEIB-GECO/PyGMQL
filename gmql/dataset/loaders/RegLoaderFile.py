@@ -56,7 +56,7 @@ def load_reg_from_path(path, parser=None):
 
 
 def get_parser(path):
-    schema_file = (glob(pathname=path + '/*.schema') + glob(pathname=path + "/schema.xml"))[0]
+    schema_file = get_schema_path(path)
     tree = ET.parse(schema_file)
     gmqlSchema = tree.getroot().getchildren()[0]
     parser_type = gmqlSchema.get('type')
@@ -106,3 +106,7 @@ def get_parser(path):
     return RegionParser(chrPos, startPos, stopPos, strandPos,
                         otherPos, coordinate_system=coordinate_system,
                         schema_format=parser_type)
+
+
+def get_schema_path(path):
+    return (glob(pathname=path + '/*.schema') + glob(pathname=path + "/schema.xml"))[0]
