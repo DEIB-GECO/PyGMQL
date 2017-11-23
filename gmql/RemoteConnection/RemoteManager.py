@@ -3,6 +3,7 @@ from .. import get_python_manager, is_progress_enabled
 import requests, time, logging, json
 from requests_toolbelt.multipart.encoder import MultipartEncoderMonitor, MultipartEncoder
 import pandas as pd
+from ..dataset.GMQLDataset import GMQLDataset
 from ..dataset.GDataframe import GDataframe
 from ..dataset.parsers.RegionParser import RegionParser
 from ..dataset.parsers import GTF
@@ -14,16 +15,6 @@ import os, zipfile
 from tqdm import tqdm
 from ..dataset.storers.parserToXML import parserToXML
 
-
-# import http.client as http_client
-# http_client.HTTPConnection.debuglevel = 1
-#
-# # You must initialize logging, otherwise you'll not see debug output.
-# logging.basicConfig()
-# logging.getLogger().setLevel(logging.DEBUG)
-# requests_log = logging.getLogger("requests.packages.urllib3")
-# requests_log.setLevel(logging.DEBUG)
-# requests_log.propagate = True
 
 good_status = ['PENDING', 'RUNNING', 'DS_CREATION_RUNNING']
 
@@ -153,6 +144,18 @@ class RemoteManager:
         Repository
     """
 
+    @staticmethod
+    def process_info_list(res, info_column):
+        def extract_infos(row):
+            infoList = row['infoList']
+            result = {}
+            for d in infoList:
+                result[d['key']] = d['value']
+            return result
+        res = pd.concat([res, pd.DataFrame.from_dict(res[info_column].map(extract_infos).tolist())], axis=1)\
+            .drop("info", axis=1)
+        return res
+
     def get_dataset_list(self):
         """ Returns the list of available datasets for the current user.
 
@@ -163,7 +166,8 @@ class RemoteManager:
         response = requests.get(url, headers=header)
         response = response.json()
         datasets = response.get("datasets")
-        return pd.DataFrame.from_dict(datasets)
+        res = pd.DataFrame.from_dict(datasets)
+        return self.process_info_list(res, "info")
 
     def get_dataset_samples(self, dataset_name, owner=None):
         """ Get the list of samples of a specific remote dataset.
@@ -185,7 +189,8 @@ class RemoteManager:
             raise ValueError("Code {}: {}".format(response.status_code, response.json().get("error")))
         response = response.json()
         samples = response.get("samples")
-        return pd.DataFrame.from_dict(samples)
+        res = pd.DataFrame.from_dict(samples)
+        return self.process_info_list(res, "info")
 
     def get_dataset_schema(self, dataset_name, owner=None):
         """ Given a dataset name, it returns a BedParser coherent with the schema of it
@@ -291,15 +296,12 @@ class RemoteManager:
         callback = create_callback(encoder, len(fields))
 
         m_encoder = MultipartEncoderMonitor(encoder, callback)
-
         header['Content-Type'] = m_encoder.content_type
-        params = {"schemaName": "bed"}
 
         self.logger.info("Uploading dataset at {} with name {}".format(dataset, dataset_name))
 
         response = requests.post(url, data=m_encoder,
-                                 headers=header,
-                                 params=params)
+                                 headers=header)
         if response.status_code != 200:
             raise ValueError("Code {}: {}".format(response.status_code, response.content))
 

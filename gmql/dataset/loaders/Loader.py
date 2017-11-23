@@ -5,16 +5,21 @@ from . import MetaLoaderFile, RegLoaderFile
 from .. import GDataframe
 from .. import GMQLDataset
 import os
-import glob
 from .MetadataProfiler import create_metadata_profile
 
 
 def get_file_paths(path):
     real_path = preprocess_path(path)
-    files_paths = set(glob.glob(real_path + "/[!_]*"))
-    schema_path = set(glob.glob(real_path+"/*.schema"))
-    files_paths = files_paths - schema_path
-    return list(files_paths), schema_path.pop()
+    all_files = os.listdir(real_path)
+
+    def filter_files(x):
+        return not (x.endswith(".xml") or x.endswith(".schema") \
+                    or x.startswith("_"))
+
+    files_paths = list(map(lambda x: os.path.join(real_path, x), filter(filter_files, all_files)))
+    # files_paths = set(glob.glob(real_path + "/[!_]*"))
+    schema_path = RegLoaderFile.get_schema_path(real_path)
+    return files_paths, schema_path
 
 
 def preprocess_path(path):
