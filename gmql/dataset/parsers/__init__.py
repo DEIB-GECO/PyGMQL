@@ -37,3 +37,5 @@ def get_type_name(type):
 
 
 from .RegionParser import *
+from .Parsers import *
+from .MetadataParser import *
