@@ -140,7 +140,7 @@ class RegField:
             other = self.exp_build.getREType("string", other)
         elif isinstance(other, int):
             other_name = str(other)
-            other = self.exp_build.getREType("int", str(other))
+            other = self.exp_build.getREType("float", str(other))
         elif isinstance(other, float):
             other_name = str(other)
             other = self.exp_build.getREType("float", str(other))
