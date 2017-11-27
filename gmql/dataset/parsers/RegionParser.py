@@ -1,5 +1,5 @@
 from ... import get_python_manager, none, Some, _get_gateway
-from . import coordinate_systems, get_parsing_function, NULL, GTF
+from . import coordinate_systems, get_parsing_function, null_values, GTF
 import numpy as np
 import pandas as pd
 import re
@@ -109,7 +109,7 @@ class RegionParser:
         return res
 
     def _parse_tab_regions(self, path):
-        df = pd.read_csv(filepath_or_buffer=path, na_values=NULL,
+        df = pd.read_csv(filepath_or_buffer=path, na_values=null_values,
                          header=None,
                          names=self.get_ordered_attributes(),
                          dtype=self.get_name_type_dict(),
@@ -131,7 +131,7 @@ class RegionParser:
             return res
         actual_attributes = self.get_ordered_attributes()[:8] + ['attributes']
         df = pd.read_csv(filepath_or_buffer=path, sep=self.delimiter,
-                         na_values=NULL,
+                         na_values=null_values,
                          names=actual_attributes,
                          dtype=self.get_name_type_dict(),
                          converters={'strand': self.parse_strand})
