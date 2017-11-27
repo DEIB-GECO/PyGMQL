@@ -1,4 +1,9 @@
+# strings to recognize as NaN
 NULL = "null"
+INF = "∞"
+UNDEFINED = "�"
+null_values = [NULL, INF, UNDEFINED]
+
 GTF = "gtf"
 TAB = "tab"
 
