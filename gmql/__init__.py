@@ -236,6 +236,13 @@ def start():
     python_api_package = __get_python_api_package(gateway)
     pythonManager = __start_gmql_manager(python_api_package)
 
+    if sys.platform.startswith("win32"):
+        # if we are on windows set the hadoop home to winutils.exe
+        hadoopFolder_fn = resource_filename(
+            "gmql", os.path.join("resources", "hadoop")
+        )
+        pythonManager.setHadoopHomeDir(hadoopFolder_fn)
+
     # setting the spark tmp folder
     pythonManager.setSparkLocalDir(folders['spark'])
 
