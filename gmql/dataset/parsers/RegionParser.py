@@ -109,7 +109,7 @@ class RegionParser:
         return res
 
     def _parse_tab_regions(self, path):
-        df = pd.read_csv(filepath_or_buffer=path, na_values=null_values,
+        df = pd.read_csv(filepath_or_buffer=open(path), na_values=null_values,
                          header=None,
                          names=self.get_ordered_attributes(),
                          dtype=self.get_name_type_dict(),
@@ -130,7 +130,7 @@ class RegionParser:
                     res[attr_name] = attr_value
             return res
         actual_attributes = self.get_ordered_attributes()[:8] + ['attributes']
-        df = pd.read_csv(filepath_or_buffer=path, sep=self.delimiter,
+        df = pd.read_csv(filepath_or_buffer=open(path), sep=self.delimiter,
                          na_values=null_values,
                          names=actual_attributes,
                          dtype=self.get_name_type_dict(),
