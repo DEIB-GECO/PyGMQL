@@ -1,6 +1,9 @@
 # GMQL-Python
 API for calling interactively the GMQL Engine from Python
 
+## Documentation
+The doucumentation can be found at the following link: http://pygmql.readthedocs.io
+
 ## Setup
 
 #### Use Anaconda
