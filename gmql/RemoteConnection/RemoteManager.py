@@ -482,8 +482,6 @@ class RemoteManager:
     def execute_remote_all(self, output="tab", output_path=None):
         pmg = get_python_manager()
         serialized_dag = pmg.get_serialized_materialization_list()
-        # with open("/home/luca/Documenti/dag.dag", "w") as f:
-        #     f.write(serialized_dag)
         return self._execute_dag(serialized_dag, output, output_path)
 
     def _execute_dag(self, serialized_dag, output="tab", output_path=None):
