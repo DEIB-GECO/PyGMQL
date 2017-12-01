@@ -1,14 +1,13 @@
-from .. import get_python_manager, none, Some, _get_gateway, \
+from .. import get_python_manager, none, Some, \
     get_remote_manager, get_mode, _get_source_table
-from .loaders import MetaLoaderFile, RegLoaderFile, Materializations
+from .loaders import MetaLoaderFile, Materializations
 from .DataStructures.RegField import RegField
 from .DataStructures.MetaField import MetaField
-from .DataStructures.Aggregates import Aggregate
-import shutil
-import os
+from .DataStructures.Aggregates import *
+from .DataStructures.GenometricPredicates import GenometricCondition
 from .DataStructures import reg_fixed_fileds
 from .import GDataframe
-from .loaders import MemoryLoader, Loader, MetadataProfiler
+from .loaders import MemoryLoader, MetadataProfiler
 from ..FileManagment.TempFileManager import get_unique_identifier, get_new_dataset_tmp_folder
 
 
@@ -127,6 +126,53 @@ class GMQLDataset:
         """
         return RegField(name=name, index=self.index)
 
+    def select(self, meta_predicate=None, region_predicate=None,
+               semiJoinDataset=None,  semiJoinMeta=None):
+
+        semiJoinDataset_exists = False
+        if isinstance(meta_predicate, MetaField):
+            meta_condition = Some(meta_predicate.getMetaCondition())
+        elif meta_predicate is None:
+            meta_condition = none()
+        else:
+            raise TypeError("meta_predicate must be a MetaField or None."
+                            " {} was provided".format(type(meta_predicate)))
+
+        if isinstance(region_predicate, RegField):
+            region_condition = Some(region_predicate.getRegionCondition())
+        elif region_predicate is None:
+            region_condition = none()
+        else:
+            raise TypeError("region_predicate must be a RegField or None."
+                            " {} was provided".format(type(region_predicate)))
+
+        if isinstance(semiJoinDataset, GMQLDataset):
+            other_dataset = Some(semiJoinDataset.index)
+            semiJoinDataset_exists = True
+        elif semiJoinDataset is None:
+            other_dataset = none()
+        else:
+            raise TypeError("semiJoinDataset must be a GMQLDataset or None."
+                            " {} was provided".format(type(semiJoinDataset)))
+
+        if isinstance(semiJoinMeta, list) and \
+                all([isinstance(x, str) for x in semiJoinMeta]):
+            if semiJoinDataset_exists:
+                semi_join = Some(self.opmng.getMetaJoinCondition(semiJoinMeta))
+            else:
+                raise ValueError("semiJoinDataset and semiJoinMeta must be present at the "
+                                 "same time or totally absent")
+        elif semiJoinMeta is None:
+            semi_join = none()
+        else:
+            raise TypeError("semiJoinMeta must be a list of strings or None."
+                            " {} was provided".format(type(semiJoinMeta)))
+
+        new_index = self.opmng.select(self.index, other_dataset,
+                                      semi_join, meta_condition, region_condition)
+        return GMQLDataset(index=new_index, location=self.location, local_sources=self._local_sources,
+                           remote_sources=self._remote_sources, meta_profile=self.meta_profile)
+
     def meta_select(self, predicate=None, semiJoinDataset=None, semiJoinMeta=None):
         """
         The META_SELECT operation creates a new dataset from an existing one 
@@ -173,38 +219,7 @@ class GMQLDataset:
 
         """
 
-        other_idx = None
-        metaJoinCondition = None
-        meta_condition = None
-
-        if isinstance(predicate, MetaField):
-            meta_condition = predicate.getMetaCondition()
-        if (semiJoinDataset is not None) and  \
-                (semiJoinMeta is not None):
-            other_idx = semiJoinDataset.index
-            metaJoinByJavaList = _get_gateway().jvm.java.util.ArrayList()
-            for meta in semiJoinMeta:
-                metaJoinByJavaList.append(meta)
-            metaJoinCondition = self.opmng.getMetaJoinCondition(metaJoinByJavaList)
-
-        if other_idx is None:
-            other_idx = -1
-
-        if (meta_condition is None) and \
-                (other_idx >= 0 and metaJoinCondition is not None): # case of only semiJoin
-            new_index = self.opmng.only_semi_select(self.index, other_idx, metaJoinCondition)
-        elif meta_condition is not None:
-            if (other_idx >= 0) and (metaJoinCondition is not None): # case of meta + semiJoin
-                new_index = self.opmng.meta_select(self.index, other_idx, meta_condition, metaJoinCondition)
-            elif (other_idx < 0) and (metaJoinCondition is None): # case only meta
-                new_index = self.opmng.meta_select(self.index, other_idx, meta_condition)
-            else:
-                raise ValueError("semiJoinDataset <=> semiJoinMeta")
-        else:
-            raise ValueError("semiJoinDataset <=> semiJoinMeta")
-
-        return GMQLDataset(index=new_index, location=self.location, local_sources=self._local_sources,
-                           remote_sources=self._remote_sources, meta_profile=self.meta_profile)
+        return self.select(meta_predicate=predicate, semiJoinDataset=semiJoinDataset, semiJoinMeta=semiJoinMeta)
 
     def reg_select(self, predicate=None, semiJoinDataset=None, semiJoinMeta=None):
         """
@@ -233,36 +248,115 @@ class GMQLDataset:
         In order to be sure about the correctness of the expression, please use parenthesis to delimit
         the various predicates.
         """
-        reg_condition = None
-        other_idx = None
-        metaJoinCondition = None
+        return self.select(region_predicate=predicate, semiJoinMeta=semiJoinMeta, semiJoinDataset=semiJoinDataset)
 
-        if predicate is not None:
-            reg_condition = predicate.getRegionCondition()
-        if (semiJoinDataset is not None) and \
-                (semiJoinMeta is not None):
-            other_idx = semiJoinDataset.index
-            metaJoinByJavaList = _get_gateway().jvm.java.util.ArrayList()
-            for meta in semiJoinMeta:
-                metaJoinByJavaList.append(meta)
-            metaJoinCondition = self.opmng.getMetaJoinCondition(metaJoinByJavaList)
-
-        if other_idx is None:
-            other_idx = -1
-
-        if (reg_condition is None) and \
-                (other_idx >= 0 and metaJoinCondition is not None):  # case of only semiJoin
-            new_index = self.opmng.only_semi_select(self.index, other_idx, metaJoinCondition)
-        elif reg_condition is not None:
-            if (other_idx >= 0) and (metaJoinCondition is not None):  # case of regs + semiJoin
-                new_index = self.opmng.reg_select(self.index, other_idx, reg_condition, metaJoinCondition)
-            elif (other_idx < 0) and (metaJoinCondition is None):  # case only regs
-                new_index = self.opmng.reg_select(self.index, other_idx, reg_condition)
-            else:
-                raise ValueError("semiJoinDataset <=> semiJoinMeta")
+    def project(self, projected_meta=None, new_attr_dict=None, all_but_meta=None,
+                projected_regs=None, new_field_dict=None, all_but_regs=None):
+        projected_meta_exists = False
+        if isinstance(projected_meta, list) and \
+                all([isinstance(x, str) for x in projected_meta]):
+            projected_meta = Some(projected_meta)
+            projected_meta_exists = True
+        elif projected_meta is None:
+            projected_meta = none()
         else:
-            raise ValueError("semiJoinDataset <=> semiJoinMeta")
+            raise TypeError("projected_meta must be a list of strings or None."
+                            " {} was provided".format(type(projected_meta)))
 
+        if isinstance(new_attr_dict, dict):
+            meta_ext = []
+            expBuild = self.pmg.getNewExpressionBuilder(self.index)
+            for k in new_attr_dict.keys():
+                item = new_attr_dict[k]
+                if isinstance(k, str):
+                    if isinstance(item, MetaField):
+                        me = expBuild.createMetaExtension(k, item.getMetaExpression())
+                    elif isinstance(item, int):
+                        me = expBuild.createMetaExtension(k, expBuild.getMEType("int", str(item)))
+                    elif isinstance(item, str):
+                        me = expBuild.createMetaExtension(k, expBuild.getMEType("string", item))
+                    elif isinstance(item, float):
+                        me = expBuild.createMetaExtension(k, expBuild.getMEType("float", str(item)))
+                    else:
+                        raise TypeError("Type {} of item of new_attr_dict is not valid".format(type(item)))
+                    meta_ext.append(me)
+                else:
+                    raise TypeError("The key of new_attr_dict must be a string. "
+                                    "{} was provided".format(type(k)))
+            meta_ext = Some(meta_ext)
+        elif new_attr_dict is None:
+            meta_ext = none()
+        else:
+            raise TypeError("new_attr_dict must be a dictionary."
+                            " {} was provided".format(type(new_attr_dict)))
+
+        if isinstance(all_but_meta, list) and \
+            all([isinstance(x, str) for x in all_but_meta]):
+            if not projected_meta_exists:
+                all_but_meta = Some(all_but_meta)
+                all_but_value = True
+            else:
+                raise ValueError("all_but_meta and projected_meta are mutually exclusive")
+        elif all_but_meta is None:
+            all_but_meta = none()
+            all_but_value = False
+        else:
+            raise TypeError("all_but_meta must be a list of strings."
+                            " {} was provided".format(type(all_but_meta)))
+        projected_meta = all_but_meta if all_but_value else projected_meta
+
+        projected_regs_exists = False
+        if isinstance(projected_regs, list) and \
+                all([isinstance(x, str) for x in projected_regs]):
+            projected_regs = Some(projected_regs)
+            projected_regs_exists = True
+        elif projected_regs is None:
+            projected_regs = none()
+        else:
+            raise TypeError("projected_regs must be a list of strings or None."
+                            " {} was provided".format(type(projected_regs)))
+
+        if isinstance(new_field_dict, dict):
+            regs_ext = []
+            expBuild = self.pmg.getNewExpressionBuilder(self.index)
+            for k in new_field_dict.keys():
+                item = new_field_dict[k]
+                if isinstance(k, str):
+                    if isinstance(item, RegField):
+                        re = expBuild.createRegionExtension(k, item.getRegionExpression())
+                    elif isinstance(item, int):
+                        re = expBuild.createRegionExtension(k, expBuild.getREType("float", str(item)))
+                    elif isinstance(item, str):
+                        re = expBuild.createRegionExtension(k, expBuild.getREType("string", item))
+                    elif isinstance(item, float):
+                        re = expBuild.createRegionExtension(k, expBuild.getREType("float", str(item)))
+                    else:
+                        raise TypeError("Type {} of item of new_field_dict is not valid".format(type(item)))
+                    regs_ext.append(re)
+                else:
+                    raise TypeError("The key of new_field_dict must be a string. "
+                                    "{} was provided".format(type(k)))
+            regs_ext = Some(regs_ext)
+        elif new_field_dict is None:
+            regs_ext = none()
+        else:
+            raise TypeError("new_field_dict must be a dictionary."
+                            " {} was provided".format(type(new_field_dict)))
+
+        if isinstance(all_but_regs, list) and \
+            all([isinstance(x, str) for x in all_but_regs]):
+            if not projected_regs_exists:
+                all_but_regs = Some(all_but_regs)
+            else:
+                raise ValueError("all_but_meta and projected_meta are mutually exclusive")
+        elif all_but_regs is None:
+            all_but_regs = none()
+        else:
+            raise TypeError("all_but_regs must be a list of strings."
+                            " {} was provided".format(type(all_but_regs)))
+
+        new_index = self.opmng.project(self.index, projected_meta, meta_ext, all_but_value,
+                                       projected_regs, all_but_regs, regs_ext)
         return GMQLDataset(index=new_index, location=self.location,
                            local_sources=self._local_sources, remote_sources=self._remote_sources,
                            meta_profile=self.meta_profile)
@@ -286,51 +380,7 @@ class GMQLDataset:
                                                new_attr_dict={'new_meta': dataset['ID'] + 100})
 
         """
-
-        # updating metadata profile
-        self.meta_profile.select_attributes(attr_list)
-        if isinstance(new_attr_dict, dict):
-            self.meta_profile.add_metadata({(k, None) for k in new_attr_dict.keys()})
-
-        if (attr_list is not None) and (all_but is not None):
-            raise ValueError("You can specifiy only one of attr_list or all_but. Not both")
-        all_but_value = False
-        projected_meta = None
-        if (attr_list is None) and (all_but is None):
-            projected_meta = none()
-        elif isinstance(attr_list, list):
-            projected_meta = Some(attr_list)
-        elif isinstance(all_but, list):
-            projected_meta = Some(all_but)
-            all_but_value = True
-        else:
-            raise ValueError("attr_list must be a list")
-
-        meta_ext = None
-        if new_attr_dict is None:
-            meta_ext = none()
-        elif not isinstance(new_attr_dict, dict):
-            raise ValueError("new_attr_list must be a dictionary")
-        else:
-            meta_ext_list = []
-            for k in new_attr_dict.keys():
-                name = k
-                meNode = new_attr_dict[k]
-                if not isinstance(meNode, MetaField):
-                    raise ValueError("the values of the dictionary must be MetaField")
-                meNode = meNode.getMetaExpression()
-                meta_extension = self.pmg.getNewExpressionBuilder(self.index) \
-                    .createMetaExtension(name, meNode)
-                meta_ext_list.append(meta_extension)
-            meta_ext = Some(meta_ext_list)
-
-        new_index = self.opmng.project(self.index,
-                                       projected_meta,
-                                       meta_ext, all_but_value, none(), none(), none())
-
-        return GMQLDataset(index=new_index, location=self.location,
-                           local_sources=self._local_sources, remote_sources=self._remote_sources,
-                           meta_profile=self.meta_profile)
+        return self.project(projected_meta=attr_list, new_attr_dict=new_attr_dict, all_but_meta=all_but)
 
     def reg_project(self, field_list=None, all_but=None, new_field_dict=None):
         """
@@ -360,50 +410,7 @@ class GMQLDataset:
         'boolean', 'float', 'double'.
 
         """
-        projected_regs = None
-        if field_list is None:
-            projected_regs = none()
-        elif isinstance(field_list, list):
-            projected_regs = Some(field_list)
-        else:
-            raise ValueError("field_list must be a list")
-
-        all_but_f = None
-        if all_but is None:
-            all_but_f = none()
-        elif isinstance(all_but, list):
-            all_but_f = Some(all_but)
-        else:
-            raise ValueError("all_but list must be a list")
-
-        regs_ext = None
-        if new_field_dict is None:
-            regs_ext = none()
-        elif not isinstance(new_field_dict, dict):
-            raise ValueError("new_filed_dict must be a dictionary")
-        else:
-            regs_ext_list = []
-            for k in new_field_dict.keys():
-                name = k
-                reNode = new_field_dict[k]
-                if isinstance(reNode, RegField):
-                    reNode = reNode.getRegionExpression()
-                elif isinstance(reNode, MetaField):
-                    reNode = reNode.reMetaNode
-                else:
-                    raise ValueError("the values of the dictionary must be RegField or a MetaField")
-                if reNode is None:
-                    raise ValueError("Invalid region expression")
-                reg_extension = self.pmg.getNewExpressionBuilder(self.index)\
-                    .createRegionExtension(name, reNode)
-                regs_ext_list.append(reg_extension)
-            regs_ext = Some(regs_ext_list)
-
-        new_index = self.opmng.project(self.index, none(), none(), False,
-                                       projected_regs, all_but_f, regs_ext)
-        return GMQLDataset(index=new_index, location=self.location,
-                           local_sources=self._local_sources,
-                           remote_sources=self._remote_sources, meta_profile=self.meta_profile)
+        return self.project(projected_regs=field_list, all_but_regs=all_but, new_field_dict=new_field_dict)
 
     def extend(self, new_attr_dict):
         """
@@ -425,22 +432,33 @@ class GMQLDataset:
             new_dataset = dataset.extend({'regionCount' : gl.COUNT(),
                                           'minPValue' : gl.MIN('pValue')})
         """
-        expBuild = self.pmg.getNewExpressionBuilder(self.index)
-        aggregatesJavaList = _get_gateway().jvm.java.util.ArrayList()
-        for k in new_attr_dict.keys():
-            new_name = k
-            op = new_attr_dict[k]
-            op_name = op.get_aggregate_name()
-            op_argument = op.get_argument()
-            regsToMeta = expBuild.getRegionsToMeta(op_name, new_name, op_argument)
-            aggregatesJavaList.append(regsToMeta)
+        if isinstance(new_attr_dict, dict):
+            expBuild = self.pmg.getNewExpressionBuilder(self.index)
+            aggregates = []
+            for k in new_attr_dict.keys():
+                if isinstance(k, str):
+                    item = new_attr_dict[k]
+                    if isinstance(item, Aggregate):
+                        op_name = item.get_aggregate_name()
+                        op_argument = item.get_argument()
+                        regsToMeta = expBuild.getRegionsToMeta(op_name, k, op_argument)
+                        aggregates.append(regsToMeta)
+                    else:
+                        raise TypeError("The items in new_reg_fields must be Aggregates."
+                                        " {} was provided".format(type(item)))
+                else:
+                    raise TypeError("The key of new_attr_dict must be a string. "
+                                    "{} was provided".format(type(k)))
+        else:
+            raise TypeError("new_attr_dict must be a dictionary. "
+                            "{} was provided".format(type(new_attr_dict)))
 
-        new_index = self.opmng.extend(self.index, aggregatesJavaList)
+        new_index = self.opmng.extend(self.index, aggregates)
         return GMQLDataset(index=new_index, location=self.location,
                            local_sources=self._local_sources,
                            remote_sources=self._remote_sources, meta_profile=self.meta_profile)
 
-    def cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None, type="normal"):
+    def cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None, cover_type="normal"):
         """
         COVER is a GMQL operator that takes as input a dataset (of usually, 
         but not necessarily, multiple samples) and returns another dataset 
@@ -455,7 +473,7 @@ class GMQLDataset:
         dataset, computed as the correspondent region Jaccard Indexes but on 
         the whole sample regions.
 
-        :param type: the kind of cover variant you want ['normal', 'flat', 'summit', 'histogram']
+        :param cover_type: the kind of cover variant you want ['normal', 'flat', 'summit', 'histogram']
         :param minAcc: minimum accumulation value, i.e. the minimum number
          of overlapping regions to be considered during COVER execution. It can be any positive
          number or the strings {'ALL', 'ANY'}.
@@ -472,27 +490,66 @@ class GMQLDataset:
             cell_tf = narrow_peak.cover("normal", minAcc=1, maxAcc="Any", 
                                             groupBy=['cell', 'antibody_target'])    
         """
-        coverFlag = self.opmng.getCoverTypes(type)
-        minAccParam = self.opmng.getCoverParam(str(minAcc).lower())
-        maxAccParam = self.opmng.getCoverParam(str(maxAcc).lower())
+        if isinstance(cover_type, str):
+            coverFlag = self.opmng.getCoverTypes(cover_type)
+        else:
+            raise TypeError("type must be a string. "
+                            "{} was provided".format(type(cover_type)))
+        if isinstance(minAcc, str):
+            minAccParam = self.opmng.getCoverParam(minAcc.lower())
+        elif isinstance(minAcc, int):
+            minAccParam = self.opmng.getCoverParam(str(minAcc).lower())
+        else:
+            raise TypeError("minAcc must be a string or an integer. "
+                            "{} was provided".format(type(minAcc)))
+        if isinstance(maxAcc, str):
+            maxAccParam = self.opmng.getCoverParam(maxAcc.lower())
+        elif isinstance(maxAcc, int):
+            maxAccParam = self.opmng.getCoverParam(str(maxAcc).lower())
+        else:
+            raise TypeError("maxAcc must be a string or an integer. "
+                            "{} was provided".format(type(minAcc)))
 
-        if groupBy is None:
+        if isinstance(groupBy, list) and \
+            all([isinstance(x, str) for x in groupBy]):
+            groupBy_result = Some(groupBy)
+        elif groupBy is None:
             groupBy_result = none()
         else:
-            groupBy_result = Some(groupBy)
+            raise TypeError("groupBy must be a list of string. "
+                            "{} was provided".format(type(groupBy)))
 
-        aggregatesJavaList = _get_gateway().jvm.java.util.ArrayList()
-        if new_reg_fields:
+        aggregates = []
+        if isinstance(new_reg_fields, dict):
             expBuild = self.pmg.getNewExpressionBuilder(self.index)
             for k in new_reg_fields.keys():
-                new_name = k
-                op = new_reg_fields[k]
-                op_name = op.get_aggregate_name()
-                op_argument = op.get_argument()
-                regsToReg = expBuild.getRegionsToRegion(op_name, new_name, op_argument)
-                aggregatesJavaList.append(regsToReg)
+                if isinstance(k, str):
+                    item = new_reg_fields[k]
+                    if isinstance(item, (SUM, MIN, MAX, AVG, BAG, BAGD,
+                                         MEDIAN, COUNT)):
+                        op_name = item.get_aggregate_name()
+                        op_argument = item.get_argument()
+                        if op_argument is None:
+                            op_argument = none()
+                        else:
+                            op_argument = Some(op_argument)
+                        regsToReg = expBuild.getRegionsToRegion(op_name, k, op_argument)
+                        aggregates.append(regsToReg)
+                    else:
+                        raise TypeError("The items in new_reg_fields must be Aggregates (SUM, MIN, MAX, AVG, BAG, "
+                                        "BAGD, MEDIAN, COUNT)"
+                                        " {} was provided".format(type(item)))
+                else:
+                    raise TypeError("The key of new_reg_fields must be a string. "
+                                    "{} was provided".format(type(k)))
+        elif new_reg_fields is None:
+            pass
+        else:
+            raise TypeError("new_reg_fields must be a list of dictionary. "
+                            "{} was provided".format(type(new_reg_fields)))
+
         new_index = self.opmng.cover(self.index, coverFlag, minAccParam, maxAccParam,
-                                     groupBy_result, aggregatesJavaList)
+                                     groupBy_result, aggregates)
         return GMQLDataset(index=new_index, location=self.location,
                            local_sources=self._local_sources,
                            remote_sources=self._remote_sources, meta_profile=self.meta_profile)
@@ -504,7 +561,7 @@ class GMQLDataset:
         
             dataset.cover("normal", ...)
         """
-        return self.cover(minAcc, maxAcc, groupBy, new_reg_fields, type="normal")
+        return self.cover(minAcc, maxAcc, groupBy, new_reg_fields, cover_type="normal")
 
     def flat_cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None):
         """
@@ -517,7 +574,7 @@ class GMQLDataset:
         
             cover("flat", ...)
         """
-        return self.cover(minAcc, maxAcc, groupBy, new_reg_fields, type="flat")
+        return self.cover(minAcc, maxAcc, groupBy, new_reg_fields, cover_type="flat")
 
     def summit_cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None):
         """
@@ -531,7 +588,7 @@ class GMQLDataset:
         
             cover("summit", ...)
         """
-        return self.cover(minAcc, maxAcc, groupBy, new_reg_fields, type="summit")
+        return self.cover(minAcc, maxAcc, groupBy, new_reg_fields, cover_type="summit")
 
     def histogram_cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None):
         """
@@ -544,12 +601,11 @@ class GMQLDataset:
         
             cover("histogram", ...)
         """
-        return self.cover(minAcc, maxAcc, groupBy, new_reg_fields, type="histogram")
+        return self.cover(minAcc, maxAcc, groupBy, new_reg_fields, cover_type="histogram")
 
     def join(self, experiment, genometric_predicate, output="LEFT", joinBy=None,
-             refName=None, expName=None):
-        """
-        The JOIN operator takes in input two datasets, respectively known as anchor
+             refName="REF", expName="EXP", left_on=None, right_on=None):
+        """ The JOIN operator takes in input two datasets, respectively known as anchor
         (the first/left one) and experiment (the second/right one) and returns a
         dataset of samples consisting of regions extracted from the operands 
         according to the specified condition (known as genometric predicate). 
@@ -579,6 +635,8 @@ class GMQLDataset:
         :param joinBy: list of metadata attributes
         :param refName: name that you want to assign to the reference dataset
         :param expName: name that you want to assign to the experiment dataset
+        :param left_on: list of region fields of the reference on which the join must be performed
+        :param right_on: list of region fields of the experiment on which the join must be performed
         :return: a new GMQLDataset
         
         An example of usage::
@@ -591,32 +649,74 @@ class GMQLDataset:
                                                     genometric_predicate=[gl.MD(1), gl.DGE(120000)], 
                                                     output="right")
         """
-        atomicConditionsJavaList = _get_gateway().jvm.java.util.ArrayList()
-        for a in genometric_predicate:
-            atomicConditionsJavaList.append(a.get_gen_condition())
-        regionJoinCondition = self.opmng.getRegionJoinCondition(atomicConditionsJavaList)
-        metaJoinByJavaList = _get_gateway().jvm.java.util.ArrayList()
-        if joinBy:
-            for m in joinBy:
-                metaJoinByJavaList.append(m)
-        metaJoinCondition = self.opmng.getMetaJoinCondition(metaJoinByJavaList)
-        regionBuilder = self.opmng.getRegionBuilderJoin(output)
 
-        if refName is None:
-            refName = ""
-        if expName is None:
-            expName = ""
+        if isinstance(experiment, GMQLDataset):
+            other_idx = experiment.index
+        else:
+            raise TypeError("experiment must be a GMQLDataset. "
+                            "{} was provided".format(type(experiment)))
+        if isinstance(genometric_predicate, list) and \
+            all([isinstance(x, GenometricCondition) for x in genometric_predicate]):
+            regionJoinCondition = self.opmng.getRegionJoinCondition(list(map(lambda x: x.get_gen_condition(),
+                                                                             genometric_predicate)))
+        else:
+            raise TypeError("genometric_predicate must be a list og GenometricCondition. "
+                            "{} was found".format(type(genometric_predicate)))
 
-        new_index = self.opmng.join(self.index, experiment.index,
+        if isinstance(output, str):
+            regionBuilder = self.opmng.getRegionBuilderJoin(output)
+        else:
+            raise TypeError("output must be a string. "
+                            "{} was provided".format(type(output)))
+
+        if not isinstance(expName, str):
+            raise TypeError("expName must be a string. {} was provided".format(type(expName)))
+
+        if not isinstance(refName, str):
+            raise TypeError("refName must be a string. {} was provided".format(type(expName)))
+
+        if isinstance(joinBy, list) and \
+            all([isinstance(x, str) for x in joinBy]):
+            metaJoinCondition = Some(self.opmng.getMetaJoinCondition(joinBy))
+        elif joinBy is None:
+            metaJoinCondition = none()
+        else:
+            raise TypeError("joinBy must be a list of strings. "
+                            "{} was found".format(type(joinBy)))
+
+        left_on_exists = False
+        left_on_len = 0
+        if isinstance(left_on, list) and \
+            all([isinstance(x, str) for x in left_on]):
+            left_on_len = len(left_on)
+            left_on = Some(left_on)
+            left_on_exists = True
+        elif left_on is None:
+            left_on = none()
+        else:
+            raise TypeError("left_on must be a list of strings. "
+                            "{} was provided".format(type(left_on)))
+
+        if isinstance(right_on, list) and \
+            all([isinstance(x, str)] for x in right_on) and \
+            left_on_exists and len(right_on) == left_on_len:
+            right_on = Some(right_on)
+        elif right_on is None and not left_on_exists:
+            right_on = none()
+        else:
+            raise TypeError("right_on must be a list of strings. "
+                            "{} was provided".format(type(right_on)))
+
+        new_index = self.opmng.join(self.index, other_idx,
                                     metaJoinCondition, regionJoinCondition, regionBuilder,
-                                    refName, expName)
-        new_local_sources, new_remote_sources = combine_sources(self, experiment)
-        new_location = combine_locations(self, experiment)
+                                    refName, expName, left_on, right_on)
+        new_local_sources, new_remote_sources = self.__combine_sources(self, experiment)
+        new_location = self.__combine_locations(self, experiment)
         return GMQLDataset(index=new_index, location=new_location,
                            local_sources=new_local_sources,
                            remote_sources=new_remote_sources, meta_profile=self.meta_profile)
 
-    def map(self, experiment, new_reg_fields=None, joinBy=None, refName=None, expName=None):
+    def map(self, experiment, new_reg_fields=None, joinBy=None, refName="REF", expName="EXP"):
         """
         MAP is a non-symmetric operator over two datasets, respectively called
         reference and experiment. The operation computes, for each sample in 
@@ -646,31 +746,60 @@ class GMQLDataset:
         :param expName: name that you want to assign to the experiment dataset
         :return: a new GMQLDataset
         """
-        aggregatesJavaList = _get_gateway().jvm.java.util.ArrayList()
-        if new_reg_fields:
-            expBuild = self.pmg.getNewExpressionBuilder(experiment.index)
+        if isinstance(experiment, GMQLDataset):
+            other_idx = experiment.index
+        else:
+            raise TypeError("experiment must be a GMQLDataset. "
+                            "{} was provided".format(type(experiment)))
+
+        aggregates = []
+        if isinstance(new_reg_fields, dict):
+            expBuild = self.pmg.getNewExpressionBuilder(self.index)
             for k in new_reg_fields.keys():
-                new_name = k
-                op = new_reg_fields[k]
-                op_name = op.get_aggregate_name()
-                op_argument = op.get_argument()
-                regsToReg = expBuild.getRegionsToRegion(op_name, new_name, op_argument)
-                aggregatesJavaList.append(regsToReg)
-        metaJoinByJavaList = _get_gateway().jvm.java.util.ArrayList()
-        if joinBy:
-            for m in joinBy:
-                metaJoinByJavaList.append(m)
-        metaJoinCondition = self.opmng.getMetaJoinCondition(metaJoinByJavaList)
+                if isinstance(k, str):
+                    item = new_reg_fields[k]
+                    if isinstance(item, (SUM, MIN, MAX, AVG, BAG, BAGD,
+                                         MEDIAN, COUNT)):
+                        op_name = item.get_aggregate_name()
+                        op_argument = item.get_argument()
+                        if op_argument is None:
+                            op_argument = none()
+                        else:
+                            op_argument = Some(op_argument)
+                        regsToReg = expBuild.getRegionsToRegion(op_name, k, op_argument)
+                        aggregates.append(regsToReg)
+                    else:
+                        raise TypeError("The items in new_reg_fields must be Aggregates (SUM, MIN, MAX, AVG, BAG, BAGD, "
+                                        "MEDIAN, COUNT)"
+                                        " {} was provided".format(type(item)))
+                else:
+                    raise TypeError("The key of new_reg_fields must be a string. "
+                                    "{} was provided".format(type(k)))
+        elif new_reg_fields is None:
+            pass
+        else:
+            raise TypeError("new_reg_fields must be a list of dictionary. "
+                            "{} was provided".format(type(new_reg_fields)))
 
-        if refName is None:
-            refName = ""
-        if expName is None:
-            expName = ""
+        if isinstance(joinBy, list) and \
+            all([isinstance(x, str) for x in joinBy]):
+            metaJoinCondition = Some(self.opmng.getMetaJoinCondition(joinBy))
+        elif joinBy is None:
+            metaJoinCondition = none()
+        else:
+            raise TypeError("joinBy must be a list of strings. "
+                            "{} was found".format(type(joinBy)))
 
-        new_index = self.opmng.map(self.index, experiment.index, metaJoinCondition,
-                                   aggregatesJavaList, refName, expName)
-        new_local_sources, new_remote_sources = combine_sources(self, experiment)
-        new_location = combine_locations(self, experiment)
+        if not isinstance(expName, str):
+            raise TypeError("expName must be a string. {} was provided".format(type(expName)))
+
+        if not isinstance(refName, str):
+            raise TypeError("refName must be a string. {} was provided".format(type(expName)))
+
+        new_index = self.opmng.map(self.index, other_idx, metaJoinCondition,
+                                   aggregates, refName, expName)
+        new_local_sources, new_remote_sources = self.__combine_sources(self, experiment)
+        new_location = self.__combine_locations(self, experiment)
         return GMQLDataset(index=new_index, location=new_location,
                            local_sources=new_local_sources,
                            remote_sources=new_remote_sources,
@@ -678,8 +807,7 @@ class GMQLDataset:
 
     def order(self, meta=None, meta_ascending=None, meta_top=None, meta_k=None,
               regs=None, regs_ascending=None, region_top=None, region_k=None):
-        """
-        The ORDER operator is used to order either samples, sample regions, or both,
+        """ The ORDER operator is used to order either samples, sample regions, or both,
         in a dataset according to a set of metadata and/or region attributes, and/or 
         region coordinates. The number of samples and their regions in the output dataset 
         is as in the input dataset, as well as their metadata and region attributes 
@@ -696,44 +824,113 @@ class GMQLDataset:
         :param region_k: a number specifying how many results to be retained
         :return: a new GMQLDataset
         """
+        meta_exists = False
+        meta_len = 0
+        if isinstance(meta, list) and \
+            all([isinstance(x, str) for x in meta]):
+            meta_exists = True
+            meta_len = len(meta)
+            meta = Some(meta)
+        elif meta is None:
+            meta = none()
+        else:
+            raise TypeError("meta must be a list of strings. "
+                            "{} was provided".format(type(meta)))
 
-        assert meta or regs, "There must be at least an ordering on the " \
-                             "metadata or on the region data"
-        assert (meta_top and meta_k) or (not meta_top and not meta_k), \
-            "meta_top and meta_k must be together"
-        assert (region_top and region_k) or (not region_top and not region_k), \
-            "region_top and region_k must be together"
-        assert (meta_ascending and len(meta_ascending) == len(meta)) or not meta_ascending, \
-            "meta_ascending and meta must have the same length"
-        assert (regs_ascending and len(regs_ascending) == len(regs)) or not regs_ascending, \
-            "regs_ascending and regs must have the same length"
+        if isinstance(meta_ascending, list) and \
+            all([isinstance(x, bool) for x in meta_ascending]) and \
+            meta_exists and meta_len == len(meta_ascending):
+            meta_ascending = Some(meta_ascending)
+        elif meta_ascending is None:
+            if meta_exists:
+                # by default meta_ascending is all True
+                meta_ascending = Some([True for _ in range(meta_len)])
+            else:
+                meta_ascending = none()
+        else:
+            raise TypeError("meta ascending must be a list of booleans having the same size "
+                            "of meta. {} was provided".format(type(meta_ascending)))
 
-        if not meta_top:
-            meta_top = ""
-            meta_k = ""
+        regs_exists = False
+        regs_len = 0
+        if isinstance(regs, list) and \
+                all([isinstance(x, str) for x in regs]):
+            regs_exists = True
+            regs_len = len(regs)
+            regs = Some(regs)
+        elif regs is None:
+            regs = none()
+        else:
+            raise TypeError("regs must be a list of strings. "
+                            "{} was provided".format(type(regs)))
 
-        if not region_top:
-            region_top = ""
-            region_k = ""
+        if isinstance(regs_ascending, list) and \
+            all([isinstance(x, bool) for x in regs_ascending]) and \
+                regs_exists and regs_len == len(regs_ascending):
+            regs_ascending = Some(regs_ascending)
+        elif regs_ascending is None:
+            if regs_exists:
+                # by default regs_ascending is all True
+                regs_ascending = Some([True for _ in range(regs_len)])
+            else:
+                regs_ascending = none()
+        else:
+            raise TypeError("meta regs_ascending must be a list of booleans having the same size "
+                            "of regs. {} was provided".format(type(regs_ascending)))
 
-        if not meta:
-            meta = []
-            meta_ascending = []
+        meta_top_exists = False
+        if isinstance(meta_top, str):
+            if meta_exists:
+                meta_top = Some(meta_top)
+                meta_top_exists = True
+            else:
+                raise ValueError("meta_top must be defined only when meta is defined")
+        elif meta_top is None:
+            meta_top = none()
+        else:
+            raise TypeError("meta_top must be a string. {} was provided".format(type(meta_top)))
 
-        if not regs:
-            regs = []
-            regs_ascending = []
+        if isinstance(meta_k, int) and \
+                meta_top_exists:
+            meta_k = Some(meta_k)
+        elif meta_k is None and \
+                not meta_top_exists:
+            meta_k = none()
+        else:
+            raise TypeError("meta_k must be an integer and should be provided together with a "
+                            "value of meta_top. {} was provided".format(type(meta_k)))
 
-        new_index = self.opmng.order(self.index, meta, meta_ascending, meta_top, str(meta_k),
-                                     regs, regs_ascending, region_top, str(region_k))
+        region_top_exists = False
+        if isinstance(region_top, str):
+            if regs_exists:
+                region_top = Some(region_top)
+                region_top_exists = True
+            else:
+                raise ValueError("region_top must be defined only when regs is defined")
+        elif region_top is None:
+            region_top = none()
+        else:
+            raise TypeError("region_top must be a string. {} was provided".format(type(region_top)))
+
+        if isinstance(region_k, int) and \
+                region_top_exists:
+            region_k = Some(region_k)
+        elif region_k is None and \
+                not region_top_exists:
+            region_k = none()
+        else:
+            raise TypeError("region_k must be an integer and should be provided together with a "
+                            "value of region_top. {} was provided".format(type(region_k)))
+
+        new_index = self.opmng.order(self.index, meta, meta_ascending, meta_top, meta_k,
+                                     regs, regs_ascending, region_top, region_k)
         return GMQLDataset(index=new_index, location=self.location,
                            local_sources=self._local_sources,
                            remote_sources=self._remote_sources,
                            meta_profile=self.meta_profile)
 
-    def difference(self, other, joinBy=None, exact=None):
-        """
-        DIFFERENCE is a binary, non-symmetric operator that produces one sample
+    def difference(self, other, joinBy=None, exact=False):
+        """ DIFFERENCE is a binary, non-symmetric operator that produces one sample
         in the result for each sample of the first operand, by keeping the same
         metadata of the first operand sample and only those regions (with their
         schema and values) of the first operand sample which do not intersect with
@@ -744,17 +941,30 @@ class GMQLDataset:
         :param exact: boolean
         :return: a new GMQLDataset
         """
-        metaJoinByJavaList = _get_gateway().jvm.java.util.ArrayList()
-        if joinBy:
-            for m in joinBy:
-                metaJoinByJavaList.append(m)
-        if not exact:
-            exact = False
-        metaJoinCondition = self.opmng.getMetaJoinCondition(metaJoinByJavaList)
-        new_index = self.opmng.difference(self.index, other.index, metaJoinCondition, exact)
 
-        new_local_sources, new_remote_sources = combine_sources(self, other)
-        new_location = combine_locations(self, other)
+        if isinstance(other, GMQLDataset):
+            other_idx = other.index
+        else:
+            raise TypeError("other must be a GMQLDataset. "
+                            "{} was provided".format(type(other)))
+
+        if isinstance(joinBy, list) and \
+            all([isinstance(x, str) for x in joinBy]):
+            metaJoinCondition = Some(self.opmng.getMetaJoinCondition(joinBy))
+        elif joinBy is None:
+            metaJoinCondition = none()
+        else:
+            raise TypeError("joinBy must be a list of strings. "
+                            "{} was provided".format(type(joinBy)))
+
+        if not isinstance(exact, bool):
+            raise TypeError("exact must be a boolean. "
+                            "{} was provided".format(type(exact)))
+
+        new_index = self.opmng.difference(self.index, other_idx, metaJoinCondition, exact)
+
+        new_local_sources, new_remote_sources = self.__combine_sources(self, other)
+        new_location = self.__combine_locations(self, other)
         return GMQLDataset(index=new_index, location=new_location,
                            local_sources=new_local_sources,
                            remote_sources=new_remote_sources,
@@ -778,11 +988,23 @@ class GMQLDataset:
         :param right_name: name that you want to assign to the right dataset
         :return: a new GMQLDataset
         """
+
+        if not isinstance(left_name, str) or \
+            not isinstance(right_name, str):
+            raise TypeError("left_name and right_name must be strings. "
+                            "{} - {} was provided".format(type(left_name), type(right_name)))
+
+        if isinstance(other, GMQLDataset):
+            other_idx = other.index
+        else:
+            raise TypeError("other must be a GMQLDataset. "
+                            "{} was provided".format(type(other)))
+
         if len(left_name) == 0 or len(right_name) == 0:
             raise ValueError("left_name and right_name must not be empty")
-        new_index = self.opmng.union(self.index, other.index, left_name, right_name)
-        new_local_sources, new_remote_sources = combine_sources(self, other)
-        new_location = combine_locations(self, other)
+        new_index = self.opmng.union(self.index, other_idx, left_name, right_name)
+        new_local_sources, new_remote_sources = self.__combine_sources(self, other)
+        new_location = self.__combine_locations(self, other)
         return GMQLDataset(index=new_index, location=new_location,
                            local_sources=new_local_sources,
                            remote_sources=new_remote_sources,
@@ -806,19 +1028,24 @@ class GMQLDataset:
         :param groupBy: list of metadata attributes
         :return: a new GMQLDataset
         """
-        groupBy_result = None
-        if groupBy is None:
-            groupBy_result = none()
-        else:
-            groupBy_result = Some(groupBy)
 
-        new_index = self.opmng.merge(self.index, groupBy_result)
+        if isinstance(groupBy, list) and \
+            all([isinstance(x, str) for x in groupBy]):
+            groupBy = Some(groupBy)
+        elif groupBy is None:
+            groupBy = none()
+        else:
+            raise TypeError("groupBy must be a list of strings. "
+                            "{} was provided".format(type(groupBy)))
+
+        new_index = self.opmng.merge(self.index, groupBy)
         return GMQLDataset(index=new_index, location=self.location,
                            local_sources=self._local_sources,
                            remote_sources=self._remote_sources,
                            meta_profile=self.meta_profile)
 
-    def group(self, meta=None, meta_aggregates=None, regs=None, regs_aggregates=None, meta_group_name="_group"):
+    def group(self, meta=None, meta_aggregates=None, regs=None,
+              regs_aggregates=None, meta_group_name="_group"):
         """ The GROUP operator is used for grouping both regions and/or metadata of input
         dataset samples according to distinct values of certain attributes (known as grouping
         attributes); new grouping attributes are added to samples in the output dataset,
@@ -836,59 +1063,88 @@ class GMQLDataset:
         :return: a new GMQLDataset
         """
 
-        if meta is None:
+        if isinstance(meta, list) and \
+            all([isinstance(x, str) for x in meta]):
+            meta = Some(meta)
+        elif meta is None:
             meta = none()
         else:
-            if all([isinstance(x, str) for x in meta]):
-                meta = Some(meta)
-            else:
-                raise TypeError("meta must be a list of string")
-
-        if regs is None:
+            raise TypeError("meta must be a list of strings. "
+                            "{} was provided".format(type(meta)))
+        expBuild = self.pmg.getNewExpressionBuilder(self.index)
+        if isinstance(meta_aggregates, dict):
+            metaAggregates = []
+            for k in meta_aggregates:
+                if isinstance(k, str):
+                    item = meta_aggregates[k]
+                    if isinstance(item, (SUM, MIN, MAX, AVG, BAG,
+                                         BAGD, STD, MEDIAN, COUNTSAMP)):
+                        functionName = item.get_aggregate_name()
+                        argument = item.get_argument()
+                        if argument is None:
+                            argument = none()
+                        else:
+                            argument = Some(argument)
+                        metaAggregates.append(expBuild.createMetaAggregateFunction(functionName,
+                                                                                   k, argument))
+                    else:
+                        raise TypeError("the item of the dictionary must be an Aggregate of the following: "
+                                        "SUM, MIN, MAX, AVG, BAG, BAGD, STD, COUNTSAMP. "
+                                        "{} was provided".format(type(item)))
+                else:
+                    raise TypeError("keys of meta_aggregates must be string. "
+                                    "{} was provided".format(type(k)))
+            metaAggregates = Some(metaAggregates)
+        elif meta_aggregates is None:
+            metaAggregates = none()
+        else:
+            raise TypeError("meta_aggregates must be a dictionary of Aggregate functions. "
+                            "{} was provided".format(type(meta_aggregates)))
+        if isinstance(regs, list) and \
+            all([isinstance(x, str) for x in regs]):
+            regs = Some(regs)
+        elif regs is None:
             regs = none()
         else:
-            if all([isinstance(x, str) for x in regs]):
-                regs = Some(regs)
-            else:
-                raise TypeError("regs must be a list of string")
+            raise TypeError("regs must be a list of strings. "
+                            "{} was provided".format(type(regs)))
 
-        expBuild = self.pmg.getNewExpressionBuilder(self.index)
-        if meta_aggregates is None:
-            meta_aggregates_list = none()
-        else:
-            if not isinstance(meta_aggregates, dict):
-                raise TypeError("meta_aggregates must be a dictionary")
-            meta_aggregates_list = []
-            for k in meta_aggregates.keys():
-                new_attr = k
-                aggregate = meta_aggregates[k]
-                if not isinstance(aggregate, Aggregate):
-                    raise TypeError("meta_aggregates: the values of the dictionary must be aggregate functions."
-                                    "{} was found".format(type(aggregate)))
-                regions_to_meta = expBuild.getRegionsToMeta(aggregate.get_aggregate_name(), new_attr, aggregate.get_argument())
-                meta_aggregates_list.append(regions_to_meta)
-
-            meta_aggregates_list = Some(meta_aggregates_list)
-
-        if regs_aggregates is None:
-            regs_aggregates_list = none()
-        else:
-            if not isinstance(regs_aggregates, dict):
-                raise TypeError("regs_aggregates must be a dictionary")
-            regs_aggregates_list = []
+        if isinstance(regs_aggregates, dict):
+            regionAggregates = []
             for k in regs_aggregates.keys():
-                new_attr = k
-                aggregate = regs_aggregates[k]
-                if not isinstance(aggregate, Aggregate):
-                    raise TypeError("meta_aggregates: the values of the dictionary must be aggregate functions."
-                                    "{} was found".format(type(aggregate)))
-                regions_to_region = expBuild.getRegionsToRegion(aggregate.get_aggregate_name(), new_attr, aggregate.get_argument())
-                regs_aggregates_list.append(regions_to_region)
+                if isinstance(k, str):
+                    item = regs_aggregates[k]
+                    if isinstance(item, (SUM, MIN, MAX, AVG, BAG, BAGD,
+                                         MEDIAN, COUNT)):
+                        op_name = item.get_aggregate_name()
+                        op_argument = item.get_argument()
+                        if op_argument is None:
+                            op_argument = none()
+                        else:
+                            op_argument = Some(op_argument)
+                        regsToReg = expBuild.getRegionsToRegion(op_name, k, op_argument)
+                        regionAggregates.append(regsToReg)
+                    else:
+                        raise TypeError("the item of the dictionary must be an Aggregate of the following: "
+                                        "SUM, MIN, MAX, AVG, BAG, BAGD, MEDIAN, COUNT. "
+                                        "{} was provided".format(type(item)))
+                else:
+                    raise TypeError("The key of new_reg_fields must be a string. "
+                                    "{} was provided".format(type(k)))
+            regionAggregates = Some(regionAggregates)
+        elif regs_aggregates is None:
+            regionAggregates = none()
+        else:
+            raise TypeError("new_reg_fields must be a list of dictionary. "
+                            "{} was provided".format(type(regs_aggregates)))
 
-            regs_aggregates_list = Some(regs_aggregates_list)
+        if isinstance(meta_group_name, str):
+            pass
+        else:
+            raise TypeError("meta_group_name must be a string. "
+                            "{} was provided".format(type(meta_group_name)))
 
-        new_index = self.opmng.group(self.index, meta, meta_aggregates_list, meta_group_name,
-                                     regs, regs_aggregates_list)
+        new_index = self.opmng.group(self.index, meta, metaAggregates, meta_group_name, regs, regionAggregates)
 
         return GMQLDataset(index=new_index, location=self.location,
                            local_sources=self._local_sources,
@@ -924,60 +1180,13 @@ class GMQLDataset:
         :return: A GDataframe or a GMQLDataset
         """
         current_mode = get_mode()
-        new_index = modify_dag(current_mode, self)
+        new_index = self.__modify_dag(current_mode)
         if current_mode == 'local':
             return Materializations.materialize_local(new_index, output_path)
         elif current_mode == 'remote':
             return Materializations.materialize_remote(new_index, output_name, output_path, all_load)
         else:
             raise ValueError("Current mode is not defined. {} given".format(current_mode))
-
-        # if self.location == 'remote':
-        #     return self._materialize_remote(output_name, output_path, all_load)
-        # elif self.location == 'local':
-        #     if output_name is not None:
-        #         raise ValueError("This dataset is local. You cannot specify a result name.")
-        #     return self._materialize_local(output_path)
-        # else:
-        #     raise ValueError("GMQLDataset location unknown: {}".format(self.location))
-
-    def _materialize_remote(self, output_name=None, download_path=None, all_load=True):
-        if not isinstance(output_name, str):
-            output_name = get_unique_identifier()
-        self.pmg.materialize(self.index, output_name)
-        remote_manager = get_remote_manager()
-        if (download_path is None) and all_load:
-            download_path = get_new_dataset_tmp_folder()
-        result = remote_manager.execute_remote_all(output_path=download_path)
-        if len(result) == 1: #TODO: change this!!!
-            path = result[0]
-            return Loader.load_from_path(local_path=path, all_load=all_load)
-
-    def _materialize_local(self, output_path=None):
-        regs = None
-        meta = None
-        if output_path is not None:
-            # check that the folder does not exists
-            if os.path.isdir(output_path):
-                shutil.rmtree(output_path)
-
-            self.pmg.materialize(self.index, output_path)
-            self.pmg.execute()
-            # taking in memory the data structure
-            real_path = os.path.join(output_path, 'exp')
-            # metadata
-            meta = MetaLoaderFile.load_meta_from_path(real_path)
-            # region data
-            regs = RegLoaderFile.load_reg_from_path(real_path)
-
-        else:
-            # We load the structure directly from the memory
-            collected = self.pmg.collect(self.index)
-            regs = MemoryLoader.load_regions(collected)
-            meta = MemoryLoader.load_metadata(collected)
-
-        result = GDataframe.GDataframe(regs=regs, meta=meta)
-        return result
 
     def take(self, n=5):
         """ Returns a small set of regions and metadata from a query. It is supposed to
@@ -999,79 +1208,76 @@ class GMQLDataset:
         serialized_dag = self.pmg.serializeVariable(self.index)
         return serialized_dag
 
+    @staticmethod
+    def __combine_sources(d1, d2):
+        if (not isinstance(d1, GMQLDataset)) or (not isinstance(d2, GMQLDataset)):
+            raise TypeError("The function takes only GMQLDataset")
+        local_sources_1 = d1._local_sources
+        remote_sources_1 = d1._remote_sources
+        local_sources_2 = d2._local_sources
+        remote_sources_2 = d2._remote_sources
 
-def combine_sources(d1, d2):
-    if (not isinstance(d1, GMQLDataset)) or (not isinstance(d2, GMQLDataset)):
-        raise TypeError("The function takes only GMQLDataset")
-    local_sources_1 = d1._local_sources
-    remote_sources_1 = d1._remote_sources
-    local_sources_2 = d2._local_sources
-    remote_sources_2 = d2._remote_sources
+        new_local_sources = list(set(local_sources_1 + local_sources_2))
+        new_remote_sources = list(set(remote_sources_1 + remote_sources_2))
 
-    new_local_sources = list(set(local_sources_1 + local_sources_2))
-    new_remote_sources = list(set(remote_sources_1 + remote_sources_2))
+        return new_local_sources, new_remote_sources
 
-    return new_local_sources, new_remote_sources
+    @staticmethod
+    def __combine_locations(d1, d2):
+        if (not isinstance(d1, GMQLDataset)) or (not isinstance(d2, GMQLDataset)):
+            raise TypeError("The function takes only GMQLDataset")
 
+        location_1 = d1.location
+        location_2 = d2.location
 
-def combine_locations(d1, d2):
-    if (not isinstance(d1, GMQLDataset)) or (not isinstance(d2, GMQLDataset)):
-        raise TypeError("The function takes only GMQLDataset")
+        if location_1 == location_2:
+            return location_1
+        else:
+            return "mixed"
 
-    location_1 = d1.location
-    location_2 = d2.location
+    def __modify_dag(self, mode):
+        remote_manager = get_remote_manager()
+        index = self.index
+        pmg = get_python_manager()
+        sources = _get_source_table()
+        # create a new id having the exact same DAG inside, for modification
+        new_index = pmg.cloneVariable(index)
+        if mode == "local":
+            for d in self._remote_sources:
+                # for each remote source, we have to download it locally in a temporary folder
+                local, remote = sources.get_source(id=d)
+                if local is None:
+                    new_name = get_new_dataset_tmp_folder()
+                    remote_manager.download_dataset(dataset_name=d, local_path=new_name, how="stream")
+                    sources.modify_source(id=d, local=new_name)
+                else:
+                    new_name = local
+                pmg.modify_dag_source(new_index, str(d), new_name)
+            for d in self._local_sources:
+                # for each local source, just take its path
+                local, remote = sources.get_source(id=d)
+                if local is None:
+                    raise ValueError("Impossible state. Local source must have a local path")
+                else:
+                    pmg.modify_dag_source(new_index, str(d), local)
+        elif mode == "remote":
+            for d in self._local_sources:
+                # for each local source, we have to upload it remotely
+                local, remote = sources.get_source(id=d)
+                if remote is None:
+                    new_name = get_unique_identifier()
+                    remote_manager.upload_dataset(dataset=local, dataset_name=new_name)
+                    sources.modify_source(id=d, remote=new_name)
+                else:
+                    new_name = remote
+                pmg.modify_dag_source(new_index, str(d), new_name)
+            for d in self._remote_sources:
+                local, remote = sources.get_source(id=d)
+                if remote is None:
+                    raise ValueError("Impossible state. Remote source must have a remote name")
+                else:
+                    pmg.modify_dag_source(new_index, str(d), remote)
+        else:
+            raise ValueError("Unknown mode {}".format(mode))
 
-    if location_1 == location_2:
-        return location_1
-    else:
-        return "mixed"
-
-
-def modify_dag(mode, dataset):
-    if not isinstance(dataset, GMQLDataset):
-        raise TypeError("The function takes only GMQLDataset")
-    remote_manager = get_remote_manager()
-    index = dataset.index
-    pmg = get_python_manager()
-    sources = _get_source_table()
-    # create a new id having the exact same DAG inside, for modification
-    new_index = pmg.cloneVariable(index)
-    if mode == "local":
-        for d in dataset._remote_sources:
-            # for each remote source, we have to download it locally in a temporary folder
-            local, remote = sources.get_source(id=d)
-            if local is None:
-                new_name = get_new_dataset_tmp_folder()
-                remote_manager.download_dataset(dataset_name=d, local_path=new_name, how="stream")
-                sources.modify_source(id=d, local=new_name)
-            else:
-                new_name = local
-            pmg.modify_dag_source(new_index, str(d), new_name)
-        for d in dataset._local_sources:
-            # for each local source, just take its path
-            local, remote  = sources.get_source(id=d)
-            if local is None:
-                raise ValueError("Impossible state. Local source must have a local path")
-            else:
-                pmg.modify_dag_source(new_index, str(d), local)
-    elif mode == "remote":
-        for d in dataset._local_sources:
-            # for each local source, we have to upload it remotely
-            local, remote = sources.get_source(id=d)
-            if remote is None:
-                new_name = get_unique_identifier()
-                remote_manager.upload_dataset(dataset=local, dataset_name=new_name)
-                sources.modify_source(id=d, remote=new_name)
-            else:
-                new_name = remote
-            pmg.modify_dag_source(new_index, str(d), new_name)
-        for d in dataset._remote_sources:
-            local, remote = sources.get_source(id=d)
-            if remote is None:
-                raise ValueError("Impossible state. Remote source must have a remote name")
-            else:
-                pmg.modify_dag_source(new_index, str(d), remote)
-    else:
-        raise ValueError("Unknown mode {}".format(mode))
-
-    return new_index
+        return new_index
