@@ -15,7 +15,14 @@ class COUNT(Aggregate):
     :func:`~gmql.dataset.GMQLDataset.GMQLDataset.map` operation
     """
     def __init__(self):
-        super(COUNT, self).__init__("COUNT", "")
+        super(COUNT, self).__init__("COUNT")
+
+
+class COUNTSAMP(Aggregate):
+    """ Counts the number of samples in the group.
+    """
+    def __init__(self):
+        super(COUNTSAMP, self).__init__("COUNTSAMP")
 
 
 class SUM(Aggregate):
@@ -47,11 +54,19 @@ class AVG(Aggregate):
 
 
 class BAG(Aggregate):
-    """ Creates space-separated string of distinct attribute values for the specified attribute.
+    """ Creates space-separated string of attribute values for the specified attribute.
     It is applicable to attributes of any type.
     """
     def __init__(self, argument):
         super(BAG, self).__init__("BAG", argument)
+
+
+class BAGD(Aggregate):
+    """ Creates space-separated string of DISTINCT attribute values for the specified attribute.
+    It is applicable to attributes of any type.
+    """
+    def __init__(self, argument):
+        super(BAGD, self).__init__("BAGD", argument)
 
 
 class STD(Aggregate):
