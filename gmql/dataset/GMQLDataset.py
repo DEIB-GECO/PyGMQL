@@ -324,6 +324,8 @@ class GMQLDataset:
                 if isinstance(k, str):
                     if isinstance(item, RegField):
                         re = expBuild.createRegionExtension(k, item.getRegionExpression())
+                    elif isinstance(item, MetaField):
+                        re = expBuild.createRegionExtension(k, item.reMetaNode)
                     elif isinstance(item, int):
                         re = expBuild.createRegionExtension(k, expBuild.getREType("float", str(item)))
                     elif isinstance(item, str):
@@ -754,7 +756,7 @@ class GMQLDataset:
 
         aggregates = []
         if isinstance(new_reg_fields, dict):
-            expBuild = self.pmg.getNewExpressionBuilder(self.index)
+            expBuild = self.pmg.getNewExpressionBuilder(experiment.index)
             for k in new_reg_fields.keys():
                 if isinstance(k, str):
                     item = new_reg_fields[k]
