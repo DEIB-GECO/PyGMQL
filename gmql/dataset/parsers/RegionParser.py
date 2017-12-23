@@ -65,6 +65,7 @@ class RegionParser:
             otherPosGmql = Some(convert_to_gmql(otherPos))
         else:
             otherPosGmql = none()
+            self.otherPos = None
 
         pmg = get_python_manager()
 
