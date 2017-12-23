@@ -1,5 +1,6 @@
 from .. import GMQLDataset, GDataframe
 import os, shutil
+from glob import glob
 from ... import get_python_manager, get_remote_manager
 from . import MetaLoaderFile, RegLoaderFile, MemoryLoader, Loader
 from ...FileManagment.TempFileManager import get_unique_identifier, get_new_dataset_tmp_folder
@@ -50,6 +51,8 @@ def materialize_local(id, output_path=None):
 
         # taking in memory the data structure
         real_path = os.path.join(output_path, 'exp')
+
+        remove_side_effects(real_path)
         # metadata
         meta = MetaLoaderFile.load_meta_from_path(real_path)
         # region data
@@ -62,6 +65,11 @@ def materialize_local(id, output_path=None):
 
     result = GDataframe.GDataframe(regs=regs, meta=meta)
     return result
+
+
+def remove_side_effects(path):
+    for f in glob(os.path.join(path, ".*")) + glob(os.path.join(path, "_*")):
+        os.remove(f)
 
 
 def materialize_remote(id, output_name=None, download_path=None, all_load=True):
