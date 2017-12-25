@@ -1250,7 +1250,7 @@ class GMQLDataset:
                 local, remote = sources.get_source(id=d)
                 if local is None:
                     new_name = get_new_dataset_tmp_folder()
-                    remote_manager.download_dataset(dataset_name=d, local_path=new_name, how="stream")
+                    remote_manager.download_dataset(dataset_name=remote, local_path=new_name, how="stream")
                     sources.modify_source(id=d, local=new_name)
                 else:
                     new_name = local
@@ -1267,7 +1267,7 @@ class GMQLDataset:
                 # for each local source, we have to upload it remotely
                 local, remote = sources.get_source(id=d)
                 if remote is None:
-                    new_name = get_unique_identifier()
+                    new_name = "LOCAL_" + get_unique_identifier()
                     remote_manager.upload_dataset(dataset=local, dataset_name=new_name)
                     sources.modify_source(id=d, remote=new_name)
                 else:
