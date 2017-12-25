@@ -110,10 +110,12 @@ class RegionParser:
         return res
 
     def _parse_tab_regions(self, path):
+        types = self.get_name_type_dict()
+        types.pop("strand")
         df = pd.read_csv(filepath_or_buffer=open(path), na_values=null_values,
                          header=None,
                          names=self.get_ordered_attributes(),
-                         dtype=self.get_name_type_dict(),
+                         dtype=types,
                          sep=self.delimiter,
                          converters={'strand': self.parse_strand})
         return df
@@ -131,10 +133,12 @@ class RegionParser:
                     res[attr_name] = attr_value
             return res
         actual_attributes = self.get_ordered_attributes()[:8] + ['attributes']
+        types = self.get_name_type_dict()
+        types.pop("strand")
         df = pd.read_csv(filepath_or_buffer=open(path), sep=self.delimiter,
                          na_values=null_values,
                          names=actual_attributes,
-                         dtype=self.get_name_type_dict(),
+                         dtype=types,
                          converters={'strand': self.parse_strand})
         df = pd.concat([df, pd.DataFrame(df.attributes.map(split_attributes).tolist())], axis=1)\
             .drop("attributes", axis=1)
