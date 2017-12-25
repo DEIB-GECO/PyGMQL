@@ -110,5 +110,5 @@ def analyze_line(line, d):
             # between int and float...float always wins
             elif (current_type == int and value_type == float) or \
                  (current_type == float and value_type == int):
-                d[name][0] = (float, d[name][1])
+                d[name] = (float, d[name][1])
         d[name][1].add(value_type(value))
