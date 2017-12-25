@@ -25,7 +25,7 @@ def initialize_tmp_folders():
 
 
 def get_unique_identifier():
-    return str(uuid.uuid4())
+    return str(uuid.uuid4()).replace("-", "_")
 
 
 def get_new_dataset_tmp_folder():
