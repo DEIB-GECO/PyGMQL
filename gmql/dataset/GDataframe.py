@@ -5,7 +5,7 @@ from .DataStructures import reg_fixed_fileds, \
     strand_aliases, stop_aliases, start_aliases, chr_aliases, id_sample_aliases
 import numpy as np
 from ..FileManagment import TempFileManager
-from ..ml.genometric_space import GenometricSpace
+# from ..ml.genometric_space import GenometricSpace
 
 chr_types = [object, str]
 start_types = [int, np.int, np.int8, np.int16, np.int32, np.int64]
@@ -41,12 +41,12 @@ class GDataframe:
         self.regs = regs
         self.meta = meta
 
-    def to_genomic_space(self):
-        """ Translates the GDataframe to the Genomic Space data structure
-
-        :return: a GenometricSpace object
-        """
-        return GenometricSpace.from_memory(self.regs, self.meta)
+    # def to_genomic_space(self):
+    #     """ Translates the GDataframe to the Genomic Space data structure
+    #
+    #     :return: a GenometricSpace object
+    #     """
+    #     return GenometricSpace.from_memory(self.regs, self.meta)
 
     def to_dataset_files(self, local_path=None, remote_path=None):
         """ Save the GDataframe to a local or remote location
