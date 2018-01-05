@@ -81,6 +81,7 @@ def materialize_remote(id, output_name=None, download_path=None, all_load=True):
     if (download_path is None) and all_load:
         download_path = get_new_dataset_tmp_folder()
     result = remote_manager.execute_remote_all(output_path=download_path)
+    pmg.getServer().clearMaterializationList()
     if len(result) == 1:  # TODO: change this!!!
         path = result[0]
         return Loader.load_from_path(local_path=path, all_load=all_load)
