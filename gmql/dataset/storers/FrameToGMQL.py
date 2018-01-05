@@ -51,7 +51,7 @@ def to_local(gframe, path_local):
 def meta_to_file(meta_df, filename):
     f = open(filename, "w")
     # the dataframe is only one line
-    d = meta_df.to_dict()
+    d = meta_df.iloc[0].to_dict()
 
     for k in d.keys():
         line_template = "{}\t{}\n"
