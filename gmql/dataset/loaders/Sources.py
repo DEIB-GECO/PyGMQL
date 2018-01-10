@@ -2,6 +2,7 @@ import pandas as pd
 
 LOCAL = "local"
 REMOTE = "remote"
+PARSER = "parser"
 
 
 class SourcesTable:
@@ -10,18 +11,18 @@ class SourcesTable:
     detected to send or download data sources to/from the remote server.
     """
     def __init__(self):
-        self.table = pd.DataFrame(columns=[LOCAL, REMOTE])
+        self.table = pd.DataFrame(columns=[LOCAL, REMOTE, PARSER])
         self.id_count = 0
 
-    def add_source(self, local=None, remote=None):
-        self.table.loc[self.id_count] = {LOCAL: local, REMOTE: remote}
+    def add_source(self, local=None, remote=None, parser=None):
+        self.table.loc[self.id_count] = {LOCAL: local, REMOTE: remote, PARSER: parser}
         result = self.id_count
         self.id_count += 1
         return result
 
     def get_source(self, id):
-        res = self.table.loc[id]
-        return res[LOCAL], res[REMOTE]
+        res = self.table.loc[id].to_dict()
+        return res
 
     def modify_source(self, id, local=None, remote=None):
         if local is not None:
