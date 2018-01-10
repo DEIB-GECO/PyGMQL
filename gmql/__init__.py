@@ -324,14 +324,19 @@ def login():
     global remote_manager, remote_address, __session_manager
     res = __session_manager.get_session(remote_address)
     if res is None:
-        # there is no session for this address
+        # there is no session for this address, let's login as guest
         rm = RemoteManager(address=remote_address)
         rm.login()
         session_type = "guest"
     else:
+        # there is a previous session for this address, let's do an auto login
+        # using that access token
         rm = RemoteManager(address=remote_address, auth_token=res[1])
+        # if the access token is not valid anymore (therefore we are in guest mode)
+        # the auto_login function will perform a guest login from scratch
         rm.auto_login(how=res[2])
         session_type = res[2]
+    # store the new session
     remote_manager = rm
     access_time = int(time.time())
     auth_token = rm.auth_token
