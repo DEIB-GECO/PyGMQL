@@ -4,6 +4,7 @@ import logging
 
 from ..parsers.MetadataParser import GenericMetaParser
 from . import generateNameKey
+from ..DataStructures.MetaValues import MetaValues
 import os
 import pandas as pd
 
@@ -42,7 +43,7 @@ def to_pandas(meta_list):
         from ... import __disable_progress
         for col in tqdm(columns, total=len(columns), disable=__disable_progress):
             if col != 'id_sample':
-                result_df[col] = g[col].apply(to_list)
+                result_df[col] = g[col].apply(to_MetaValues)
     else:
         result_df = pd.DataFrame()
         result_df.index.name = "id_sample"
@@ -57,3 +58,7 @@ def to_list(x):
     l = list(x)
     l = [a for a in l if not pd.isnull(a)]
     return l
+
+
+def to_MetaValues(x):
+    return MetaValues(set(to_list(x)))
