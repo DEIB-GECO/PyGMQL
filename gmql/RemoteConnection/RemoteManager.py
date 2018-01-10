@@ -264,7 +264,7 @@ class RemoteManager:
                             coordinate_system=coordinates_system,
                             delimiter="\t", parser_name=name)
 
-    def upload_dataset(self, dataset, dataset_name):
+    def upload_dataset(self, dataset, dataset_name, schema_path=None):
         """ Upload to the repository an entire dataset from a local path
 
         :param dataset: the local path of the dataset
@@ -287,7 +287,9 @@ class RemoteManager:
         if not isinstance(dataset, str):
             raise TypeError("Dataset can be a path or a GDataframe. {} was passed".format(type(dataset)))
 
-        file_paths, schema_path = Loader.get_file_paths(dataset)
+        file_paths, schema_path_found = Loader.get_file_paths(dataset)
+        if schema_path is None:
+            schema_path = schema_path_found
         fields['schema'] = (os.path.basename(schema_path), open(schema_path, "rb"), 'application/octet-stream')
         for i, file in enumerate(file_paths):
             fields["file"+str(i + 1)] = (os.path.basename(file), open(file, "rb"), 'application/octet-stream')
@@ -563,15 +565,22 @@ def create_callback(encoder, n_files=None):
     else:
         tot_len = encoder_len
 
-    bar = tqdm(total=tot_len, disable=not is_progress_enabled())
+    if is_progress_enabled():
+        bar = tqdm(total=tot_len)
 
-    if n_files is not None:
+        if n_files is not None:
+            def callback(monitor):
+                bar.update(max(int((monitor.bytes_read / byte_per_file) - bar.n), 0))
+
+            return callback
+
         def callback(monitor):
-            bar.update(max(int((monitor.bytes_read / byte_per_file) - bar.n), 0))
+            bar.update(monitor.bytes_read - bar.n)
 
         return callback
+    else:
+        def callback(monitor):
+            pass
+        return callback
 
-    def callback(monitor):
-        bar.update(monitor.bytes_read - bar.n)
 
-    return callback
