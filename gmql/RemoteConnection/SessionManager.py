@@ -1,6 +1,7 @@
 import os
 import xml.etree.ElementTree as ET
 from ..FileManagment.SessionFileManager import get_user_dir
+from xml.dom import minidom
 
 SESSIONS_TAG = "sessions"
 SESSION_TAG = "session"
@@ -18,6 +19,9 @@ class SessionManager:
 
     def add_session(self, address, auth_token, time, type):
         self.sessions[address] = (time, auth_token, type)
+
+    def remove_session(self, address):
+        self.sessions.pop(address)
 
     def get_session(self, address=None):
         # if there is no session
@@ -74,5 +78,9 @@ def store_sessions(sessions):
         type_node = ET.SubElement(session_node, TYPE_TAG)
         type_node.text = s_type
 
-    tree = ET.ElementTree(sessions_node)
-    tree.write(session_file_path)
+    # tree = ET.ElementTree(sessions_node)
+    rough_string = ET.tostring(sessions_node, encoding="utf-8")
+    reparsed = minidom.parseString(rough_string)
+    pretty_string = reparsed.toprettyxml()
+    with open(session_file_path, "w") as f:
+        f.write(pretty_string)
