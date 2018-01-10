@@ -10,7 +10,8 @@ from .import GDataframe
 from .loaders import MemoryLoader, MetadataProfiler
 from ..FileManagment.TempFileManager import get_unique_identifier, get_new_dataset_tmp_folder
 from .loaders.Sources import PARSER, LOCAL, REMOTE
-
+from .storers.parserToXML import parserToXML
+import os
 
 class GMQLDataset:
     """
@@ -1275,7 +1276,11 @@ class GMQLDataset:
                 parser = d_sources[PARSER]
                 if remote is None:
                     new_name = "LOCAL_" + get_unique_identifier()
-                    remote_manager.upload_dataset(dataset=local, dataset_name=new_name)
+                    schema_dir = get_new_dataset_tmp_folder()
+                    os.makedirs(schema_dir)
+                    schema_tmp_path = os.path.join(schema_dir, new_name + ".schema")
+                    parserToXML(parser, new_name, schema_tmp_path)
+                    remote_manager.upload_dataset(dataset=local, dataset_name=new_name, schema_path=schema_tmp_path)
                     sources.modify_source(id=d, remote=new_name)
                 else:
                     new_name = remote
