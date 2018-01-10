@@ -65,12 +65,6 @@ def load_from_path(local_path=None, parser=None,  all_load=False):
 
         return GDataframe.GDataframe(regs=regs, meta=meta)
     else:
-        source_table = _get_source_table()
-        id = source_table.search_source(local=local_path)
-        if id is None:
-            id = source_table.add_source(local=local_path)
-        local_sources = [id]
-
         from ... import _metadata_profiling
         if _metadata_profiling:
             meta_profile = create_metadata_profile(local_path)
@@ -78,18 +72,19 @@ def load_from_path(local_path=None, parser=None,  all_load=False):
             meta_profile = None
 
         index = None
-        if parser is not None:
-            if type(parser) is str:
-                index = pmg.read_dataset(str(id), parser)
-            elif isinstance(parser, RegionParser):
-                index = pmg.read_dataset(str(id), parser.get_gmql_parser())
-            else:
-                raise ValueError("parser must be a string or a Parser")
-        else:
+        if parser is None:
             # find the parser
             parser = RegLoaderFile.get_parser(local_path)
-            index = pmg.read_dataset(str(id), parser.get_gmql_parser())
+        elif not isinstance(parser, RegionParser):
+            raise ValueError("parser must be RegionParser. {} was provided".format(type(parser)))
 
+        source_table = _get_source_table()
+        id = source_table.search_source(local=local_path)
+        if id is None:
+            id = source_table.add_source(local=local_path, parser=parser)
+        local_sources = [id]
+
+        index = pmg.read_dataset(str(id), parser.get_gmql_parser())
         return GMQLDataset.GMQLDataset(index=index, parser=parser,
                                        location="local", path_or_name=local_path,
                                        local_sources=local_sources,
@@ -111,7 +106,7 @@ def load_from_remote(remote_name, owner=None):
     source_table = _get_source_table()
     id = source_table.search_source(remote=remote_name)
     if id is None:
-        id = source_table.add_source(remote=remote_name)
+        id = source_table.add_source(remote=remote_name, parser=parser)
     index = pmg.read_dataset(str(id), parser.get_gmql_parser())
     remote_sources = [id]
     return GMQLDataset.GMQLDataset(index=index, location="remote", path_or_name=remote_name,

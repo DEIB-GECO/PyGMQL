@@ -9,6 +9,9 @@ from .DataStructures import reg_fixed_fileds
 from .import GDataframe
 from .loaders import MemoryLoader, MetadataProfiler
 from ..FileManagment.TempFileManager import get_unique_identifier, get_new_dataset_tmp_folder
+from .loaders.Sources import PARSER, LOCAL, REMOTE
+from .storers.parserToXML import parserToXML
+import os
 
 
 class GMQLDataset:
@@ -1247,7 +1250,9 @@ class GMQLDataset:
         if mode == "local":
             for d in self._remote_sources:
                 # for each remote source, we have to download it locally in a temporary folder
-                local, remote = sources.get_source(id=d)
+                d_sources = sources.get_source(id=d)
+                local = d_sources[LOCAL]
+                remote = d_sources[REMOTE]
                 if local is None:
                     new_name = get_new_dataset_tmp_folder()
                     remote_manager.download_dataset(dataset_name=remote, local_path=new_name, how="stream")
@@ -1257,7 +1262,8 @@ class GMQLDataset:
                 pmg.modify_dag_source(new_index, str(d), new_name)
             for d in self._local_sources:
                 # for each local source, just take its path
-                local, remote = sources.get_source(id=d)
+                d_sources = sources.get_source(id=d)
+                local = d_sources[LOCAL]
                 if local is None:
                     raise ValueError("Impossible state. Local source must have a local path")
                 else:
@@ -1265,16 +1271,24 @@ class GMQLDataset:
         elif mode == "remote":
             for d in self._local_sources:
                 # for each local source, we have to upload it remotely
-                local, remote = sources.get_source(id=d)
+                d_sources = sources.get_source(id=d)
+                local = d_sources[LOCAL]
+                remote = d_sources[REMOTE]
+                parser = d_sources[PARSER]
                 if remote is None:
                     new_name = "LOCAL_" + get_unique_identifier()
-                    remote_manager.upload_dataset(dataset=local, dataset_name=new_name)
+                    schema_dir = get_new_dataset_tmp_folder()
+                    os.makedirs(schema_dir)
+                    schema_tmp_path = os.path.join(schema_dir, new_name + ".schema")
+                    parserToXML(parser, new_name, schema_tmp_path)
+                    remote_manager.upload_dataset(dataset=local, dataset_name=new_name, schema_path=schema_tmp_path)
                     sources.modify_source(id=d, remote=new_name)
                 else:
                     new_name = remote
                 pmg.modify_dag_source(new_index, str(d), new_name)
             for d in self._remote_sources:
-                local, remote = sources.get_source(id=d)
+                d_sources = sources.get_source(id=d)
+                remote = d_sources[REMOTE]
                 if remote is None:
                     raise ValueError("Impossible state. Remote source must have a remote name")
                 else:

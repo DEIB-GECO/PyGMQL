@@ -109,4 +109,5 @@ def get_parser(path):
 
 
 def get_schema_path(path):
-    return (glob(pathname=path + '/*.schema') + glob(pathname=path + "/schema.xml"))[0]
+    schema_paths = (glob(pathname=path + '/*.schema') + glob(pathname=path + "/schema.xml"))
+    return schema_paths[0] if len(schema_paths) > 0 else None
