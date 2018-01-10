@@ -22,15 +22,16 @@ good_status = ['PENDING', 'RUNNING', 'DS_CREATION_RUNNING']
 class RemoteManager:
     """ Manager of the user connection with the remote GMQL service
     """
-    def __init__(self, address=None):
+    def __init__(self, address=None, auth_token=None):
         """ Instantiate a new RemoteManager. If no address is provided, the default address will
         be used, which represents the current server hosted by the Dept. of Electronics, Information
         and Bioengineering of Politecnico di Milano.
 
         :param address: (optional) the address of the remote GMQL service
         """
+
+        # checking of the address
         if address is None:
-            # normalize the address
             self.address = default_address
         elif isinstance(address, str):
             address = address.strip()
@@ -42,13 +43,30 @@ class RemoteManager:
             raise TypeError("The remote URL must be a string."
                             " {} was provided".format(type(address)))
 
-        # checking the existance of the remote service
+        # checking the existence of the remote service
         req = requests.get(self.address + "/")
         if req.status_code != 200:
             raise ConnectionError("The server at {} is not responding".format(self.address))
 
         self.logger = logging.getLogger("PyGML logger")
-        self.auth_token = None
+
+        # checking of the auth_token
+        if auth_token is not None:
+            header = self.__get_header(auth_token)
+            url = self.address + "/datasets"
+            response = requests.get(url, headers=header)
+            if response.status_code == 200:
+                # the auth_token is valid
+                # print("VALID AUTH TOKEN")
+                self.auth_token = auth_token
+            elif response.status_code == 401 and \
+                response.json().get("error") == 'UnAuthenticatedRequest':
+                # print("NOT-VALID AUTH TOKEN")
+                self.auth_token = None
+            else:
+                raise ValueError("Unknown state. {} ".format(response.status_code))
+        else:
+            self.auth_token = None
         self.json_encoder = json.JSONEncoder()
 
     """
@@ -92,10 +110,16 @@ class RemoteManager:
             raise ValueError("you have to specify both username and password or nothing")
 
         if auth_token is not None:
-            self.logger.info("Auth-token: {}".format(auth_token))
             self.auth_token = auth_token
         else:
             raise ConnectionError("Impossible to retrieve the authentication token")
+
+    def auto_login(self, how="guest"):
+        if self.auth_token is None:
+            if how == 'guest':
+                self.auth_token = self.__login_guest()
+            else:
+                raise ValueError("Error when using the stored authentication Token")
 
     def __login_guest(self):
         url = self.address + "/guest"
@@ -121,11 +145,15 @@ class RemoteManager:
             fullName = response.get("fullName")
         return auth_token, fullName
 
+    @staticmethod
+    def __get_header(auth_token):
+        header = headers.copy()
+        header['X-AUTH-TOKEN'] = auth_token
+        return header
+
     def __check_authentication(self):
         if self.auth_token is not None:
-            header = headers.copy()
-            header['X-AUTH-TOKEN'] = self.auth_token
-            return header
+            return self.__get_header(self.auth_token)
         else:
             raise EnvironmentError("you first need to login before doing operations")
 

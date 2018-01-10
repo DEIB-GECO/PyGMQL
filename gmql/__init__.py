@@ -2,6 +2,7 @@
 Setting up the environment of the library
 """
 import logging
+import time
 import os
 import sys
 import atexit
@@ -10,8 +11,10 @@ from py4j.java_gateway import JavaGateway, launch_gateway, GatewayParameters
 from py4j.java_collections import ListConverter
 from .FileManagment import TempFileManager
 from pkg_resources import resource_filename
+from .RemoteConnection.SessionManager import load_sessions, store_sessions
 from tqdm import tqdm
 import requests
+from .FileManagment.SessionFileManager import initialize_user_folder
 
 """
     Version management
@@ -248,9 +251,10 @@ def start():
 
 
 def stop():
-    global gateway
+    global gateway, __session_manager
     # flushing the tmp files
     TempFileManager.flush_everything()
+    store_sessions(__session_manager.sessions)
     if gateway is not None:
         gateway.shutdown()
 
@@ -289,6 +293,15 @@ def Some(thing):
 remote_manager = None
 remote_address = None
 
+__session_manager = None
+__session_type = None
+__access_time = None
+
+
+def __initialize_session_manager():
+    global __session_manager
+    __session_manager = load_sessions()
+
 
 def get_remote_manager():
     """ Returns the current remote manager
@@ -299,22 +312,30 @@ def get_remote_manager():
     return remote_manager
 
 
-def __initialize_remote_manager(address=None):
-    global remote_manager
-    remote_manager = RemoteManager(address)
+def get_session_manager():
+    global __session_manager
+    return __session_manager
 
 
-def login(username=None, password=None):
+def login():
     """ Enables the user to login to the remote GMQL service.
     If both username and password are None, the user will be connected as guest.
-
-    :param username: (optional) the username
-    :param password: (optional) the password
-    :return: None
     """
-    global remote_manager, remote_address
-    remote_manager = RemoteManager(address=remote_address)
-    remote_manager.login(username, password)
+    global remote_manager, remote_address, __session_manager
+    res = __session_manager.get_session(remote_address)
+    if res is None:
+        # there is no session for this address
+        rm = RemoteManager(address=remote_address)
+        rm.login()
+        session_type = "guest"
+    else:
+        rm = RemoteManager(address=remote_address, auth_token=res[1])
+        rm.auto_login(how=res[2])
+        session_type = res[2]
+    remote_manager = rm
+    access_time = int(time.time())
+    auth_token = rm.auth_token
+    __session_manager.add_session(remote_address, auth_token, access_time, session_type)
 
 
 def set_remote_address(address):
@@ -407,4 +428,6 @@ from .RemoteConnection.RemoteManager import RemoteManager
 
 # __initialize_remote_manager()
 __initialize_source_table()
+initialize_user_folder()
+__initialize_session_manager()
 
