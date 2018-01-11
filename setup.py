@@ -33,7 +33,7 @@ setup(name='gmql',
       scripts=['scripts/pygmql_login.py', 'scripts/pygmql_win.bat', 'scripts/pygmql.sh'],
       install_requires=['pandas', 'tqdm', 'numpy', 'py4j',
                         'psutil', 'requests', 'requests-toolbelt', 'sklearn',
-                        'pyclustering','matplotlib','scipy','wordcloud', 'fancyimpute', 'strconv'],
+                        'pyclustering', 'matplotlib', 'scipy', 'wordcloud', 'fancyimpute', 'strconv'],
       classifiers=[
             'Development Status :: 3 - Alpha',
             'Intended Audience :: Science/Research',
