@@ -68,3 +68,31 @@ Once the tool is executed the following information will be asked:
 * *Username*
 * *Password*
 
+-------------
+Library modes
+-------------
+
+The library mode can be setted in the following way::
+
+    gl.set_mode("remote") # remote processing of the following operations
+    gl.set_mode("local")  # local processing of the following operations
+
+Notice that the :meth:`~gmql.set_mode` will act only on the following :meth:`~gmql.dataset.GMQLDataset.GMQLDataset.materialize`
+operations while the previous ones will be performed with the previous setted modality.
+
+The default mode of PyGMQL is local.
+
+=========================
+The remote execution mode
+=========================
+When the user sets the remote mode and calls the :meth:`~gmql.dataset.GMQLDataset.GMQLDataset.materialize` operation, the
+following actions will be performed
+
+1. The local datasets that are used are uploaded to the remote service. Nothing is done to the remote datasets used in the query (if present)
+   since they are already on the server.
+2. A compressed representation of the query is sent to the remote service, decoded and executed
+3. Once the execution is complete, the results are downloaded, stored and loaded into a :meth:`~gmql.dataset.GDataframe.GDataframe`.
+
+.. image:: images/remote.png
+
+
