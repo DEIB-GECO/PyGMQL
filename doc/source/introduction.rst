@@ -84,3 +84,5 @@ These dataframes are structured as follows:
     * The metadata dataframe has one row for each sample in the dataset. Each column represent
       a different metadata attribute. Each cell of this dataframe represent the values of a
       specific metadata for that specific sample. Multiple values are allowed for each cell.
+
+.. image:: images/GMQLDataset_to_GDataframe.png
