@@ -14,6 +14,7 @@ from ..FileManagment import TempFileManager
 import os, zipfile
 from tqdm import tqdm
 from ..dataset.storers.parserToXML import parserToXML
+import warnings
 
 
 good_status = ['PENDING', 'RUNNING', 'DS_CREATION_RUNNING']
@@ -116,10 +117,14 @@ class RemoteManager:
 
     def auto_login(self, how="guest"):
         if self.auth_token is None:
-            if how == 'guest':
-                self.auth_token = self.__login_guest()
-            else:
-                raise ValueError("Error when using the stored authentication Token")
+            if how != 'guest':
+                warnings.warn("The authentication token for your account is expired. "
+                              "You need to redo the login using the pygmql tool. "
+                              "For now you will be logged as guest user")
+            self.auth_token = self.__login_guest()
+            return "guest"
+        else:
+            return how
 
     def __login_guest(self):
         url = self.address + "/guest"
