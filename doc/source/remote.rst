@@ -8,7 +8,7 @@ PyGMQL also manages the execution through a remote server (or cluster). In order
 feature the user needs to login to the remote service before.
 
 The web service offered by the GeCo group at Politecnico di Milano can be found at
-http://genomic.elet.polimi.it/gmql-rest-test/
+http://genomic.elet.polimi.it/gmql-rest/
 
 ---------
 Loggin in
@@ -17,7 +17,7 @@ Loggin in
 This can be done by firstly specifying the remote server address::
 
     import gmql as gl
-    gl.set_remote_address("http://genomic.elet.polimi.it/gmql-rest-test/")
+    gl.set_remote_address("http://genomic.elet.polimi.it/gmql-rest/")
 
 and then by logging in into the system::
 
