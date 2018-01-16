@@ -1,0 +1,11 @@
+language: python
+python:
+  - "3.6"
+
+# command to install dependencies
+install:
+  - pip install numpy
+  - pip install .
+
+# command to run tests
+script: python scripts/build_test.py
