@@ -1,4 +1,4 @@
-# GMQL-Python
+# PyGMQL
 API for calling interactively the GMQL Engine from Python
 
 [![Documentation Status](https://readthedocs.org/projects/pygmql/badge/?version=latest)](http://pygmql.readthedocs.io/en/latest/?badge=latest)
