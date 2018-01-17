@@ -1,1 +1,1 @@
-include gmql/resources/*
+recursive-include gmql/resources *
