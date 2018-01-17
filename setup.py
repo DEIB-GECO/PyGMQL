@@ -29,11 +29,11 @@ setup(name='gmql',
       maintainer_email="tuncel.manil@gmail.com",
       license='MIT',
       download_url='{}/tarball/{}'.format(github_url, version),
-      packages=find_packages(),
+      packages=find_packages(exclude=("gmql.ml",)),     # temporary
       scripts=['scripts/pygmql_login.py', 'scripts/pygmql_win.bat', 'scripts/pygmql.sh'],
-      install_requires=['pandas', 'tqdm', 'numpy', 'py4j',
-                        'psutil', 'requests', 'requests-toolbelt', 'sklearn',
-                        'pyclustering', 'matplotlib', 'scipy', 'wordcloud', 'fancyimpute', 'strconv'],
+      install_requires=['pandas', 'tqdm', 'numpy', 'py4j', 'requests', 'requests-toolbelt', 'strconv',
+                        # 'sklearn', 'pyclustering', 'matplotlib', 'scipy', 'wordcloud', 'fancyimpute'   # temporary
+                        ],
       classifiers=[
             'Development Status :: 3 - Alpha',
             'Intended Audience :: Science/Research',
