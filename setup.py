@@ -23,10 +23,10 @@ setup(name='gmql',
       long_description="PyGMQL is a python module that enables the user "
                        "to perform operation on genomic data in a scalable way.",
       url=github_url,
-      author='Luca Nanni, Mustafa Anil Tuncel',
+      author='Luca Nanni',
       author_email='lucananni93dev@gmail.com',
-      maintainer="Mustafa Anil Tuncel",
-      maintainer_email="tuncel.manil@gmail.com",
+      # maintainer="Mustafa Anil Tuncel",
+      # maintainer_email="tuncel.manil@gmail.com",
       license='MIT',
       download_url='{}/tarball/{}'.format(github_url, version),
       packages=find_packages(exclude=("gmql.ml",)),     # temporary
