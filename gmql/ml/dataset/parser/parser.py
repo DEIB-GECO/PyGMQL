@@ -181,7 +181,10 @@ class Parser:
 
         cols = self.parse_schema(self.schema)
         print("Parsing the data files...")
+        list_of_data = []
         for f in tqdm(files):
             data = self.parse_single_data(f, cols, regions, selected_values, full_load)
-            df = pd.concat([data, df], axis=0)
+            list_of_data.append(data)
+        print("pre-concat")
+        df = pd.concat(list_of_data)
         return df
