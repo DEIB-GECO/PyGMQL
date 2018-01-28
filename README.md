@@ -1,4 +1,6 @@
 # PyGMQL
+
+[![Join the chat at https://gitter.im/DEIB-GECO/PyGMQL](https://badges.gitter.im/DEIB-GECO/PyGMQL.svg)](https://gitter.im/DEIB-GECO/PyGMQL?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 API for calling interactively the GMQL Engine from Python
 
 [![Documentation Status](https://readthedocs.org/projects/pygmql/badge/?version=latest)](http://pygmql.readthedocs.io/en/latest/?badge=latest)
