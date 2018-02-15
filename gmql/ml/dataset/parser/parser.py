@@ -37,10 +37,21 @@ class Parser:
         :return: sorted list of files
         """
         # retrieves the files sharing the same extension
-        files = []
+        file_set = set()
         for file in os.listdir(path):
-            if file.endswith(extension):
-                files.append(os.path.join(path, file))
+            # if file.endswith(extension):
+            file_set.add(os.path.join(path, file))
+
+        files = []
+        if extension == 'meta':
+            for file in file_set:
+                if file.endswith("." + extension) and file[0:-5]:
+                    files.append(file)
+        else:
+            for file in file_set:
+                if file + ".meta" in file_set:
+                    files.append(file)
+
         return sorted(files)
 
     @staticmethod
@@ -158,6 +169,7 @@ class Parser:
         df['sample'] = sample
         return df
 
+    # TODO remove extension
     def parse_data(self, selected_region_data, selected_values, full_load=False, extension="gdm"):
         """
         Parses all of the region data
@@ -167,7 +179,6 @@ class Parser:
             values in order to speed up and save memory. However, while creating the matrix, those zero values are going to be put into the matrix.
             (unless a row contains "all zero columns". This parsing is strongly recommended for sparse datasets.
             If the full_load parameter is True then all the zero(0) data are going to be read.
-        :param extension: the extension of the region data files that are going to be parsed.
         :return: the resulting region dataframe
         """
         regions = list(selected_region_data)
@@ -176,8 +187,7 @@ class Parser:
         else:
             regions.append(selected_values)
 
-        files = self._get_files(extension, self.path)
-        df = pd.DataFrame(dtype=float)
+        files = self._get_files("", self.path)
 
         cols = self.parse_schema(self.schema)
         print("Parsing the data files...")
