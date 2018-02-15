@@ -196,3 +196,5 @@ gmql/resources/instances
 !/gmql/resources/lib/
 
 utilities/
+
+gmql/resources/tmp
