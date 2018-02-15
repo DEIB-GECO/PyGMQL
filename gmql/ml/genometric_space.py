@@ -21,6 +21,7 @@ class GenometricSpace:
         self.data = None
         self.meta = None
         self._path = None
+        self._pivoted = False
         return
 
     @classmethod
@@ -93,19 +94,23 @@ class GenometricSpace:
             :param default_value: The default fill value of the matrix
 
         """
-        if isinstance(values, list):
-            for v in values:
-                try:
-                    self.data[v] = self.data[v].map(float)
-                except:
-                    print(self.data[v])
+        if self._pivoted:
+            print("Previously converted")
         else:
-            self.data[values] = self.data[values].map(float)
-        print("started pivoting")
-        self.data = pd.pivot_table(self.data,
-                                   values=values, columns=selected_regions, index=['sample'],
-                                   fill_value=default_value)
-        print("end of pivoting")
+            if isinstance(values, list):
+                for v in values:
+                    try:
+                        self.data[v] = self.data[v].map(float)
+                    except:
+                        print(self.data[v])
+            else:
+                self.data[values] = self.data[values].map(float)
+            print("started pivoting")
+            self.data = pd.pivot_table(self.data,
+                                       values=values, columns=selected_regions, index=['sample'],
+                                       fill_value=default_value)
+            self._pivoted = True
+            print("end of pivoting")
 
     def get_values(self, set, selected_meta):
         """
@@ -340,4 +345,3 @@ class GenometricSpace:
         """
         dictionary = GenometricSpace.best_descriptive_meta_dict(path_to_bog, cluster_no)
         GenometricSpace.visualize_cloud_of_words(dictionary, image_path)
-
