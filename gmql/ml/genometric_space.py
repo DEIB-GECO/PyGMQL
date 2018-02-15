@@ -39,6 +39,7 @@ class GenometricSpace:
         obj = cls()
         obj.data = data
         obj.meta = meta
+        obj.data['sample'] = obj.data.index
         return obj
 
     def load(self, _path, regs=['chr', 'left', 'right', 'strand'], meta=[], values=[], full_load=False, file_extension="gdm"):
