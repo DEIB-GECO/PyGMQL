@@ -192,7 +192,6 @@ ENV/
 /tests/
 test
 gmql/resources/instances
-
-!/gmql/resources/lib/
-
+gmql/resources/dependencies_info.xml
+gmql/resources/*.jar
 utilities/
