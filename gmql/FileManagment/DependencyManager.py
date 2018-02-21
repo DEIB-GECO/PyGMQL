@@ -132,8 +132,10 @@ class DependencyManager:
     def _download_backend(location, output_path):
         r = requests.get(location, stream=True)
         total_size = int(r.headers.get("content-length", 0))
+        chunk_size = 5*1024*1024    # 5 MB
         with open(output_path, "wb") as f:
-            for data in tqdm(r.iter_content(), total=total_size, unit="B", unit_scale=True):
+            for data in tqdm(r.iter_content(chunk_size=chunk_size), total=total_size/chunk_size, unit="B",
+                             unit_scale=True):
                 f.write(data)
 
     def _delete_current_backend(self):
