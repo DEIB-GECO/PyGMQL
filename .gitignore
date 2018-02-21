@@ -195,3 +195,5 @@ gmql/resources/instances
 gmql/resources/dependencies_info.xml
 gmql/resources/*.jar
 utilities/
+
+data/
