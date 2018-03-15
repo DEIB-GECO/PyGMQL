@@ -12,9 +12,8 @@ from py4j.java_collections import ListConverter
 from .FileManagment import TempFileManager
 from pkg_resources import resource_filename
 from .RemoteConnection.SessionManager import load_sessions, store_sessions
-from tqdm import tqdm
-import requests
 from .FileManagment.SessionFileManager import initialize_user_folder
+from .FileManagment.DependencyManager import DependencyManager
 
 """
     Version management
@@ -26,6 +25,7 @@ def get_version():
     with open(version_file_name, "r") as f_ver:
         version = f_ver.read().strip()
     return version
+
 
 __version__ = get_version()
 
@@ -147,26 +147,6 @@ def set_meta_profiling(how):
 """
 
 
-def __check_backend(gmql_jar_fn):
-    if os.path.isfile(gmql_jar_fn):
-        return gmql_jar_fn
-    else:
-        # we need to download it
-        global __backend_download_url, __version__, __gmql_jar
-        full_url = '{}/{}/{}/{}'.format(__backend_download_url,
-                                        "releases/download",
-                                        __version__, __gmql_jar)
-        logger.info("Downloading updated backend version ({})".format(full_url))
-
-        r = requests.get(full_url, stream=True)
-        total_size = int(r.headers.get('content-length', 0))
-        chunk = 1024*1024
-        with open(gmql_jar_fn, "wb") as f:
-            for data in tqdm(r.iter_content(chunk), total=total_size/chunk, unit='B', unit_scale=True):
-                f.write(data)
-        return gmql_jar_fn
-
-
 def __get_python_api_package(gateway):
     return gateway.jvm.it.polimi.genomics.pythonapi
 
@@ -198,6 +178,7 @@ def get_python_manager():
     else:
         return pythonManager
 
+
 """
     GMQL Logger configuration
 """
@@ -211,29 +192,15 @@ gateway, pythonManager = None, None
 
 
 def start():
-    global pythonManager, gateway
+    global pythonManager, gateway, __dependency_manager
 
     java_home = os.environ.get("JAVA_HOME")
     if java_home is None:
         raise SystemError("The environment variable JAVA_HOME is not set")
     java_path = os.path.join(java_home, "bin", "java")
-
-    gmql_jar_fn = resource_filename(
-        "gmql", os.path.join("resources", __gmql_jar))
-    gmql_jar_fn = __check_backend(gmql_jar_fn)
-
-    libs_folder = resource_filename(
-        "gmql", os.path.join("resources", "lib"))
-
-    if sys.platform.startswith("win32"):
-        classpath_separator = ";"
-    else:
-        classpath_separator = ":"
-    classpath = gmql_jar_fn + classpath_separator + os.path.join(libs_folder, "*")
-    _port = launch_gateway(classpath=classpath, die_on_exit=True,
+    gmql_jar_fn = __dependency_manager.resolve_dependencies()
+    _port = launch_gateway(classpath=gmql_jar_fn, die_on_exit=True,
                            java_path=java_path, javaopts=['-Xmx4096m'])
-    # gateway = JavaGateway.launch_gateway(classpath=gmql_jar_fn, die_on_exit=True,
-    #                                      java_path=java_path)
     gateway = JavaGateway(gateway_parameters=GatewayParameters(port=_port,
                                                                auto_convert=True))
     python_api_package = __get_python_api_package(gateway)
@@ -269,7 +236,6 @@ class GMQLManagerNotInitializedError(Exception):
 # Setting up the temporary files folder
 folders = TempFileManager.initialize_tmp_folders()
 
-
 """
     LANGUAGE CONVERSIONS
 """
@@ -286,6 +252,7 @@ def none():
 def Some(thing):
     return get_python_manager().getSome(thing)
 
+
 """
     Remote manager management
 """
@@ -296,6 +263,12 @@ remote_address = None
 __session_manager = None
 __session_type = None
 __access_time = None
+__dependency_manager = None
+
+
+def __initialize_dependency_manager():
+    global __dependency_manager
+    __dependency_manager = DependencyManager()
 
 
 def __initialize_session_manager():
@@ -434,4 +407,4 @@ from .RemoteConnection.RemoteManager import RemoteManager
 __initialize_source_table()
 initialize_user_folder()
 __initialize_session_manager()
-
+__initialize_dependency_manager()

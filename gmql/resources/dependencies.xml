@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project>
+
+    <dependencies>
+        <dependency>
+            <groupId>it.polimi.genomics</groupId>
+            <artifactId>GMQL-PythonAPI</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <classifier>jackofall</classifier>
+        </dependency>
+    </dependencies>
+
+    <repository>
+        <url>http://oss.sonatype.org/content/repositories/snapshots/</url>
+        <name>snapshots</name>
+    </repository>
+</project>

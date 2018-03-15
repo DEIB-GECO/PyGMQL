@@ -149,7 +149,7 @@ def search_column(region_df, names, types, subs, name=None):
     names = list(map(str.lower, names))
 
     if name is not None:
-        if name not in columns:
+        if name.lower() not in columns:
             raise ValueError("{} is not a column of the region dataframe".format(name))
         if check_type(region_df[name], types):
             region_df = region_df.rename(columns={name: subs})
