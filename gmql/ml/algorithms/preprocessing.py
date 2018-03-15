@@ -1,125 +1,77 @@
-from fancyimpute import KNN, SimpleFill, IterativeSVD
-import pandas as pd
-from sklearn.feature_selection import SelectKBest
-from sklearn.feature_selection import chi2, f_classif, mutual_info_classif
+"""
+Biclustering algorithms.
 
-class Preprocessing:
+"""
+
+from sklearn.cluster.bicluster import SpectralBiclustering
+from sklearn.cluster.bicluster import SpectralCoclustering
+from sklearn.metrics import consensus_score
+
+
+class Biclustering:
     """
-    Contains the functionalities for data standardization, feature selection and missing value imputation
+    The class that contains the biclustering related functionalities
     """
-    def __init__(self):
-        return
 
-    @staticmethod
-    def to_zero_mean(df):
+    def __init__(self, model):
+        self.model = model
+
+    @classmethod
+    def spectral_biclustering(cls, *args, **kwargs):
+        # def spectral_biclustering(cls, n_clusters=3, method='bistochastic',
+        #                           n_components=6, n_best=3, svd_method='randomized',
+        #                           n_svd_vecs=None, mini_batch=False, init='k-means++',
+        #                           n_init=10, n_jobs=1, random_state=None):
+        """This method does the same as :func:`~gmql.ml.Clustering.xmeans`"""
+
+
+        # model = SpectralBiclustering(n_clusters, method,
+        #                              n_components, n_best, svd_method,
+        #                              n_svd_vecs, mini_batch, init,
+        #                              n_init, n_jobs, random_state)
+        model = SpectralBiclustering(*args, **kwargs)
+
+        return cls(model)
+
+    @classmethod
+    def spectral_coclustering(cls, *args):
         """
-        Standardizes the data by shifting the mean value to zero
+        Wrapper method for the spectral_coclustering algorithm
 
-        :param df: the input dataframe
-        :return: the resulting dataframe
+        :param args: the arguments to be sent to the sci-kit implementation
+        :return: returns the Biclustering object
         """
-        df_norm = (df - df.mean())
-        return df_norm
 
-    @staticmethod
-    def to_unit_variance(df):
+        model = SpectralCoclustering(*args)
+        return cls(model)
+
+    def fit(self, data):
         """
-        Makes the variance of each gene equal to one
+        Performs biclustering
 
-        :param df: the dataframe
-        :return: the resulting dataframe
+        :param data: Data to be fit
         """
-        df_norm = df / df.std()
-        return df_norm
+        self.model.fit(data)
 
-    @staticmethod
-    def prune_by_missing_percent(df, percentage=0.4):
+    def retrieve_bicluster(self, df, row_no, column_no):
         """
-        The method to remove the attributes (genes) with more than a percentage of missing values
+        Extracts the bicluster at the given row bicluster number and the column bicluster number from the input dataframe.
 
-        :param df: the dataframe containing the attributes to be pruned
-        :param percentage: the percentage threshold (0.4 by default)
-        :return: the pruned dataframe
+        :param df: the input dataframe whose values were biclustered
+        :param row_no: the number of the row bicluster
+        :param column_no: the number of the column bicluster
+        :return: the extracted bicluster from the dataframe
         """
-        mask = (df.isnull().sum() / df.shape[0]).map(lambda x: True if x < percentage else False)
-        pruned_df = df[df.columns[mask.values]]
-        return pruned_df
+        res = df[self.model.biclusters_[0][row_no]]
+        bicluster = res[res.columns[self.model.biclusters_[1][column_no]]]
+        return bicluster
 
-    @staticmethod
-    def impute_using_statistics(df, method='min'):
+    def bicluster_similarity(self, reference_model):
         """
-        Imputes the missing values by the selected statistical property of each column
+        Calculates the similarity between the current model of biclusters and the reference model of biclusters
 
-        :param df: The input dataframe that contains missing values
-        :param method: The imputation method (min by default)
-            "zero": fill missing entries with zeros
-            "mean": fill with column means
-            "median" : fill with column medians
-            "min": fill with min value per column
-            "random": fill with gaussian noise according to mean/std of column
-        :return: the imputed dataframe
+        :param reference_model: The reference model of biclusters
+        :return: Returns the consensus score(Hochreiter et. al., 2010), i.e. the similarity of two sets of biclusters.
         """
-        sf = SimpleFill(method)
-        imputed_matrix = sf.complete(df.values)
-        imputed_df = pd.DataFrame(imputed_matrix, df.index, df.columns)
-        return imputed_df
-
-    @staticmethod
-    def impute_knn(df, k=3):
-        """
-        Nearest neighbour imputations which weights samples using the mean squared difference on features for which two rows both have observed data.
-
-        :param df: The input dataframe that contains missing values
-        :param k: The number of neighbours
-        :return: the imputed dataframe
-        """
-        imputed_matrix = KNN(k=k).complete(df.values)
-        imputed_df = pd.DataFrame(imputed_matrix, df.index, df.columns)
-        return imputed_df
-
-    @staticmethod
-    def impute_svd(df, rank=10, convergence_threshold=0.00001, max_iters=200):
-        """
-        Imputes the missing values by using SVD decomposition
-        Based on the following publication: 'Missing value estimation methods for DNA microarrays' by Troyanskaya et. al.
-
-        :param df:The input dataframe that contains missing values
-        :param rank: Rank value of the truncated SVD
-        :param convergence_threshold: The threshold to stop the iterations
-        :param max_iters: Max number of iterations
-        :return: the imputed dataframe
-        """
-        imputed_matrix = IterativeSVD(rank,convergence_threshold, max_iters).complete(df.values)
-        imputed_df = pd.DataFrame(imputed_matrix, df.index, df.columns)
-        return imputed_df
-
-    @staticmethod
-    def feature_selection(df, labels, n_features, method='chi2'):
-        """
-        Reduces the number of features in the imput dataframe.
-        Ex: labels = gs.meta['biospecimen_sample__sample_type_id'].apply(int).apply(lambda x: 0 if x < 10 else 1)
-            chi2_fs(gs.data, labels, 50)
-
-        :param df: The input dataframe
-        :param labels: Labels for each row in the df. Type: Pandas.Series
-        :param no_features: The desired number of features
-        :param method: The feature selection method to be employed. It is set to 'chi2' by default
-        To select the features using mutual information, the method value should be set to 'mi'
-        To select the features using ANOVA, the method value should be set to 'ANOVA'
-        :return: Returns the dataframe with the selected features
-
-        """
-        fs_obj = None
-        if method == 'chi2':
-            fs_obj = chi2
-        elif method == 'ANOVA':
-            fs_obj = f_classif
-        elif method == 'mi':
-            fs_obj = mutual_info_classif
-        else:
-            raise ValueError('The method is not recognized')
-    
-        fs = SelectKBest(fs_obj, k=n_features)
-        fs.fit_transform(df, labels)
-        df_reduced = df.loc[:, fs.get_support()]
-        return df_reduced
+        similarity_score = consensus_score(self.model.biclusters_, reference_model.biclusters_)
+        return similarity_score

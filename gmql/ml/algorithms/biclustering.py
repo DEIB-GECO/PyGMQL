@@ -12,19 +12,25 @@ class Biclustering:
     """
     The class that contains the biclustering related functionalities
     """
+
     def __init__(self, model):
         self.model = model
 
     @classmethod
-    def spectral_biclustering(cls, *args):
-        """
-        Wrapper method for the spectral_biclustering algorithm
+    def spectral_biclustering(cls, *args, **kwargs):
+        # def spectral_biclustering(cls, n_clusters=3, method='bistochastic',
+        #                           n_components=6, n_best=3, svd_method='randomized',
+        #                           n_svd_vecs=None, mini_batch=False, init='k-means++',
+        #                           n_init=10, n_jobs=1, random_state=None):
+        """This method does the same as :func:`~gmql.ml.Clustering.xmeans`"""
 
-        :param args: the arguments to be sent to the sci-kit implementation
-        :return: returns the Biclustering object
-        """
 
-        model = SpectralBiclustering(*args)
+        # model = SpectralBiclustering(n_clusters, method,
+        #                              n_components, n_best, svd_method,
+        #                              n_svd_vecs, mini_batch, init,
+        #                              n_init, n_jobs, random_state)
+        model = SpectralBiclustering(*args, **kwargs)
+
         return cls(model)
 
     @classmethod
