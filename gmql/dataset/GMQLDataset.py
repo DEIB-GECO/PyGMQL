@@ -491,8 +491,9 @@ class GMQLDataset:
         
         An example of usage::
         
-            cell_tf = narrow_peak.cover("normal", minAcc=1, maxAcc="Any", 
-                                            groupBy=['cell', 'antibody_target'])    
+            cell_tf = narrow_peak.cover(minAcc=1, maxAcc="Any",
+                                        groupBy=['cell', 'antibody_target'],
+                                        cover_type="normal")
         """
         if isinstance(cover_type, str):
             coverFlag = self.opmng.getCoverTypes(cover_type)
