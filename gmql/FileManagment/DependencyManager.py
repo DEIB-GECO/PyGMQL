@@ -7,6 +7,8 @@ import os
 from tqdm import tqdm
 from glob import glob
 
+CHUNK_SIZE = 5 * 1024 * 1024  # 5 MB
+
 
 class DependencyManager:
     def __init__(self):
@@ -132,9 +134,8 @@ class DependencyManager:
     def _download_backend(location, output_path):
         r = requests.get(location, stream=True)
         total_size = int(r.headers.get("content-length", 0))
-        chunk_size = 5*1024*1024    # 5 MB
         with open(output_path, "wb") as f:
-            for data in tqdm(r.iter_content(chunk_size=chunk_size), total=total_size/chunk_size, unit="B",
+            for data in tqdm(r.iter_content(chunk_size=CHUNK_SIZE), total=total_size/CHUNK_SIZE, unit="B",
                              unit_scale=True):
                 f.write(data)
 
