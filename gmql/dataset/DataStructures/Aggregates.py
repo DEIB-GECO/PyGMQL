@@ -9,6 +9,12 @@ class Aggregate(object):
     def get_argument(self):
         return self.argument
 
+    def is_nullary(self):
+        return self.argument is None
+
+    def is_unary(self):
+        return self.argument is not None
+
 
 class COUNT(Aggregate):
     """ Counts the number of regions in the group. It is automatically computed by the

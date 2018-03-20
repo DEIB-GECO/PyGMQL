@@ -444,7 +444,7 @@ class GMQLDataset:
                     item = new_attr_dict[k]
                     if isinstance(item, Aggregate):
                         op_name = item.get_aggregate_name()
-                        op_argument = item.get_argument()
+                        op_argument = Some(item.get_argument()) if item.is_unary() else none()
                         regsToMeta = expBuild.getRegionsToMeta(op_name, k, op_argument)
                         aggregates.append(regsToMeta)
                     else:
