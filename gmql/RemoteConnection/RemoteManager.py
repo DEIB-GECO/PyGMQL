@@ -222,6 +222,8 @@ class RemoteManager:
             raise ValueError("Code {}: {}".format(response.status_code, response.json().get("error")))
         response = response.json()
         samples = response.get("samples")
+        if len(samples) == 0:
+            return None
         res = pd.DataFrame.from_dict(samples)
         return self.process_info_list(res, "info")
 
@@ -400,15 +402,16 @@ class RemoteManager:
 
     def download_as_stream(self, dataset_name, local_path):
         samples = self.get_dataset_samples(dataset_name)
-        ids = samples.id.unique()
-        # download the data
-        for id in tqdm(ids, disable=not is_progress_enabled()):
-            name = samples[samples.id == id].name.values[0]
-            self.download_sample(dataset_name=dataset_name,
-                                 sample_name=name,
-                                 local_path=local_path,
-                                 how="all",
-                                 header=False)
+        if samples is not None:
+            ids = samples.id.unique()
+            # download the data
+            for id in tqdm(ids, disable=not is_progress_enabled()):
+                name = samples[samples.id == id].name.values[0]
+                self.download_sample(dataset_name=dataset_name,
+                                     sample_name=name,
+                                     local_path=local_path,
+                                     how="all",
+                                     header=False)
 
         # download the schema
         schema = self.get_dataset_schema(dataset_name=dataset_name)
@@ -517,6 +520,7 @@ class RemoteManager:
     def execute_remote_all(self, output="tab", output_path=None):
         pmg = get_python_manager()
         serialized_dag = pmg.get_serialized_materialization_list()
+        pmg.getServer().clearMaterializationList()
         return self._execute_dag(serialized_dag, output, output_path)
 
     def _execute_dag(self, serialized_dag, output="tab", output_path=None):
