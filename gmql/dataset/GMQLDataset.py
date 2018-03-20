@@ -13,6 +13,7 @@ from .loaders.Sources import PARSER, LOCAL, REMOTE
 from .storers.parserToXML import parserToXML
 import os
 
+
 class GMQLDataset:
     """
     The main abstraction of the library.
@@ -25,7 +26,7 @@ class GMQLDataset:
                  local_sources=None, remote_sources=None,
                  meta_profile=None):
         self.parser = parser
-        self.index = index
+        self.__index = index
         self.location = location
         self.meta_profile = None
         if isinstance(meta_profile, MetadataProfiler.MetadataProfile):
@@ -47,7 +48,7 @@ class GMQLDataset:
             self._remote_sources = []
 
         # get the schema of the dataset
-        schemaJava = self.pmg.getVariableSchemaNames(self.index)
+        schemaJava = self.pmg.getVariableSchemaNames(self.__index)
         self.schema = []
         for field in schemaJava:
             self.schema.append(field)
@@ -74,7 +75,7 @@ class GMQLDataset:
     def __show_info(self):
         print("GMQLDataset")
         print("\tParser:\t{}".format(self.parser.get_parser_name()))
-        print("\tIndex:\t{}".format(self.index))
+        print("\tIndex:\t{}".format(self.__index))
 
     def get_metadata(self):
         if self.path_or_name is None:
@@ -113,7 +114,7 @@ class GMQLDataset:
 
         :return: a MetaField instance
         """
-        return MetaField(name=name, index=self.index, t=t)
+        return MetaField(name=name, index=self.__index, t=t)
 
     def RegField(self, name):
         """
@@ -126,7 +127,7 @@ class GMQLDataset:
         :param name: the name of the region field that is considered
         :return: a RegField instance
         """
-        return RegField(name=name, index=self.index)
+        return RegField(name=name, index=self.__index)
 
     def select(self, meta_predicate=None, region_predicate=None,
                semiJoinDataset=None,  semiJoinMeta=None):
@@ -149,7 +150,7 @@ class GMQLDataset:
                             " {} was provided".format(type(region_predicate)))
 
         if isinstance(semiJoinDataset, GMQLDataset):
-            other_dataset = Some(semiJoinDataset.index)
+            other_dataset = Some(semiJoinDataset.__index)
             semiJoinDataset_exists = True
         elif semiJoinDataset is None:
             other_dataset = none()
@@ -170,7 +171,7 @@ class GMQLDataset:
             raise TypeError("semiJoinMeta must be a list of strings or None."
                             " {} was provided".format(type(semiJoinMeta)))
 
-        new_index = self.opmng.select(self.index, other_dataset,
+        new_index = self.opmng.select(self.__index, other_dataset,
                                       semi_join, meta_condition, region_condition)
         return GMQLDataset(index=new_index, location=self.location, local_sources=self._local_sources,
                            remote_sources=self._remote_sources, meta_profile=self.meta_profile)
@@ -267,7 +268,7 @@ class GMQLDataset:
 
         if isinstance(new_attr_dict, dict):
             meta_ext = []
-            expBuild = self.pmg.getNewExpressionBuilder(self.index)
+            expBuild = self.pmg.getNewExpressionBuilder(self.__index)
             for k in new_attr_dict.keys():
                 item = new_attr_dict[k]
                 if isinstance(k, str):
@@ -320,7 +321,7 @@ class GMQLDataset:
 
         if isinstance(new_field_dict, dict):
             regs_ext = []
-            expBuild = self.pmg.getNewExpressionBuilder(self.index)
+            expBuild = self.pmg.getNewExpressionBuilder(self.__index)
             for k in new_field_dict.keys():
                 item = new_field_dict[k]
                 if isinstance(k, str):
@@ -359,7 +360,7 @@ class GMQLDataset:
             raise TypeError("all_but_regs must be a list of strings."
                             " {} was provided".format(type(all_but_regs)))
 
-        new_index = self.opmng.project(self.index, projected_meta, meta_ext, all_but_value,
+        new_index = self.opmng.project(self.__index, projected_meta, meta_ext, all_but_value,
                                        projected_regs, all_but_regs, regs_ext)
         return GMQLDataset(index=new_index, location=self.location,
                            local_sources=self._local_sources, remote_sources=self._remote_sources,
@@ -437,7 +438,7 @@ class GMQLDataset:
                                           'minPValue' : gl.MIN('pValue')})
         """
         if isinstance(new_attr_dict, dict):
-            expBuild = self.pmg.getNewExpressionBuilder(self.index)
+            expBuild = self.pmg.getNewExpressionBuilder(self.__index)
             aggregates = []
             for k in new_attr_dict.keys():
                 if isinstance(k, str):
@@ -457,7 +458,7 @@ class GMQLDataset:
             raise TypeError("new_attr_dict must be a dictionary. "
                             "{} was provided".format(type(new_attr_dict)))
 
-        new_index = self.opmng.extend(self.index, aggregates)
+        new_index = self.opmng.extend(self.__index, aggregates)
         return GMQLDataset(index=new_index, location=self.location,
                            local_sources=self._local_sources,
                            remote_sources=self._remote_sources, meta_profile=self.meta_profile)
@@ -525,7 +526,7 @@ class GMQLDataset:
 
         aggregates = []
         if isinstance(new_reg_fields, dict):
-            expBuild = self.pmg.getNewExpressionBuilder(self.index)
+            expBuild = self.pmg.getNewExpressionBuilder(self.__index)
             for k in new_reg_fields.keys():
                 if isinstance(k, str):
                     item = new_reg_fields[k]
@@ -552,7 +553,7 @@ class GMQLDataset:
             raise TypeError("new_reg_fields must be a list of dictionary. "
                             "{} was provided".format(type(new_reg_fields)))
 
-        new_index = self.opmng.cover(self.index, coverFlag, minAccParam, maxAccParam,
+        new_index = self.opmng.cover(self.__index, coverFlag, minAccParam, maxAccParam,
                                      groupBy_result, aggregates)
         return GMQLDataset(index=new_index, location=self.location,
                            local_sources=self._local_sources,
@@ -655,7 +656,7 @@ class GMQLDataset:
         """
 
         if isinstance(experiment, GMQLDataset):
-            other_idx = experiment.index
+            other_idx = experiment.__index
         else:
             raise TypeError("experiment must be a GMQLDataset. "
                             "{} was provided".format(type(experiment)))
@@ -711,7 +712,7 @@ class GMQLDataset:
             raise TypeError("right_on must be a list of strings. "
                             "{} was provided".format(type(right_on)))
 
-        new_index = self.opmng.join(self.index, other_idx,
+        new_index = self.opmng.join(self.__index, other_idx,
                                     metaJoinCondition, regionJoinCondition, regionBuilder,
                                     refName, expName, left_on, right_on)
         new_local_sources, new_remote_sources = self.__combine_sources(self, experiment)
@@ -751,14 +752,14 @@ class GMQLDataset:
         :return: a new GMQLDataset
         """
         if isinstance(experiment, GMQLDataset):
-            other_idx = experiment.index
+            other_idx = experiment.__index
         else:
             raise TypeError("experiment must be a GMQLDataset. "
                             "{} was provided".format(type(experiment)))
 
         aggregates = []
         if isinstance(new_reg_fields, dict):
-            expBuild = self.pmg.getNewExpressionBuilder(experiment.index)
+            expBuild = self.pmg.getNewExpressionBuilder(experiment.__index)
             for k in new_reg_fields.keys():
                 if isinstance(k, str):
                     item = new_reg_fields[k]
@@ -800,7 +801,7 @@ class GMQLDataset:
         if not isinstance(refName, str):
             raise TypeError("refName must be a string. {} was provided".format(type(expName)))
 
-        new_index = self.opmng.map(self.index, other_idx, metaJoinCondition,
+        new_index = self.opmng.map(self.__index, other_idx, metaJoinCondition,
                                    aggregates, refName, expName)
         new_local_sources, new_remote_sources = self.__combine_sources(self, experiment)
         new_location = self.__combine_locations(self, experiment)
@@ -926,7 +927,7 @@ class GMQLDataset:
             raise TypeError("region_k must be an integer and should be provided together with a "
                             "value of region_top. {} was provided".format(type(region_k)))
 
-        new_index = self.opmng.order(self.index, meta, meta_ascending, meta_top, meta_k,
+        new_index = self.opmng.order(self.__index, meta, meta_ascending, meta_top, meta_k,
                                      regs, regs_ascending, region_top, region_k)
         return GMQLDataset(index=new_index, location=self.location,
                            local_sources=self._local_sources,
@@ -947,7 +948,7 @@ class GMQLDataset:
         """
 
         if isinstance(other, GMQLDataset):
-            other_idx = other.index
+            other_idx = other.__index
         else:
             raise TypeError("other must be a GMQLDataset. "
                             "{} was provided".format(type(other)))
@@ -965,7 +966,7 @@ class GMQLDataset:
             raise TypeError("exact must be a boolean. "
                             "{} was provided".format(type(exact)))
 
-        new_index = self.opmng.difference(self.index, other_idx, metaJoinCondition, exact)
+        new_index = self.opmng.difference(self.__index, other_idx, metaJoinCondition, exact)
 
         new_local_sources, new_remote_sources = self.__combine_sources(self, other)
         new_location = self.__combine_locations(self, other)
@@ -999,14 +1000,14 @@ class GMQLDataset:
                             "{} - {} was provided".format(type(left_name), type(right_name)))
 
         if isinstance(other, GMQLDataset):
-            other_idx = other.index
+            other_idx = other.__index
         else:
             raise TypeError("other must be a GMQLDataset. "
                             "{} was provided".format(type(other)))
 
         if len(left_name) == 0 or len(right_name) == 0:
             raise ValueError("left_name and right_name must not be empty")
-        new_index = self.opmng.union(self.index, other_idx, left_name, right_name)
+        new_index = self.opmng.union(self.__index, other_idx, left_name, right_name)
         new_local_sources, new_remote_sources = self.__combine_sources(self, other)
         new_location = self.__combine_locations(self, other)
         return GMQLDataset(index=new_index, location=new_location,
@@ -1042,7 +1043,7 @@ class GMQLDataset:
             raise TypeError("groupBy must be a list of strings. "
                             "{} was provided".format(type(groupBy)))
 
-        new_index = self.opmng.merge(self.index, groupBy)
+        new_index = self.opmng.merge(self.__index, groupBy)
         return GMQLDataset(index=new_index, location=self.location,
                            local_sources=self._local_sources,
                            remote_sources=self._remote_sources,
@@ -1075,7 +1076,7 @@ class GMQLDataset:
         else:
             raise TypeError("meta must be a list of strings. "
                             "{} was provided".format(type(meta)))
-        expBuild = self.pmg.getNewExpressionBuilder(self.index)
+        expBuild = self.pmg.getNewExpressionBuilder(self.__index)
         if isinstance(meta_aggregates, dict):
             metaAggregates = []
             for k in meta_aggregates:
@@ -1148,7 +1149,7 @@ class GMQLDataset:
             raise TypeError("meta_group_name must be a string. "
                             "{} was provided".format(type(meta_group_name)))
 
-        new_index = self.opmng.group(self.index, meta, metaAggregates, meta_group_name, regs, regionAggregates)
+        new_index = self.opmng.group(self.__index, meta, metaAggregates, meta_group_name, regs, regionAggregates)
 
         return GMQLDataset(index=new_index, location=self.location,
                            local_sources=self._local_sources,
@@ -1202,14 +1203,14 @@ class GMQLDataset:
         if n <= 0:
             raise ValueError("n must be a positive number. {} was given".format(n))
 
-        collected = self.pmg.take(self.index, n)
+        collected = self.pmg.take(self.__index, n)
         regs = MemoryLoader.load_regions(collected)
         meta = MemoryLoader.load_metadata(collected)
         result = GDataframe.GDataframe(regs, meta)
         return result
 
     def _get_serialized_dag(self):
-        serialized_dag = self.pmg.serializeVariable(self.index)
+        serialized_dag = self.pmg.serializeVariable(self.__index)
         return serialized_dag
 
     @staticmethod
@@ -1241,7 +1242,7 @@ class GMQLDataset:
 
     def __modify_dag(self, mode):
         remote_manager = get_remote_manager()
-        index = self.index
+        index = self.__index
         pmg = get_python_manager()
         sources = _get_source_table()
         # create a new id having the exact same DAG inside, for modification
