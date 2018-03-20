@@ -3,11 +3,9 @@ from .. import get_python_manager, is_progress_enabled
 import requests, time, logging, json
 from requests_toolbelt.multipart.encoder import MultipartEncoderMonitor, MultipartEncoder
 import pandas as pd
-from ..dataset.GMQLDataset import GMQLDataset
 from ..dataset.GDataframe import GDataframe
 from ..dataset.parsers.RegionParser import RegionParser
 from ..dataset.parsers import GTF
-from ..dataset.parsers import allowed_types
 from ..dataset.DataStructures import chr_aliases, start_aliases, stop_aliases, strand_aliases
 from ..dataset.loaders import Loader
 from ..FileManagment import TempFileManager
@@ -15,9 +13,12 @@ import os, zipfile
 from tqdm import tqdm
 from ..dataset.storers.parserToXML import parserToXML
 import warnings
+import threading
+import numpy as np
 
 
 good_status = ['PENDING', 'RUNNING', 'DS_CREATION_RUNNING']
+CHUNK_SIZE = 5 * 1024 * 1024  # 5 MB
 
 
 class RemoteManager:
@@ -391,8 +392,10 @@ class RemoteManager:
             raise ValueError("Code {}: {}".format(response.status_code, response.json().get("error")))
         tmp_zip = os.path.join(local_path, "tmp.zip")
         f = open(tmp_zip, "wb")
+        total_size = int(response.headers.get("content-length", 0))
         # TODO: find a better way to display the download progression
-        for chunk in tqdm(response.iter_content(chunk_size=512), disable=not is_progress_enabled()):
+        for chunk in tqdm(response.iter_content(chunk_size=CHUNK_SIZE), total=total_size/CHUNK_SIZE,
+                          disable=not is_progress_enabled(), unit="B", unit_scale=True):
             if chunk:
                 f.write(chunk)
         f.close()
@@ -401,19 +404,32 @@ class RemoteManager:
         os.remove(tmp_zip)
 
     def download_as_stream(self, dataset_name, local_path):
-        samples = self.get_dataset_samples(dataset_name)
-        if samples is not None:
-            ids = samples.id.unique()
-            # download the data
-            for id in tqdm(ids, disable=not is_progress_enabled()):
-                name = samples[samples.id == id].name.values[0]
+
+        N_THREADS = 10
+
+        def thread_download(sample_names):
+            for sn in sample_names:
                 self.download_sample(dataset_name=dataset_name,
-                                     sample_name=name,
+                                     sample_name=sn,
                                      local_path=local_path,
                                      how="all",
                                      header=False)
+                pbar.update()
 
-        # download the schema
+        samples = self.get_dataset_samples(dataset_name)
+        if samples is not None:
+            threads = []
+            ids = samples.id.unique()
+            pbar = tqdm(total=len(ids), disable=not is_progress_enabled())
+            splits = np.array_split(ids, N_THREADS)
+            for ssn in splits:
+                names = samples[samples.id.isin(ssn)].name.values
+                t = threading.Thread(target=thread_download, args=(names, ))
+                t.start()
+                threads.append(t)
+            for t in threads:
+                t.join()
+            pbar.close()
         schema = self.get_dataset_schema(dataset_name=dataset_name)
         parserToXML(parser=schema, datasetName=dataset_name, path=os.path.join(local_path, dataset_name + ".schema"))
 
@@ -443,13 +459,15 @@ class RemoteManager:
             url_region = url.format(dataset_name, sample_name, "region", header)
             response = requests.get(url_region, stream=True, headers=header_get)
             with open(region_path, "wb") as f:
-                f.write(response.content)
+                for data in response.iter_content(chunk_size=CHUNK_SIZE):
+                    f.write(data)
 
         if meta:
             url_meta = url.format(dataset_name, sample_name, "metadata", header)
             response = requests.get(url_meta, stream=True, headers=header_get)
             with open(meta_path, "wb") as f:
-                f.write(response.content)
+                for data in response.iter_content(chunk_size=CHUNK_SIZE):
+                    f.write(data)
 
     """
         Query
