@@ -111,7 +111,8 @@ class RegionParser:
 
     def _parse_tab_regions(self, path):
         types = self.get_name_type_dict()
-        types.pop("strand")
+        if "strand" in types.keys():
+            types.pop("strand")
         df = pd.read_csv(filepath_or_buffer=open(path), na_values=null_values,
                          header=None,
                          names=self.get_ordered_attributes(),
