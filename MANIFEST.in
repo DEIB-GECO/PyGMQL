@@ -1,1 +1,4 @@
-recursive-include gmql/resources *
+include gmql/resources/dependencies.xml
+include gmql/resources/github_url
+recursive-include gmql/resources/hadoop *
+include gmql/resources/version

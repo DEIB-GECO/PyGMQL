@@ -28,7 +28,6 @@ setup(name='gmql',
       # maintainer="Mustafa Anil Tuncel",
       # maintainer_email="tuncel.manil@gmail.com",
       license='MIT',
-      download_url='{}/tarball/{}'.format(github_url, version),
       packages=find_packages(exclude=("gmql.ml",)),     # temporary
       scripts=['scripts/pygmql_login.py', 'scripts/pygmql_win.bat', 'scripts/pygmql.sh'],
       install_requires=['pandas', 'tqdm', 'numpy', 'py4j', 'requests', 'requests-toolbelt', 'strconv',
