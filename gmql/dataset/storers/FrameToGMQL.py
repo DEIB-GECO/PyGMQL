@@ -1,4 +1,3 @@
-from .. import GDataframe
 from tqdm import tqdm
 import logging
 from . import *
@@ -10,6 +9,7 @@ logger = logging.getLogger("PyGML logger")
 
 
 def to_dataset_files(gframe, path_local=None, path_remote=None):
+    from .. import GDataframe
     if not isinstance(gframe, GDataframe.GDataframe):
         raise TypeError("Expected GDataframe, got {}".format(type(gframe)))
 
