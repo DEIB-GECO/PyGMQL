@@ -2,6 +2,7 @@ from .FileManagment.DependencyManager import DependencyManager
 from .RemoteConnection.SessionManager import load_sessions, store_sessions
 from .FileManagment import TempFileManager
 from .settings import get_folders, get_remote_address
+import py4j
 from py4j.java_gateway import JavaGateway, launch_gateway, GatewayParameters
 from pkg_resources import resource_filename
 import os
@@ -26,8 +27,10 @@ def start():
         raise SystemError("The environment variable JAVA_HOME is not set")
     java_path = os.path.join(java_home, "bin", "java")
     gmql_jar_fn = __dependency_manager.resolve_dependencies()
+    py4j_jar = __check_py4j_backend()
     _port = launch_gateway(classpath=gmql_jar_fn, die_on_exit=True,
-                           java_path=java_path, javaopts=['-Xmx4096m'])
+                           java_path=java_path, javaopts=['-Xmx4096m'],
+                           jarpath=py4j_jar)
     __gateway = JavaGateway(gateway_parameters=GatewayParameters(port=_port,
                                                                  auto_convert=True))
     python_api_package = get_python_api_package(__gateway)
@@ -43,6 +46,21 @@ def start():
     # setting the spark tmp folder
     folders = get_folders()
     __pythonManager.setSparkLocalDir(folders['spark'])
+
+
+def __check_py4j_backend():
+    py4j_version = py4j.__version__
+    py4j_backend_jar = resource_filename("gmql", os.path.join("resources", "py4j-{}.jar".format(py4j_version)))
+    if not os.path.isfile(py4j_backend_jar):
+        py4j_location = DependencyManager.find_package(
+                            repo="https://oss.sonatype.org/content/repositories/releases/",
+                            repo_name="releases",
+                            groupId="net.sf.py4j",
+                            artifactId="py4j",
+                            version=py4j_version,
+                        )
+        DependencyManager.download_from_location(py4j_location, py4j_backend_jar)
+    return py4j_backend_jar
 
 
 def stop():
