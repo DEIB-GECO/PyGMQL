@@ -1,13 +1,12 @@
 from ..parsers import get_parsing_function
 import pandas as pd
 from tqdm import tqdm
-import logging
 # from concurrent.futures import ThreadPoolExecutor
 import math
 from ..DataStructures import reg_fixed_fileds
 from multiprocessing import pool, cpu_count
 from functools import partial
-from ... import none, Some
+from ...scala_wrapper import none, Some
 
 # Loading strategy
 loading_strategy = "single_core"
@@ -23,7 +22,7 @@ def load_regions(collected_result):
     names, types = get_schema(collected_result)
     result = []
 
-    from ... import is_progress_enabled
+    from ...settings import is_progress_enabled
     if loading_strategy == 'single_core':
         # get the full string
         regions_string = collected_result.getRegionsAsString(none())
@@ -121,8 +120,8 @@ def load_metadata(collected_result):
         g = df.groupby('id_sample')
 
         result_df = pd.DataFrame()
-        from ... import __disable_progress
-        for col in tqdm(columns, total=len(columns), disable=__disable_progress):
+        from ...settings import is_progress_enabled
+        for col in tqdm(columns, total=len(columns), disable=not is_progress_enabled()):
             if col != 'id_sample':
                 result_df[col] = g[col].apply(to_list)
     else:

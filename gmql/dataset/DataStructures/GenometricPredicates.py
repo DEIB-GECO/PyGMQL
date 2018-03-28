@@ -1,4 +1,4 @@
-from ... import get_python_manager
+from ...managers import get_python_manager
 
 
 class GenometricCondition(object):

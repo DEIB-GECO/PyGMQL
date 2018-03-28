@@ -34,8 +34,8 @@ def to_local(gframe, path_local):
 
     logger.info("Saving data at {}".format(path_local))
     all_file_names = regs.index.unique()
-    from ... import __disable_progress
-    for file in tqdm(all_file_names, disable=__disable_progress):
+    from ...settings import is_progress_enabled
+    for file in tqdm(all_file_names, disable=not is_progress_enabled()):
         final_file_name = os.path.join(path_local, str(file))
         part_regs = regs.loc[[file]]
         part_regs.to_csv(path_or_buf=final_file_name, sep="\t", header=False, index=False)

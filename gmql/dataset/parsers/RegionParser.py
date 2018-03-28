@@ -1,4 +1,5 @@
-from ... import get_python_manager, none, Some, _get_gateway
+from ...managers import get_python_manager, get_gateway
+from ...scala_wrapper import none, Some
 from . import coordinate_systems, get_parsing_function, null_values, GTF
 import numpy as np
 import pandas as pd
@@ -241,9 +242,9 @@ def _to_parsing_function(tpos):
 
 
 def convert_to_gmql(otherPos):
-    otherPosJavaList = _get_gateway().jvm.java.util.ArrayList()
+    otherPosJavaList = get_gateway().jvm.java.util.ArrayList()
     for tpos in otherPos:
-        posJavaList = _get_gateway().jvm.java.util.ArrayList()
+        posJavaList = get_gateway().jvm.java.util.ArrayList()
         if len(tpos) != 3:
             raise ValueError("Position tuple has wrong number of parameters")
         else:

@@ -1,7 +1,7 @@
 from .. import GMQLDataset, GDataframe
 import os, shutil
 from glob import glob
-from ... import get_python_manager, get_remote_manager
+from ...managers import get_python_manager, get_remote_manager
 from . import MetaLoaderFile, RegLoaderFile, MemoryLoader, Loader
 from ...FileManagment.TempFileManager import get_unique_identifier, get_new_dataset_tmp_folder
 

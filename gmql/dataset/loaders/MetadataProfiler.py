@@ -76,11 +76,11 @@ class MetadataProfile:
 
 def create_metadata_profile(dataset_path):
     meta_files = glob(pathname=dataset_path + '/*.meta')
-    from ... import __disable_progress
+    from ...settings import is_progress_enabled
 
     profile = dict()
 
-    for mf in tqdm(meta_files, disable=__disable_progress):
+    for mf in tqdm(meta_files, disable=not is_progress_enabled()):
         # print(mf + "\n\n")
         full_mf_path = os.path.abspath(mf)
         fo = open(full_mf_path)

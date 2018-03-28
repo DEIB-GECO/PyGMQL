@@ -1,5 +1,6 @@
-from .. import get_python_manager, none, Some, \
-    get_remote_manager, get_mode, _get_source_table
+from ..managers import get_python_manager, get_remote_manager, get_source_table
+from ..settings import get_mode
+from ..scala_wrapper import none, Some
 from .loaders import MetaLoaderFile, Materializations
 from .DataStructures.RegField import RegField
 from .DataStructures.MetaField import MetaField
@@ -1244,7 +1245,7 @@ class GMQLDataset:
         remote_manager = get_remote_manager()
         index = self.__index
         pmg = get_python_manager()
-        sources = _get_source_table()
+        sources = get_source_table()
         # create a new id having the exact same DAG inside, for modification
         new_index = pmg.cloneVariable(index)
         if mode == "local":

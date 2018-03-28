@@ -10,7 +10,7 @@ from . import generateNameKey
 from ..DataStructures import reg_fixed_fileds, \
     chr_aliases, start_aliases, stop_aliases, strand_aliases
 import numpy as np
-from ... import is_progress_enabled
+from ...settings import is_progress_enabled
 
 
 # global logger
