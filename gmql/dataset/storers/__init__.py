@@ -3,7 +3,8 @@ pyType_to_scalaType = {
     "int64": "long",
     "float64": "double",
     "int32": "integer",
-    "float32": "double"
+    "float32": "double",
+    "bool": 'bool'
 }
 
 schema_header = "<?xml version='1.0' encoding='UTF-8'?>\n"
