@@ -41,6 +41,6 @@ setup(name='gmql',
             'Programming Language :: Python :: 3'
       ],
       keywords="genomics big data pandas python",
-      python_requires='>=3',
+      python_requires='>=2.7',
       include_package_data=True,
       zip_safe=False)
