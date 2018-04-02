@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # strings to recognize as NaN
 NULL = "null"
 INF = "∞"

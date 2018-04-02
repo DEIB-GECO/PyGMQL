@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from ..managers import get_python_manager, get_remote_manager, get_source_table
 from ..settings import get_mode
 from ..scala_wrapper import none, Some
@@ -15,7 +16,7 @@ from .storers.parserToXML import parserToXML
 import os
 
 
-class GMQLDataset:
+class GMQLDataset(object):
     """
     The main abstraction of the library.
     A GMQLDataset represents a genomic dataset in the GMQL standard and it is divided
