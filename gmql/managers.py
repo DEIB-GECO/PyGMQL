@@ -17,20 +17,24 @@ __dependency_manager = None
 __source_table = None
 __gateway = None
 __pythonManager = None
+__gmql_jar_path = None
+__py4j_path = None
 
 
 def start():
-    global __pythonManager, __gateway, __dependency_manager
+    global __pythonManager, __gateway, __dependency_manager, __gmql_jar_path, __py4j_path
 
     java_home = os.environ.get("JAVA_HOME")
     if java_home is None:
         raise SystemError("The environment variable JAVA_HOME is not set")
     java_path = os.path.join(java_home, "bin", "java")
-    gmql_jar_fn = __dependency_manager.resolve_dependencies()
-    py4j_jar = __check_py4j_backend()
-    _port = launch_gateway(classpath=gmql_jar_fn, die_on_exit=True,
+    if __gmql_jar_path is None:
+        __gmql_jar_path = __dependency_manager.resolve_dependencies()
+    if __py4j_path is None:
+        __py4j_path = __check_py4j_backend()
+    _port = launch_gateway(classpath=__gmql_jar_path, die_on_exit=True,
                            java_path=java_path, javaopts=['-Xmx4096m'],
-                           jarpath=py4j_jar)
+                           jarpath=__py4j_path)
     __gateway = JavaGateway(gateway_parameters=GatewayParameters(port=_port,
                                                                  auto_convert=True))
     python_api_package = get_python_api_package(__gateway)
@@ -63,6 +67,18 @@ def __check_py4j_backend():
     return py4j_backend_jar
 
 
+def set_backend_path(path):
+    global __gmql_jar_path
+    if not is_backend_on():
+        __gmql_jar_path = path
+
+
+def set_py4j_path(path):
+    global __py4j_path
+    if not is_backend_on():
+        __py4j_path = path
+
+
 def stop():
     global __gateway, __session_manager
     # flushing the tmp files
@@ -70,6 +86,11 @@ def stop():
     store_sessions(__session_manager.sessions)
     if __gateway is not None:
         __gateway.shutdown()
+
+
+def is_backend_on():
+    global __pythonManager
+    return __pythonManager is not None
 
 
 def get_python_api_package(gateway):
