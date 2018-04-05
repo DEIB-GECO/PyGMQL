@@ -1,12 +1,12 @@
 from .FileManagment.DependencyManager import DependencyManager
 from .RemoteConnection.SessionManager import load_sessions, store_sessions
 from .FileManagment import TempFileManager
-from .settings import get_folders, get_remote_address
+from .settings import get_remote_address, get_configuration
+from .configuration import Configuration
 import py4j
 from py4j.java_gateway import JavaGateway, launch_gateway, GatewayParameters
 from pkg_resources import resource_filename
 import os
-import sys
 import time
 import atexit
 
@@ -40,16 +40,25 @@ def start():
     python_api_package = get_python_api_package(__gateway)
     __pythonManager = start_gmql_manager(python_api_package)
 
-    if sys.platform.startswith("win32"):
-        # if we are on windows set the hadoop home to winutils.exe
-        hadoopFolder_fn = resource_filename(
-            "gmql", os.path.join("resources", "hadoop")
-        )
-        __pythonManager.setHadoopHomeDir(hadoopFolder_fn)
+    conf = get_configuration()
+    _set_spark_configuration(conf)
+    _set_system_configuration(conf)
 
-    # setting the spark tmp folder
-    folders = get_folders()
-    __pythonManager.setSparkLocalDir(folders['spark'])
+
+def _set_spark_configuration(conf):
+    if not isinstance(conf, Configuration):
+        raise TypeError("Configuration is required. {} was passed".format(type(conf)))
+    pmg = get_python_manager()
+    pmg.setSparkConfiguration(conf.app_name,
+                              conf.master,
+                              conf.get_spark_confs())
+
+
+def _set_system_configuration(conf):
+    if not isinstance(conf, Configuration):
+        raise TypeError("Configuration is required. {} was passed".format(type(conf)))
+    pmg = get_python_manager()
+    pmg.setSystemConfiguration(conf.get_system_confs())
 
 
 def __check_py4j_backend():
@@ -68,12 +77,22 @@ def __check_py4j_backend():
 
 
 def set_backend_path(path):
+    """ Manually set the scala backend of the library
+
+    :param path: location of the jar file
+    :return: None
+    """
     global __gmql_jar_path
     if not is_backend_on():
         __gmql_jar_path = path
 
 
 def set_py4j_path(path):
+    """ Manually set the py4j backend of the library
+
+    :param path: location of the jar file
+    :return: None
+    """
     global __py4j_path
     if not is_backend_on():
         __py4j_path = path
@@ -197,6 +216,10 @@ def get_remote_manager():
 
 
 def get_session_manager():
+    """ Returns the session manager of the current instance of the library
+
+    :return: a SessionManager
+    """
     global __session_manager
     return __session_manager
 
