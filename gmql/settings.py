@@ -1,7 +1,9 @@
 from pkg_resources import resource_filename
 from .FileManagment.SessionFileManager import initialize_user_folder
 from .FileManagment import TempFileManager
+from .configuration import Configuration
 import os
+import sys
 
 
 __version__ = None
@@ -10,6 +12,23 @@ __metadata_profiling = True
 __remote_address = None
 __mode = "local"
 __folders = None
+__init_configs = {
+    "spark.serializer": 'org.apache.spark.serializer.KryoSerializer',
+    'spark.executor.memory': '6g',
+    'spark.driver.memory': '8g',
+    'spark.kryoserializer.buffer.max': '1g',
+    'spark.driver.maxResultSize': '5g',
+    'spark.driver.host': 'localhost',
+    'spark.local.dir': '/tmp'
+}
+__configuration = None
+
+
+def get_configuration():
+    global __configuration
+    if not isinstance(__configuration, Configuration):
+        raise TypeError("Configuration expected. {} was found".format(type(__configuration)))
+    return __configuration
 
 
 def set_mode(how):
@@ -108,9 +127,23 @@ def get_folders():
     return __folders
 
 
+def initialize_configuration():
+    global __configuration, __init_configs
+    configs = Configuration()
+    configs.set_spark_conf(d=__init_configs)
+    __configuration = configs
+
+
 def init_settings():
-    global __version__, __folders
+    global __version__, __folders, __configuration
     __version__ = get_version()
     __folders = TempFileManager.initialize_tmp_folders()
     initialize_user_folder()
-
+    initialize_configuration()
+    __configuration.set_spark_conf("spark.local.dir", __folders['spark'])
+    if sys.platform.startswith("win32"):
+        # if we are on windows set the hadoop home to winutils.exe
+        hadoop_folder_fn = resource_filename(
+            "gmql", os.path.join("resources", "hadoop")
+        )
+        __configuration.set_system_conf("hadoop.home.dir", hadoop_folder_fn)
