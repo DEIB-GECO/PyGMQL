@@ -8,6 +8,7 @@ from tqdm import tqdm
 from glob import glob
 
 CHUNK_SIZE = 5 * 1024 * 1024  # 5 MB
+backend_name = "GMQL-PythonAPI"
 
 
 class DependencyManager:
@@ -20,7 +21,7 @@ class DependencyManager:
         if os.path.isfile(self.backend_info_file):
             backend_info = self._parse_dependency_info(self.backend_info_file)
         self.backend_info = backend_info
-        backend_jar_path = glob(os.path.join(self.resources_path, "*.jar"))
+        backend_jar_path = glob(os.path.join(self.resources_path, "{}*.jar".format(backend_name)))
         backend_jar_path = backend_jar_path[0] if len(backend_jar_path) == 1 else None
         self.backend_jar_path = backend_jar_path
 
