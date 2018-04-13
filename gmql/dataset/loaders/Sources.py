@@ -15,7 +15,7 @@ class SourcesTable:
         self.id_count = 0
 
     def add_source(self, local=None, remote=None, parser=None):
-        self.table.loc[self.id_count] = {LOCAL: local, REMOTE: remote, PARSER: parser}
+        self.table = self.table.append({LOCAL: local, REMOTE: remote, PARSER: parser}, ignore_index=True)
         result = self.id_count
         self.id_count += 1
         return result

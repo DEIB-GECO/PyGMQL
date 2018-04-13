@@ -1,9 +1,8 @@
-from ... import get_python_manager, get_remote_manager, get_mode, _get_source_table
+from ...managers import get_python_manager, get_remote_manager, get_source_table
+from ...settings import get_mode
 from ...FileManagment import TempFileManager
 from ..parsers.RegionParser import RegionParser
 from . import MetaLoaderFile, RegLoaderFile
-from .. import GDataframe
-from .. import GMQLDataset
 import os
 from .MetadataProfiler import create_metadata_profile
 
@@ -50,6 +49,9 @@ def load_from_path(local_path=None, parser=None,  all_load=False):
                      instance of GDataframe is returned
     :return: A new GMQLDataset or a GDataframe
     """
+
+    from .. import GDataframe
+    from .. import GMQLDataset
     pmg = get_python_manager()
 
     local_path = preprocess_path(local_path)
@@ -65,8 +67,8 @@ def load_from_path(local_path=None, parser=None,  all_load=False):
 
         return GDataframe.GDataframe(regs=regs, meta=meta)
     else:
-        from ... import _metadata_profiling
-        if _metadata_profiling:
+        from ...settings import is_metaprofiling_enabled
+        if is_metaprofiling_enabled():
             meta_profile = create_metadata_profile(local_path)
         else:
             meta_profile = None
@@ -78,7 +80,7 @@ def load_from_path(local_path=None, parser=None,  all_load=False):
         elif not isinstance(parser, RegionParser):
             raise ValueError("parser must be RegionParser. {} was provided".format(type(parser)))
 
-        source_table = _get_source_table()
+        source_table = get_source_table()
         id = source_table.search_source(local=local_path)
         if id is None:
             id = source_table.add_source(local=local_path, parser=parser)
@@ -99,11 +101,12 @@ def load_from_remote(remote_name, owner=None):
                   is used. For public datasets use 'public'.
     :return A new GMQLDataset or a GDataframe
     """
+    from .. import GMQLDataset
     pmg = get_python_manager()
     remote_manager = get_remote_manager()
     parser = remote_manager.get_dataset_schema(remote_name, owner)
 
-    source_table = _get_source_table()
+    source_table = get_source_table()
     id = source_table.search_source(remote=remote_name)
     if id is None:
         id = source_table.add_source(remote=remote_name, parser=parser)

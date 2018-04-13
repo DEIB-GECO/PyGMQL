@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # strings to recognize as NaN
 NULL = "null"
 INF = "∞"
@@ -10,6 +12,7 @@ TAB = "tab"
 string_aliases = ['string', 'char']
 int_aliases = ['long', 'int', 'integer']
 float_aliases = ['double', 'float']
+bool_aliases = ['bool', 'boolean']
 allowed_types = ['bed', 'tab']
 
 
@@ -26,6 +29,8 @@ def get_parsing_function(type_string):
         return int
     elif type_string in float_aliases:
         return float
+    elif type_string in bool_aliases:
+        return bool
     else:
         raise ValueError("This type is not supported")
 
@@ -37,6 +42,8 @@ def get_type_name(type):
         return "integer"
     elif type == float:
         return "double"
+    elif type == bool:
+        return 'bool'
     else:
         raise ValueError("This type is not supported")
 

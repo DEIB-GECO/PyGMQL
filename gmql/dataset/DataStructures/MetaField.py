@@ -1,5 +1,5 @@
-from ... import get_python_manager
-from . import RegField, _get_opposite_operator
+from ...managers import get_python_manager
+from . import _get_opposite_operator
 
 
 class MetaField:
@@ -62,7 +62,8 @@ class MetaField:
         return self._predicate(other, "LTE")
 
     def _predicate(self, other, operator):
-        if isinstance(other, (int, str, float)):
+        from . import RegField
+        if isinstance(other, (int, str, float, bool)):
             new_name = '(' + self.name + operator + str(other) + ')'
             predicate = self.exp_build.createMetaPredicate(self.name, operator, str(other))
             return MetaField(name=new_name, meta_condition=predicate, index=self.index)
@@ -160,6 +161,7 @@ class MetaField:
         return self._unary_expression("NEG")
 
     def _binary_expression(self, other, operation, order="left"):
+        from . import RegField
         if self.meNode is None:
             raise ValueError("Cannot mix expressions and conditions")
         if isinstance(other, RegField.RegField):

@@ -1,7 +1,7 @@
-from .. import GMQLDataset, GDataframe
+
 import os, shutil
 from glob import glob
-from ... import get_python_manager, get_remote_manager
+from ...managers import get_python_manager, get_remote_manager
 from . import MetaLoaderFile, RegLoaderFile, MemoryLoader, Loader
 from ...FileManagment.TempFileManager import get_unique_identifier, get_new_dataset_tmp_folder
 
@@ -14,6 +14,7 @@ def materialize(datasets):
     :param datasets: it can be a list of GMQLDataset or a dictionary {'output_path' : GMQLDataset}
     :return: a list of GDataframe or a dictionary {'output_path' : GDataframe}
     """
+    from .. import GMQLDataset
     result = None
     if isinstance(datasets, dict):
         result = dict()
@@ -39,6 +40,7 @@ def materialize(datasets):
 
 
 def materialize_local(id, output_path=None):
+    from .. import GDataframe
     pmg = get_python_manager()
 
     if output_path is not None:

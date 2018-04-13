@@ -8,6 +8,7 @@ from tqdm import tqdm
 from glob import glob
 
 CHUNK_SIZE = 5 * 1024 * 1024  # 5 MB
+backend_name = "GMQL-PythonAPI"
 
 
 class DependencyManager:
@@ -20,7 +21,7 @@ class DependencyManager:
         if os.path.isfile(self.backend_info_file):
             backend_info = self._parse_dependency_info(self.backend_info_file)
         self.backend_info = backend_info
-        backend_jar_path = glob(os.path.join(self.resources_path, "*.jar"))
+        backend_jar_path = glob(os.path.join(self.resources_path, "{}*.jar".format(backend_name)))
         backend_jar_path = backend_jar_path[0] if len(backend_jar_path) == 1 else None
         self.backend_jar_path = backend_jar_path
 
@@ -61,13 +62,15 @@ class DependencyManager:
                 deps.append(dd)
         return repo_name, repo_url, deps
 
-    def _parse_dependency_info(self, path):
+    @staticmethod
+    def _parse_dependency_info(path):
         tree = ET.parse(path)
-        return self.__parse_dependency_info_from_tree(tree)
+        return DependencyManager.__parse_dependency_info_from_tree(tree)
 
-    def _parse_dependency_info_fromstring(self, s):
+    @staticmethod
+    def _parse_dependency_info_fromstring(s):
         tree = ET.ElementTree(ET.fromstring(s))
-        return self.__parse_dependency_info_from_tree(tree)
+        return DependencyManager.__parse_dependency_info_from_tree(tree)
 
     @staticmethod
     def __parse_dependency_info_from_tree(tree):
@@ -84,6 +87,21 @@ class DependencyManager:
                 pass
             res[tag] = text
         return res
+
+    @staticmethod
+    def find_package(repo, repo_name, groupId, artifactId, version, classifier=None):
+        first_part_url = "/".join(repo.split("/")[:3]) + "/"
+        query_url = first_part_url + "/service/local/artifact/maven/resolve?"
+        query_url += "g={}&".format(groupId)
+        query_url += "a={}&".format(artifactId)
+        query_url += "v={}&".format(version)
+        query_url += "r={}".format(repo_name)
+        if classifier is not None:
+            query_url += "&c={}".format(classifier)
+        resp_text = requests.get(query_url).text
+        resp = DependencyManager._parse_dependency_info_fromstring(resp_text)
+        location = repo + resp['repositoryPath']
+        return location
 
     def resolve_dependencies(self):
         first_part_url = "/".join(self.repo_url.split("/")[:3]) + "/"
@@ -107,7 +125,7 @@ class DependencyManager:
             output_path = os.path.join(self.resources_path, resp['repositoryPath'].split("/")[-1])
             if not self.is_backend_present():
                 # there is no backend (first start)
-                self._download_backend(location, output_path)
+                self.download_from_location(location, output_path)
                 self._save_dependency(resp_text)
             elif self.repo_name == 'snapshots' and \
                     self.backend_info['snapshot'] == 'true':
@@ -117,7 +135,7 @@ class DependencyManager:
                 if current_timestamp < retrieved_timestamp:
                     # we are using an outdated backend
                     self._delete_current_backend()
-                    self._download_backend(location, output_path)
+                    self.download_from_location(location, output_path)
                     self._save_dependency(resp_text)
             else:
                 raise NotImplementedError("Need to implement the backend download in the case"
@@ -131,7 +149,7 @@ class DependencyManager:
             f.write(resp_nice)
 
     @staticmethod
-    def _download_backend(location, output_path):
+    def download_from_location(location, output_path):
         r = requests.get(location, stream=True)
         total_size = int(r.headers.get("content-length", 0))
         with open(output_path, "wb") as f:

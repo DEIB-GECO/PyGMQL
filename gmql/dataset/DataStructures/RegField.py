@@ -1,4 +1,4 @@
-from ... import get_python_manager
+from ...managers import get_python_manager
 from .MetaField import MetaField
 
 
@@ -188,7 +188,7 @@ class RegField:
                 raise ValueError("When mixing RegFields with metadata you can only use "
                                  "MetaFields of a metadata attribute and "
                                  "not complex conditions or expressions on metadata")
-        elif isinstance(other, (str, int, float)):
+        elif isinstance(other, (str, int, float, bool)):
             return str(other)
         else:
             raise TypeError("Other is of unknown type. "

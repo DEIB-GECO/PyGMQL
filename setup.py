@@ -28,7 +28,6 @@ setup(name='gmql',
       # maintainer="Mustafa Anil Tuncel",
       # maintainer_email="tuncel.manil@gmail.com",
       license='MIT',
-      download_url='{}/tarball/{}'.format(github_url, version),
       packages=find_packages(exclude=()),     # temporary
       scripts=['scripts/pygmql_login.py', 'scripts/pygmql_win.bat', 'scripts/pygmql.sh'],
       install_requires=['numpy', 'pandas', 'tqdm', 'numpy', 'py4j', 'requests', 'requests-toolbelt', 'strconv',
@@ -42,6 +41,6 @@ setup(name='gmql',
             'Programming Language :: Python :: 3'
       ],
       keywords="genomics big data pandas python",
-      python_requires='>=3',
+      python_requires='>=3.0, !=3.0.*, !=3.1.*, !=3.2.*',
       include_package_data=True,
       zip_safe=False)

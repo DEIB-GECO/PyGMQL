@@ -1,5 +1,6 @@
 from . import default_address, headers
-from .. import get_python_manager, is_progress_enabled
+from ..managers import get_python_manager
+from ..settings import is_progress_enabled
 import requests, time, logging, json
 from requests_toolbelt.multipart.encoder import MultipartEncoderMonitor, MultipartEncoder
 import pandas as pd

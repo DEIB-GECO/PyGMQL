@@ -1,8 +1,7 @@
 from .storers import FrameToGMQL
 import pandas as pd
 from .loaders import Loader
-from .DataStructures import reg_fixed_fileds, \
-    strand_aliases, stop_aliases, start_aliases, chr_aliases, id_sample_aliases
+from .DataStructures import strand_aliases, stop_aliases, start_aliases, chr_aliases, id_sample_aliases
 import numpy as np
 from ..FileManagment import TempFileManager
 from ..ml.genometric_space import GenometricSpace

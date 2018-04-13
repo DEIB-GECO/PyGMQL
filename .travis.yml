@@ -1,11 +1,20 @@
 language: python
 python:
-  - "3.6"
-
-# command to install dependencies
+  - '3.3'
+  - '3.4'
+  - '3.5'
+  - '3.6'
 install:
   - pip install numpy
   - pip install .
-
-# command to run tests
 script: python scripts/build_test.py
+deploy:
+  provider: pypi
+  user: $pypi_username
+  password: $pypi_password
+  on:
+    branch: release
+env:
+  global:
+  - secure: TpkxhdaMtfAuXfA47kLNVwzR/oYpqOk8H2H2od5s98PCieinKdyRbmSp7Wnwc4lUisZ/290kqSxVPT2q7ohqCL8EoLWVoO83qI4LdmGkQ+fjassujDZlHj3Lg+bxKnRoMxG5lU/cEjoespKYYd9wPOChYfZtMcwSmjGf/vd7iuFO0at2QSn21tntJMAviD6PPBiuFYHWDg5aoee234/zUh9i+yIEheBIh4c+2Fcilyf7SLF32pU2GqfhRyajQvGkdz15Umx8kYFpk6xyVjecF7c0qrjtHki58WU0PmmKsgNZHKVaEMfcFirI226g17mRZjShwdyajLRaA7UR6nieDai19hY/AmHJVFMsepMo1sQOuG98xkqzNkrcRXU0iog8y8WeWYfvDc/CShmRgYo7eK2GYjpGXToGlNqP3Rlk72y0xcWRh4ZlNmMphF9/rgvMlZ9ZZv5r/m6Pm0V3qhR+ru4SsdSZDCvFlWecxh8FiCzsaSjGQwqL5hGkZzQAn5ao8KQY1YkenWaPOFVHNMTJkYbM7y5vuaJgAzk5jYC1DVmw+NJicboF9BGpXcENNIvRRp67ViVysBO6fh4H08pSdJA0Oy8cW4TUKTMNh4ucUtviA1N/2osvX7ajYpaXN7d4PUwKUeUKdzcdWEidYNhnllXnfPTIDohMIw1c5Zo04JE=
+  - secure: ZXC/sC4l6/vxVu77VKg7Lp1Ua1CylW8BYjyTqh2IO8p6tS9jAIyymmzVjMn7yemk8KugV6WBLZe6FIAsymK/rYm2DVNQQex6VZSgfgcDGHMyltUE+k9ZbPCr1HhsWu5Ng+WiybTxnoKi/hbAsVLagNULgspEjSJSsx4AuDO2jKkWae4PePndqnXuJGgnLvl0OZLcpLPVXeJKY2Q6tAo3itcrC+YELv0uSbn97Opae+EF+qxcuTiHyMeYY+3lrDQLGdtAxpmtylEA5ozzpe71F9OPcpfP8vL9I6crDw3dr2JOniAn9cgVCKA4PqND/cd3q1Ijtp0HJqD+8eKi4zYRCPHwX7/nWibZNwcnKQvdfBTH1KBQujtXtwopADCNpZBFSrQIyGig1erLlC7bEf95uHG+JfxlWbKms6sslimtO9WHnKxeSjOdiN5H8OWdGaKE5zHb8XLNFPya4ydeUjxDjfaWWXtlE3xJP6js2Oad7X+1sR5DhOFkAcYxcm1sL6qXzrW6WYMkno+oLyydLuYfAmynpMYQ5MfHukBvr5AlBnEqJ7r3h5HuvyTP07QcySQF8u2UGuASKxZBxWhJns8g4EzsGYEEC8+3IsfNffrdzeL2VE+ryDkih2lBHqypKLKscYeBdiMPt1oSVK3U6JOhltSZgNfkqQd5G79pO2NhWDg=
