@@ -78,7 +78,7 @@ def get_parser(path):
                     (5, 'score', 'float'), (7, 'frame', 'string')]
 
         for field in field_nodes:
-            name = list(field.itertext())[0].lower()
+            name = list(field.itertext())[0]#.lower()
             type = field.get('type').lower()
             if name not in {'seqname', 'start', 'end', 'strand',
                             'source', 'feature', 'score', 'frame'}:
@@ -87,7 +87,7 @@ def get_parser(path):
 
     else:
         for field in field_nodes:
-            name = list(field.itertext())[0].lower()
+            name = list(field.itertext())[0]#.lower()
             type = field.get('type').lower()
 
             if name in chr_aliases and chrPos is None:
