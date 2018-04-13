@@ -7,7 +7,6 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from .algorithms.clustering import Clustering
 from .algorithms.biclustering import Biclustering
 from tqdm import tqdm
-from wordcloud import WordCloud
 
 
 class GenometricSpace:
@@ -323,7 +322,7 @@ class GenometricSpace:
 
         """
         from PIL import Image
-
+        from wordcloud import WordCloud
         if image_path is not None:
             mask = np.array(Image.open(image_path))
             wc = WordCloud(mask=mask, background_color='white', width=1600, height=1200, prefer_horizontal=0.8)
