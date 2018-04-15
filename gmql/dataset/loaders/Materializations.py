@@ -1,5 +1,5 @@
 
-import os, shutil
+import os
 from glob import glob
 from ...managers import get_python_manager, get_remote_manager
 from . import MetaLoaderFile, RegLoaderFile, MemoryLoader, Loader
@@ -46,13 +46,14 @@ def materialize_local(id, output_path=None):
     if output_path is not None:
         # check that the folder does not exists
         if os.path.isdir(output_path):
-            shutil.rmtree(output_path)
+            raise ValueError("Folder {} already exists!".format(output_path))
 
         pmg.materialize(id, output_path)
         pmg.execute()
 
         # taking in memory the data structure
-        real_path = os.path.join(output_path, 'exp')
+        real_path = Loader.preprocess_path(output_path)
+        # real_path = os.path.join(output_path, 'exp')
 
         remove_side_effects(real_path)
         # metadata

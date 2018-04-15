@@ -5,6 +5,7 @@ from ..parsers.RegionParser import RegionParser
 from . import MetaLoaderFile, RegLoaderFile
 import os
 from .MetadataProfiler import create_metadata_profile
+from . import FILES_FOLDER, SCHEMA_FILE, WEB_PROFILE_FILE, PROFILE_FILE
 
 
 def get_file_paths(path):
@@ -12,8 +13,7 @@ def get_file_paths(path):
     all_files = os.listdir(real_path)
 
     def filter_files(x):
-        return not (x.endswith(".xml") or x.endswith(".schema") \
-                    or x.startswith("_"))
+        return not (x in [SCHEMA_FILE, WEB_PROFILE_FILE, PROFILE_FILE] or x.startswith("_"))
 
     files_paths = list(map(lambda x: os.path.join(real_path, x), filter(filter_files, all_files)))
     # files_paths = set(glob.glob(real_path + "/[!_]*"))
@@ -22,14 +22,57 @@ def get_file_paths(path):
 
 
 def preprocess_path(path):
-    for root, dirs, files in os.walk(path):
-        if check_for_dataset(files):
-            return root
-    raise ValueError("The provided path does not contain any GMQL dataset")
+    """ Given a dataset path, the following structure is to be expected:
+        - path/
+            - files/
+                - S_00000.gdm
+                - S_00000.gdm.meta
+                - S_00001.gdm
+                - S_00001.gdm.meta
+                - ...
+                - schema.xml
+                - [profile.xml]
+                - [web_profile.xml]
+            - [info.txt]
+            - [query.txt]
+            - [vocabulary.txt]
+
+    :param path
+    :return: the path where the gdm data are
+    """
+    for sub_f in os.listdir(path):
+        sub_f_tot = os.path.join(path, sub_f)
+        if os.path.isdir(sub_f_tot) and sub_f == FILES_FOLDER:
+            if check_for_dataset(sub_f_tot):
+                return sub_f_tot
+            else:
+                raise ValueError("Dataset in {} was not in GMQL format".format(sub_f_tot))
+    # if we are here it means that there is no files folder...so we need to check the root
+    if check_for_dataset(path):
+        return path
+    else:
+        raise ValueError("Dataset in {} was not in GMQL format".format(path))
 
 
 def check_for_dataset(files):
-    return len([x for x in files if x.endswith(".meta")]) > 0
+    """ A GDM dataset has the form:
+        - S_00000.gdm
+        - S_00000.gdm.meta
+        - S_00001.gdm
+        - S_00001.gdm.meta
+        - ...
+        - schema.xml
+        - [profile.xml]
+        - [web_profile.xml]
+    :param files: path of the dataset
+    :return: True if the path contains a gdm dataset
+    """
+    all_files = os.listdir(files)
+    if SCHEMA_FILE not in all_files:
+        return False
+    meta_files = set(map(lambda y: y[: -9], filter(lambda x: x.endswith(".gdm.meta"), all_files)))
+    regs_files = set(map(lambda y: y[: -4], filter(lambda x: x.endswith(".gdm"), all_files)))
+    return meta_files == regs_files
 
 
 def load_from_path(local_path=None, parser=None,  all_load=False):

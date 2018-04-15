@@ -11,6 +11,7 @@ from ..DataStructures import reg_fixed_fileds, \
     chr_aliases, start_aliases, stop_aliases, strand_aliases
 import numpy as np
 from ...settings import is_progress_enabled
+from . import SCHEMA_FILE
 
 
 # global logger
@@ -23,9 +24,10 @@ def load_reg_from_path(path, parser=None):
         parser = get_parser(path)
     # we need to take only the files of the regions, so only the files that does NOT end with '.meta'
     all_files = set(glob(pathname=path + '/*'))
-    meta_files = set(glob(pathname=path + '/*.meta'))
+    meta_files = set(glob(pathname=path + '/*.gdm.meta'))
 
     only_region_files = all_files - meta_files
+    # print(only_region_files)
     logger.info("Loading region data from path {}".format(path))
 
     n_files = len(only_region_files)
@@ -109,5 +111,5 @@ def get_parser(path):
 
 
 def get_schema_path(path):
-    schema_paths = (glob(pathname=path + '/*.schema') + glob(pathname=path + "/schema.xml"))
-    return schema_paths[0] if len(schema_paths) > 0 else None
+    schema_path = os.path.join(path, SCHEMA_FILE)
+    return schema_path

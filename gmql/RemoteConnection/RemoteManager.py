@@ -16,6 +16,7 @@ from ..dataset.storers.parserToXML import parserToXML
 import warnings
 import threading
 import numpy as np
+from ..dataset.loaders import FILES_FOLDER, SCHEMA_FILE
 
 
 good_status = ['PENDING', 'RUNNING', 'DS_CREATION_RUNNING']
@@ -376,6 +377,11 @@ class RemoteManager:
         """
         if not os.path.isdir(local_path):
             os.makedirs(local_path)
+        else:
+            raise ValueError("Path {} already exists!".format(local_path))
+
+        local_path = os.path.join(local_path, FILES_FOLDER)
+        os.makedirs(local_path)
 
         if how == 'zip':
             return self.download_as_zip(dataset_name, local_path)
@@ -432,7 +438,7 @@ class RemoteManager:
                 t.join()
             pbar.close()
         schema = self.get_dataset_schema(dataset_name=dataset_name)
-        parserToXML(parser=schema, datasetName=dataset_name, path=os.path.join(local_path, dataset_name + ".schema"))
+        parserToXML(parser=schema, datasetName=dataset_name, path=os.path.join(local_path, SCHEMA_FILE))
 
     def download_sample(self, dataset_name, sample_name, local_path, how="all", header=False):
         header_get = self.__check_authentication()
@@ -440,7 +446,7 @@ class RemoteManager:
         region = False
         meta = False
 
-        sample_path = os.path.join(local_path, sample_name)
+        sample_path = os.path.join(local_path, sample_name + ".gdm")
         region_path = sample_path
         meta_path = sample_path + ".meta"
 

@@ -1,5 +1,11 @@
 import os
 
+
+FILES_FOLDER = "files"
+SCHEMA_FILE = "schema.xml"
+PROFILE_FILE = "profile.xml"
+WEB_PROFILE_FILE = "web_profile.xml"
+
 """
     Generation of the index of the pandas dataframe.
     This can be done in different ways:

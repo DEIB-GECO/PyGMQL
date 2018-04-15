@@ -11,7 +11,7 @@ logger = logging.getLogger("PyGML logger")
 
 
 def load_meta_from_path(path):
-    meta_files = glob(pathname=path + '/*.meta')
+    meta_files = glob(pathname=path + '/*.gdm.meta')
     parsed = []
     parser = GenericMetaParser()
     logger.info("Loading meta data from path {}".format(path))
