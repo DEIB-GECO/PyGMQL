@@ -8,7 +8,7 @@ The following functions define the behavior of the library
 Logging and progress bars
 -------------------------
 
-.. currentmodule:: gmql
+.. currentmodule:: gmql.settings
 
 .. autofunction:: set_progress
 
@@ -17,6 +17,8 @@ Logging and progress bars
 -----------------
 Remote Management
 -----------------
+
+.. currentmodule:: gmql.managers
 
 .. autofunction:: get_remote_manager
 
@@ -30,6 +32,8 @@ Remote Management
 --------------
 Execution Mode
 --------------
+
+.. currentmodule:: gmql.settings
 
 .. autofunction:: set_mode
 

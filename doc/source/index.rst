@@ -16,7 +16,7 @@ interactive and script-oriented world of python, enabling the integration of gen
 classical Python packages for machine learning and data science.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
    installation
@@ -27,6 +27,7 @@ classical Python packages for machine learning and data science.
    GDataframe
    remote
    settings
+   configurations
    ml
 
 * :ref:`genindex`

@@ -1,4 +1,7 @@
 class Configuration:
+    """ Class containing all the information regarding the system environment and the Spark environment
+    """
+
     def __init__(self):
         self.app_name = "gmql_api"
         self.master = "local[*]"

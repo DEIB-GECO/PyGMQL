@@ -1,10 +1,9 @@
 Parsers
 =======
 
-.. currentmodule:: gmql.dataset.parsers.RegionParser
-
-..  autoclass:: RegionParser
-    :members:
+------------------
+Predefined parsers
+------------------
 
 .. currentmodule:: gmql.dataset.parsers.Parsers
 
@@ -26,6 +25,15 @@ Parsers
 .. autoclass:: BedScoreParser
     :members:
 
+.. currentmodule:: gmql.dataset.parsers.RegionParser
 
+-------------------
+Customizable parser
+-------------------
+
+All the parsers in PyGMQL extend the :class:`RegionParser`
+
+..  autoclass:: RegionParser
+    :members:
 
 
