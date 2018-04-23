@@ -194,4 +194,5 @@ test
 gmql/resources/instances
 gmql/resources/dependencies_info.xml
 gmql/resources/*.jar
+gmql/resources/tmp/
 utilities/
