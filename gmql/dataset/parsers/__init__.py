@@ -35,14 +35,14 @@ def get_parsing_function(type_string):
         raise ValueError("This type is not supported")
 
 
-def get_type_name(type):
-    if type == str:
+def get_type_name(type_class):
+    if type_class == str:
         return "string"
-    elif type == int:
+    elif type_class == int:
         return "integer"
-    elif type == float:
+    elif type_class == float:
         return "double"
-    elif type == bool:
+    elif type_class == bool:
         return 'bool'
     else:
         raise ValueError("This type is not supported")

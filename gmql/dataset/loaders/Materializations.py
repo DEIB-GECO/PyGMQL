@@ -15,7 +15,6 @@ def materialize(datasets):
     :return: a list of GDataframe or a dictionary {'output_path' : GDataframe}
     """
     from .. import GMQLDataset
-    result = None
     if isinstance(datasets, dict):
         result = dict()
         for output_path in datasets.keys():

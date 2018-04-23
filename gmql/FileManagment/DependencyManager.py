@@ -83,7 +83,7 @@ class DependencyManager:
             try:
                 n = int(text)
                 text = n
-            except Exception:
+            except ValueError:
                 pass
             res[tag] = text
         return res

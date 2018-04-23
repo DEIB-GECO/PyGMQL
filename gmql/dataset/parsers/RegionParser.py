@@ -234,7 +234,7 @@ def _to_parsing_function(tpos):
         if isinstance(tpos[2], str):
             fun = get_parsing_function(tpos[2].lower())
         else:
-            TypeError("Type of region field must be a string")
+            raise TypeError("Type of region field must be a string")
         if isinstance(tpos[0], int) and isinstance(tpos[1], str):
             return tpos[0], tpos[1], fun
         else:

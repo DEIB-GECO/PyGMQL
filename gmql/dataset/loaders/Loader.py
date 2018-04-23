@@ -116,7 +116,6 @@ def load_from_path(local_path=None, parser=None,  all_load=False):
         else:
             meta_profile = None
 
-        index = None
         if parser is None:
             # find the parser
             parser = RegLoaderFile.get_parser(local_path)

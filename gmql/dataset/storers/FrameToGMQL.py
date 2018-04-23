@@ -79,6 +79,7 @@ def save_schema(regs_df, dataset_name, dataset_type, schema_file_name, coordinat
 
 
 def to_remote(gframe, path_remote):
+    # TODO
     pass
 
 
