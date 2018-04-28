@@ -4,6 +4,7 @@ from . import *
 import os
 import shutil
 from ..parsers import TAB, COORDS_DEFAULT
+from ..loaders import SCHEMA_FILE
 
 logger = logging.getLogger("PyGML logger")
 
@@ -45,7 +46,7 @@ def to_local(gframe, path_local):
 
     # save the schema
     dataset_name = os.path.basename(os.path.normpath(path_local))
-    save_schema(regs, dataset_name, TAB, os.path.join(path_local, "schema.schema"), COORDS_DEFAULT)
+    save_schema(regs, dataset_name, TAB, os.path.join(path_local, SCHEMA_FILE), COORDS_DEFAULT)
 
 
 def meta_to_file(meta_df, filename):
