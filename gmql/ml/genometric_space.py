@@ -91,7 +91,7 @@ class GenometricSpace:
         multi_meta_index = pd.MultiIndex.from_arrays(meta_index, names=meta_names)
         self.data.index = multi_meta_index
 
-    def to_matrix(self, values, selected_regions, default_value=0):
+    def to_matrix(self, values, selected_regions, default_value=0, aggfunc='mean'):
         """Creates a 2D multi-indexed matrix representation of the data.
             This representation allows the data to be sent to the machine learning algorithms.
 
@@ -115,7 +115,7 @@ class GenometricSpace:
             print("started pivoting")
             self.data = pd.pivot_table(self.data,
                                        values=values, columns=selected_regions, index=['sample'],
-                                       fill_value=default_value)
+                                       fill_value=default_value, aggfunc=aggfunc)
             self._pivoted = True
             print("end of pivoting")
 
