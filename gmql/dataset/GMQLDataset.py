@@ -151,6 +151,9 @@ class GMQLDataset(object):
             raise TypeError("region_predicate must be a RegField or None."
                             " {} was provided".format(type(region_predicate)))
 
+        new_location = self.location
+        new_local_sources, new_remote_sources = self._local_sources, self._remote_sources
+
         if isinstance(semiJoinDataset, GMQLDataset):
             other_dataset = Some(semiJoinDataset.__index)
             semiJoinDataset_exists = True
@@ -164,6 +167,9 @@ class GMQLDataset(object):
                 all([isinstance(x, str) for x in semiJoinMeta]):
             if semiJoinDataset_exists:
                 semi_join = Some(self.opmng.getMetaJoinCondition(semiJoinMeta))
+
+                new_local_sources, new_remote_sources = self.__combine_sources(self, semiJoinDataset)
+                new_location = self.__combine_locations(self, semiJoinDataset)
             else:
                 raise ValueError("semiJoinDataset and semiJoinMeta must be present at the "
                                  "same time or totally absent")
@@ -175,8 +181,9 @@ class GMQLDataset(object):
 
         new_index = self.opmng.select(self.__index, other_dataset,
                                       semi_join, meta_condition, region_condition)
-        return GMQLDataset(index=new_index, location=self.location, local_sources=self._local_sources,
-                           remote_sources=self._remote_sources, meta_profile=self.meta_profile)
+
+        return GMQLDataset(index=new_index, location=new_location, local_sources=new_local_sources,
+                           remote_sources=new_remote_sources, meta_profile=self.meta_profile)
 
     def meta_select(self, predicate=None, semiJoinDataset=None, semiJoinMeta=None):
         """
