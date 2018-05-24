@@ -33,7 +33,7 @@ def start():
     if __py4j_path is None:
         __py4j_path = __check_py4j_backend()
     _port = launch_gateway(classpath=__gmql_jar_path, die_on_exit=True,
-                           java_path=java_path, javaopts=['-Xmx4096m'],
+                           java_path=java_path, javaopts=['-Xmx8192m'],
                            jarpath=__py4j_path)
     __gateway = JavaGateway(gateway_parameters=GatewayParameters(port=_port,
                                                                  auto_convert=True))
