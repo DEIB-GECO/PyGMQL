@@ -134,13 +134,28 @@ class DependencyManager:
                 retrieved_timestamp = resp['snapshotTimeStamp']
                 if current_timestamp < retrieved_timestamp:
                     # we are using an outdated backend
-                    self._delete_current_backend()
-                    self.download_from_location(location, output_path)
-                    self._save_dependency(resp_text)
+                    self.__set_backend(location, output_path, resp_text)
+            elif self.repo_name == 'releases':
+                # If we need a release, it always wins
+                if self.backend_info['snapshot'] == 'true':
+                    self.__set_backend(location, output_path, resp_text)
+                else:
+                    current_version = float(self.backend_info['version'])
+                    retrieved_version = float(resp['version'])
+                    current_classifier = self.backend_info.get("classifier")
+                    retrieved_classifier = resp.get("classifier")
+                    if (current_version != retrieved_version) or (current_classifier != retrieved_classifier):
+                        # the versions do not match
+                        self.__set_backend(location, output_path, resp_text)
             else:
                 raise NotImplementedError("Need to implement the backend download in the case"
                                           " of releases!!!!")
             return output_path
+
+    def __set_backend(self, location, output_path, resp_text):
+        self._delete_current_backend()
+        self.download_from_location(location, output_path)
+        self._save_dependency(resp_text)
 
     def _save_dependency(self, resp):
         resp_nice = minidom.parseString(resp)

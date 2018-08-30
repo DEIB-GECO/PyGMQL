@@ -6,13 +6,13 @@
         <dependency>
             <groupId>it.polimi.genomics</groupId>
             <artifactId>GMQL-PythonAPI</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>5.0</version>
             <classifier>jackofall</classifier>
         </dependency>
     </dependencies>
 
     <repository>
-        <url>http://oss.sonatype.org/content/repositories/snapshots/</url>
-        <name>snapshots</name>
+        <url>http://oss.sonatype.org/content/repositories/releases/</url>
+        <name>releases</name>
     </repository>
 </project>
