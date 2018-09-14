@@ -91,7 +91,7 @@ class DependencyManager:
     @staticmethod
     def find_package(repo, repo_name, groupId, artifactId, version, classifier=None):
         first_part_url = "/".join(repo.split("/")[:3]) + "/"
-        query_url = first_part_url + "/service/local/artifact/maven/resolve?"
+        query_url = first_part_url + "service/local/artifact/maven/resolve?"
         query_url += "g={}&".format(groupId)
         query_url += "a={}&".format(artifactId)
         query_url += "v={}&".format(version)
