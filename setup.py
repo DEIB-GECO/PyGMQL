@@ -29,9 +29,22 @@ setup(name='gmql',
       # maintainer_email="tuncel.manil@gmail.com",
       license='MIT',
       packages=find_packages(exclude=("gmql.ml",)),     # temporary
-      scripts=['scripts/pygmql_login.py', 'scripts/pygmql_win.bat', 'scripts/pygmql.sh'],
-      install_requires=['pandas', 'tqdm', 'numpy', 'py4j', 'requests', 'requests-toolbelt', 'strconv',
-                        # 'sklearn', 'pyclustering', 'matplotlib', 'scipy', 'wordcloud', 'fancyimpute'   # temporary
+      scripts=['scripts/pygmql_login.py',
+               'scripts/pygmql_win.bat',
+               'scripts/pygmql.sh'],
+      install_requires=['pandas',
+                        'tqdm',
+                        'numpy',
+                        'py4j',
+                        'requests',
+                        'requests-toolbelt',
+                        'strconv',
+                        'typecheck-decorator',
+                        # 'sklearn',
+                        # 'pyclustering',
+                        # 'matplotlib',
+                        # 'scipy', 'wordcloud',
+                        # fancyimpute'
                         ],
       classifiers=[
             'Development Status :: 3 - Alpha',
@@ -41,6 +54,6 @@ setup(name='gmql',
             'Programming Language :: Python :: 3'
       ],
       keywords="genomics big data pandas python",
-      python_requires='>=3.0, !=3.0.*, !=3.1.*, !=3.2.*',
+      python_requires='>=3.0, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
       include_package_data=True,
       zip_safe=False)
