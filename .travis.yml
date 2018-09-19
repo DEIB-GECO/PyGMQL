@@ -7,7 +7,7 @@ install:
   - pip install numpy
   - pip install codecov
   - pip install .
-script: python scripts/build_test.py
+script: coverage run scripts/build_test.py
 deploy:
   provider: pypi
   user: $pypi_username
