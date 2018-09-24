@@ -1,0 +1,4 @@
+ExData1 = SELECT() Example_Dataset_1;
+MATERIALIZE ExData1 INTO Example_Dataset_1;
+ExData2 = SELECT() Example_Dataset_2;
+MATERIALIZE ExData2 INTO Example_Dataset_2;

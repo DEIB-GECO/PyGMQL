@@ -1,0 +1,8 @@
+Average region length	51.21
+Created by	lucananni93
+Creation date	2018/09/24 14:27:10
+Execution time	00:00:15
+Number of regions	24
+Number of samples	6
+Query name	Download_Example_Datasets
+Size	0.02 MB

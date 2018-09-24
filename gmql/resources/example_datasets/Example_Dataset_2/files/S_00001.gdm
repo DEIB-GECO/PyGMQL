@@ -1,0 +1,8 @@
+chr2	99	170	*	GMQL	Region	5	.	chr2.2538	0.0332	1.3	-1	32
+chr2	209	250	*	GMQL	Region	7	.	chr2.2539	0.0401	1.56	-1	113
+chr2	369	400	*	GMQL	Region	5	.	chr2.2540	0.0469	1.8	-1	138
+chr2	499	510	*	GMQL	Region	6	.	chr2.2541	0.0561	2.14	-1	175
+chr2	579	600	*	GMQL	Region	5.6	.	chr2.2542	0.0393	1.53	-1	226
+chr5	99	200	*	GMQL	Region	7	.	chr2.2540	0.0469	1.8	-1	138
+chr5	319	340	+	GMQL	Region	7	.	chr2.2541	0.0561	2.14	-1	175
+chr5	399	450	*	GMQL	Region	3	.	chr2.2542	0.0393	1.53	-1	226

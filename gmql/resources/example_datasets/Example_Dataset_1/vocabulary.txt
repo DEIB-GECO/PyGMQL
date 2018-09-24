@@ -1,0 +1,253 @@
+antibody
+	CTCF	1
+antibody_antibodyDescription
+	Rabbit polyclonal. Antibody Target: CTCF	1
+antibody_lab
+	Myers, Hardison, Snyder	1
+antibody_label
+	CTCF (07-729)	1
+antibody_lots
+	1350637 DAM1472197	1
+antibody_orderUrl
+	http://www.millipore.com/catalogue/item/07-729	1
+antibody_tag
+	CTCF	1
+antibody_target
+	CTCF	1
+antibody_targetClass
+	TFSS	1
+antibody_targetDescription
+	CTCF zinc finger transcription factor. A sequence specific DNA binding protein that functions as an insulator, blocking enhancer activity. It has also been suggested to block the spreading of chromatin structure in certain instances.	1
+antibody_targetId
+	GeneCard:CTCF	1
+antibody_targetUrl
+	http://www.genecards.org/cgi-bin/carddisp.pl?gene=CTCF	1
+antibody_type
+	Antibody	1
+antibody_validation
+	Human_-_CTCF_(07-729)(Western_blot,Motif_Enrichment):human_CTCF_validation_Myers.pdf Human_-_CTCF_(07-729)(Western_blot):human_CTCF_07-729_validation_Snyder.pdf Mouse_-_CTCF(Western_blot):mouse_CTCF_validation_Hardison.pdf	1
+antibody_vendorId
+	07-729	1
+antibody_vendorName
+	Millipore	1
+avg_score
+	3.75	1
+	4	2
+	5	2
+	6	1
+	7.5	1
+cell
+	8988T	2
+	AG04450	5
+cell_description
+	fetal lung fibroblast	3
+	pancreas adenocarcinoma (PA-TU-8988T), "established in 1985 from the liver metastasis of a primary pancreatic adenocarcinoma from a 64-year-old woman" - DSMZ	4
+cell_karyotype
+	cancer	3
+	normal	4
+cell_lineage
+	endoderm	7
+cell_orderUrl
+	http://ccr.coriell.org/Sections/Search/Sample_Detail.aspx?Ref=AG04450	3
+	http://www.dsmz.de/human_and_animal_cell_lines/info.php?dsmz_nr=162&term=162&highlight=	4
+cell_organism
+	human	7
+cell_protocol
+	Crawford:8988T_Crawford_protocol.pdf	4
+	Stam:AG04450_Stam_protocol.pdf	3
+cell_sex
+	Female	5
+	Male	2
+cell_tag
+	8988T	4
+	AG04450	3
+cell_termId
+	BTO:0000763	3
+	BTO:0001521 (non-specific)	4
+cell_termUrl
+	http://www.ebi.ac.uk/ontology-lookup/browse.do?ontName=BTO&termId=BTO%3A0000763	3
+	http://www.ebi.ac.uk/ontology-lookup/browse.do?ontName=BTO&termId=BTO%3A0001521	4
+cell_tier
+	1	3
+	2	3
+	3	1
+cell_tissue
+	liver	4
+	lung	3
+cell_type
+	Cell Line	7
+cell_vendorId
+	ACC 162	4
+	AG04450	3
+cell_vendorName
+	Coriell	3
+	DSMZ	4
+composite
+	wgEncodeAwgDnaseUniPk	4
+	wgEncodeUwDnase	2
+	wgEncodeUwTfbs	1
+control
+	std	1
+control_description
+	Standard input signal for most experiments.	1
+control_label
+	Standard Control	1
+control_tag
+	STD	1
+control_type
+	control	1
+controlId
+	wgEncodeEH000930	1
+dataType
+	ChipSeq	1
+	DnaseSeq	6
+dataType_dataGroup
+	Open Chromatin	6
+	TFBS & Histones	1
+dataType_description
+	Chromatin IP Sequencing	1
+	DNaseI HS Sequencing	6
+dataType_label
+	ChIP-seq	1
+	DNase-seq	6
+dataType_tag
+	CHIPSEQ	1
+	DNASESEQ	6
+dataType_type
+	dataType	7
+dataVersion
+	ENCODE Jan 2011 Freeze	5
+	ENCODE June 2010 Freeze	2
+dateResubmitted
+	2010-06-17	2
+dateSubmitted
+	2010-01-07	2
+	2010-10-23	1
+dateUnrestricted
+	2010-10-07	2
+	2011-07-23	1
+dccAccession
+	wgEncodeEH000506	2
+	wgEncodeEH000976	1
+	wgEncodeEH001103	4
+geoSampleAccession
+	GSM736514	1
+	GSM736563	1
+	GSM749769	1
+grant
+	Stam	3
+grant_description
+	Stamatoyannopoulous	3
+grant_grantInst
+	University of Washington	3
+grant_label
+	Stamatoyannopoulous	3
+grant_projectName
+	UW	3
+grant_tag
+	STAM	3
+grant_type
+	grant	3
+ID
+	1	4
+	1459	1
+	1460	1
+	1891	1
+Info
+	example text	1
+lab
+	Duke	4
+	UW	3
+lab_description
+	Crawford - Duke University	4
+	Stamatoyannopoulous - University of Washington	3
+lab_grantPi
+	Crawford	4
+	Stam	3
+lab_label
+	Crawford - Duke University	4
+	Stamatoyannopoulous - UW	3
+lab_labInst
+	Duke University	4
+	University of Washington	3
+lab_labPi
+	Crawford	4
+	Stam	3
+lab_labPiFull
+	Greg Crawford	4
+	John Stamatoyannopoulous	3
+lab_organism
+	human	7
+lab_tag
+	DUKE	4
+	UW	3
+lab_type
+	lab	7
+labExpId
+	DS12255	1
+	DS12270	1
+	DS16029	1
+labVersion
+	lmax-v1.0	3
+md5sum
+	1250e67a89764a7e877bca3bbee70f62	1
+	3c6b5bf3eefc28b6bab4ef37916011a1	1
+	80fadeb7a14a72add38203910d937f50	4
+	8f7c4f145d130385f9b5e732961b3c42	1
+origAssembly
+	hg18	2
+	hg19	1
+patient_age
+	63	1
+	64	4
+	75	1
+project
+	wgEncode	7
+replicate
+	1	2
+	2	1
+setType
+	exp	1
+sex
+	Female	5
+	Male	2
+size
+	1.7M	5
+	1.8M	1
+	776K	1
+subId
+	1549	1
+	1550	1
+	2663	1
+tableName
+	wgEncodeAwgDnaseDuke8988tUniPk	4
+	wgEncodeUwDnaseAg04450PkRep1	1
+	wgEncodeUwDnaseAg04450PkRep2	1
+	wgEncodeUwTfbsAg04450CtcfStdPkRep1	1
+treatment
+	None	7
+treatment_description
+	No special treatment or protocol applies	7
+treatment_label
+	No treatment or prot	7
+treatment_tag
+	NONE	7
+treatment_type
+	control	7
+type
+	narrowPeak	7
+url
+	http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeAwgDnaseUniform/wgEncodeAwgDnaseDuke8988tUniPk.narrowPeak.gz	4
+	http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeUwDnase/wgEncodeUwDnaseAg04450PkRep1.narrowPeak.gz	1
+	http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeUwDnase/wgEncodeUwDnaseAg04450PkRep2.narrowPeak.gz	1
+	http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeUwTfbs/wgEncodeUwTfbsAg04450CtcfStdPkRep1.narrowPeak.gz	1
+view
+	Peaks	7
+view_description
+	Regions of enriched signal in experiment	7
+view_label
+	Peaks	7
+view_tag
+	PKS	7
+view_type
+	view	7

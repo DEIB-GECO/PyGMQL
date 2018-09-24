@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<gmqlSchemaCollection name="download_example_datasets_20180924_142647_Example_Dataset_1" xmlns="http://genomic.elet.polimi.it/entities">
+	<gmqlSchema type="Peak" coordinate_system="default">
+		<field type="STRING">chr</field>
+		<field type="LONG">left</field>
+		<field type="LONG">right</field>
+		<field type="CHAR">strand</field>
+		<field type="STRING">source</field>
+		<field type="STRING">feature</field>
+		<field type="DOUBLE">score</field>
+		<field type="STRING">frame</field>
+		<field type="STRING">name</field>
+		<field type="DOUBLE">signal</field>
+		<field type="DOUBLE">pvalue</field>
+		<field type="DOUBLE">qvalue</field>
+		<field type="DOUBLE">peak</field>
+	</gmqlSchema>
+</gmqlSchemaCollection>
