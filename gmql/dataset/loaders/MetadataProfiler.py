@@ -85,6 +85,7 @@ def create_metadata_profile(dataset_path):
         full_mf_path = os.path.abspath(mf)
         fo = open(full_mf_path)
         lines = fo.readlines()
+        fo.close()
         for l in lines:
             analyze_line(l, profile)
     return MetadataProfile(metadata_info=profile)

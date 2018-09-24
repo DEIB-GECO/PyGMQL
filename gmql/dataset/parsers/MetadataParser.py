@@ -19,6 +19,7 @@ class GenericMetaParser(MetadataParser):
     def parse_metadata(self, path):
         fo = open(path)
         lines = fo.read().splitlines()
+        fo.close()
         return list(map(self._parse_line_metadata, lines))
 
     def _parse_line_metadata(self, line):

@@ -114,12 +114,14 @@ class RegionParser:
         types = self.get_name_type_dict()
         if "strand" in types.keys():
             types.pop("strand")
-        df = pd.read_csv(filepath_or_buffer=open(path), na_values=null_values,
+        fo = open(path)
+        df = pd.read_csv(filepath_or_buffer=fo, na_values=null_values,
                          header=None,
                          names=self.get_ordered_attributes(),
                          dtype=types,
                          sep=self.delimiter,
                          converters={'strand': self.parse_strand})
+        fo.close()
         return df
 
     def _parse_gtf_regions(self, path):
@@ -137,11 +139,13 @@ class RegionParser:
         actual_attributes = self.get_ordered_attributes()[:8] + ['attributes']
         types = self.get_name_type_dict()
         types.pop("strand")
-        df = pd.read_csv(filepath_or_buffer=open(path), sep=self.delimiter,
+        fo = open(path)
+        df = pd.read_csv(filepath_or_buffer=fo, sep=self.delimiter,
                          na_values=null_values,
                          names=actual_attributes,
                          dtype=types,
                          converters={'strand': self.parse_strand})
+        fo.close()
         df = pd.concat([df, pd.DataFrame(df.attributes.map(split_attributes).tolist())], axis=1)\
             .drop("attributes", axis=1)
         return df
