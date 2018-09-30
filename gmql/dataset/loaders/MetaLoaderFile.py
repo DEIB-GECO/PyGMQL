@@ -40,7 +40,7 @@ def to_pandas(meta_list):
         logger.info("dataframe construction")
         result_df = pd.DataFrame()
         from ...settings import is_progress_enabled
-        for col in tqdm(columns, total=len(columns), disable=is_progress_enabled()):
+        for col in tqdm(columns, total=len(columns), disable=not is_progress_enabled()):
             if col != 'id_sample':
                 result_df[col] = g[col].apply(to_list)
     else:
