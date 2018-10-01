@@ -46,7 +46,7 @@ def load_reg_from_path(path, parser=None):
         result = pd.concat(objs=dfs, copy=False)
     else:
         result = pd.DataFrame(columns=parser.get_ordered_attributes())
-        result.index.name = "id_sample"
+    result.index.name = "id_sample"
     # ordering the columns
     new_reg_fixed_fields = reg_fixed_fileds.copy()
     if parser.strandPos is None:
