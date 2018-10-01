@@ -267,25 +267,25 @@ class RemoteManager:
                         (5, 'score', 'float'), (7, 'frame', 'string')]
 
             for field in fields:
-                fieldName = field.get("name").lower()
+                fieldName = field.get("name")
                 fieldType = field.get("type").lower()
-                if fieldName not in {'seqname', 'start', 'end', 'strand',
+                if fieldName.lower() not in {'seqname', 'start', 'end', 'strand',
                                      'source', 'feature', 'score', 'frame'}:
                     otherPos.append((i, fieldName, fieldType))
                 i += 1
 
         else:
             for field in fields:
-                fieldName = field.get("name").lower()
+                fieldName = field.get("name")
                 fieldType = field.get("type").lower()
 
-                if fieldName in chr_aliases and chrPos is None:
+                if fieldName.lower() in chr_aliases and chrPos is None:
                     chrPos = i
-                elif fieldName in start_aliases and startPos is None:
+                elif fieldName.lower() in start_aliases and startPos is None:
                     startPos = i
-                elif fieldName in stop_aliases and stopPos is None:
+                elif fieldName.lower() in stop_aliases and stopPos is None:
                     stopPos = i
-                elif fieldName in strand_aliases and strandPos is None:
+                elif fieldName.lower() in strand_aliases and strandPos is None:
                     strandPos = i
                 else:  # other positions
                     otherPos.append((i, fieldName, fieldType))
