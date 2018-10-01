@@ -8,7 +8,6 @@ from glob import glob
 import shutil
 
 gl.set_progress(False)
-gl.set_backend_path("C:\\Users\\lucan\\Documents\\progetti_phd\\GMQL\\GMQL-PythonAPI\\target\\GMQL-PythonAPI-1.0-SNAPSHOT-jackofall.jar")
 
 
 class GMQLQueryTester(unittest.TestCase):
@@ -47,7 +46,6 @@ class GMQLQueryTester(unittest.TestCase):
         self.assertTrue((r1.fillna(0) == r2.fillna(0)).all().all())
 
     def test_load_example_datasets(self):
-        raise unittest.SkipTest()
         self.assertIsInstance(gl.get_example_dataset(name="Example_Dataset_1"), GMQLDataset)
         self.assertIsInstance(gl.get_example_dataset(name="Example_Dataset_2"), GMQLDataset)
 
