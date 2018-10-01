@@ -191,6 +191,7 @@ ENV/
 # End of https://www.gitignore.io/api/pycharm,python
 tests
 test
+!gmql/test/
 gmql/resources/instances
 gmql/resources/dependencies_info.xml
 gmql/resources/*.jar
