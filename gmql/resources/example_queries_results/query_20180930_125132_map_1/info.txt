@@ -1,0 +1,8 @@
+Average region length	41
+Created by	lucananni93
+Creation date	2018/09/30 12:51:56
+Execution time	00:00:18
+Number of regions	12
+Number of samples	3
+Query name	query
+Size	0.02 MB

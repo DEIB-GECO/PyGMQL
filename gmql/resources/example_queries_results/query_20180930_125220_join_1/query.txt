@@ -1,0 +1,6 @@
+# join_1
+D1 = SELECT(region: chr == chr2) Example_Dataset_1;
+D2 = SELECT(region: chr == chr2) Example_Dataset_2;
+RES = JOIN(MD(1), DGE(20); output: RIGHT; joinby: cell_karyotype) D1 D2;
+MATERIALIZE RES INTO join_1; 
+ 

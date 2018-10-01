@@ -1,0 +1,4 @@
+# cover_2
+D = SELECT(region: chr == chr2) Example_Dataset_2;
+RES = COVER(2, 3; groupby: cell; aggregate: min_pvalue AS MIN(pvalue)) D;
+MATERIALIZE RES INTO cover_2;

@@ -1,0 +1,5 @@
+# map_1
+D1 = SELECT(region: chr == chr2) Example_Dataset_1;
+D2 = SELECT(region: chr == chr2) Example_Dataset_2;
+RES = MAP(avg_score AS AVG(score)) D1 D2;
+MATERIALIZE RES INTO map_1;
