@@ -1,0 +1,11 @@
+chr2	99	150	*	GMQL	Region	10	.	.	9	5.27936	-1	-1
+chr2	199	240	*	GMQL	Region	9	.	.	22	19.6922	-1	-1
+chr2	399	440	*	GMQL	Region	0.9	.	.	15	15.1452	-1	-1
+chr2	539	570	*	GMQL	Region	0.9	.	.	15	15.1452	-1	-1
+chr4	49	100	+	GMQL	Region	0.9	.	.	15	15.1452	-1	-1
+chr4	149	179	-	GMQL	Region	0.9	.	.	15	15.1452	-1	-1
+chr4	199	249	-	GMQL	Region	0.9	.	.	15	15.1452	-1	-1
+chr5	99	200	*	GMQL	Region	4	.	.	15	17.1452	-1	-1
+chr5	299	340	+	GMQL	Region	4	.	.	15	15.1452	-1	-1
+chr5	319	340	-	GMQL	Region	3	.	.	15	17.1452	-1	-1
+chr5	379	420	-	GMQL	Region	3	.	.	15	17.1452	-1	-1

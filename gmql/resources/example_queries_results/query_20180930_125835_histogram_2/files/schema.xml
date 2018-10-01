@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<gmqlSchemaCollection name= "query_20180930_125835_histogram_2" xmlns="http://genomic.elet.polimi.it/entities">
+	<gmqlSchema type="tab" coordinate_system="default">
+		<field type="string">chr</field>
+		<field type="integer">start</field>
+		<field type="integer">stop</field>
+		<field type="string">strand</field>
+		<field type="integer">accindex</field>
+		<field type="double">jaccardintersect</field>
+		<field type="double">jaccardresult</field>
+	</gmqlSchema>
+</gmqlSchemaCollection>

@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<gmqlSchemaCollection name="query_20180930_125220_join_1" xmlns="http://genomic.elet.polimi.it/entities">
+	<gmqlSchema type="Peak" coordinate_system="default">
+		<field type="STRING">chr</field>
+		<field type="LONG">left</field>
+		<field type="LONG">right</field>
+		<field type="CHAR">strand</field>
+		<field type="STRING">D1.source</field>
+		<field type="STRING">D1.feature</field>
+		<field type="DOUBLE">D1.score</field>
+		<field type="STRING">D1.frame</field>
+		<field type="STRING">D1.name</field>
+		<field type="DOUBLE">D1.signal</field>
+		<field type="DOUBLE">D1.pvalue</field>
+		<field type="DOUBLE">D1.qvalue</field>
+		<field type="DOUBLE">D1.peak</field>
+		<field type="STRING">D2.source</field>
+		<field type="STRING">D2.feature</field>
+		<field type="DOUBLE">D2.score</field>
+		<field type="STRING">D2.frame</field>
+		<field type="STRING">D2.name</field>
+		<field type="DOUBLE">D2.signal</field>
+		<field type="DOUBLE">D2.pvalue</field>
+		<field type="DOUBLE">D2.qvalue</field>
+		<field type="DOUBLE">D2.peak</field>
+	</gmqlSchema>
+</gmqlSchemaCollection>

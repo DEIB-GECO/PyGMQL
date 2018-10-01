@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<gmqlSchemaCollection name= "query_20180930_124911_group_4" xmlns="http://genomic.elet.polimi.it/entities">
+	<gmqlSchema type="tab" coordinate_system="default">
+		<field type="string">chr</field>
+		<field type="integer">start</field>
+		<field type="integer">stop</field>
+		<field type="string">strand</field>
+		<field type="double">score</field>
+		<field type="double">avg_pvalue</field>
+		<field type="double">max_qvalue</field>
+	</gmqlSchema>
+</gmqlSchemaCollection>

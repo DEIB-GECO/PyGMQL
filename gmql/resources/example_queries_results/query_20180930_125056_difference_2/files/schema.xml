@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<gmqlSchemaCollection name= "query_20180930_125056_difference_2" xmlns="http://genomic.elet.polimi.it/entities">
+	<gmqlSchema type="tab" coordinate_system="default">
+		<field type="string">chr</field>
+		<field type="integer">start</field>
+		<field type="integer">stop</field>
+		<field type="string">strand</field>
+		<field type="string">source</field>
+		<field type="string">feature</field>
+		<field type="double">score</field>
+		<field type="string">frame</field>
+		<field type="string">name</field>
+		<field type="double">signal</field>
+		<field type="double">pvalue</field>
+		<field type="double">qvalue</field>
+		<field type="double">peak</field>
+	</gmqlSchema>
+</gmqlSchemaCollection>

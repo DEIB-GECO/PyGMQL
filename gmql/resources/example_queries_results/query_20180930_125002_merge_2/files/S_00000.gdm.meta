@@ -1,0 +1,101 @@
+ID	1
+ID	1460
+avg_score	4
+avg_score	6
+cell	8988T
+cell	AG04450
+cell_description	fetal lung fibroblast
+cell_description	pancreas adenocarcinoma (PA-TU-8988T), "established in 1985 from the liver metastasis of a primary pancreatic adenocarcinoma from a 64-year-old woman" - DSMZ
+cell_karyotype	cancer
+cell_karyotype	normal
+cell_lineage	endoderm
+cell_orderUrl	http://ccr.coriell.org/Sections/Search/Sample_Detail.aspx?Ref=AG04450
+cell_orderUrl	http://www.dsmz.de/human_and_animal_cell_lines/info.php?dsmz_nr=162&term=162&highlight=
+cell_organism	human
+cell_protocol	Crawford:8988T_Crawford_protocol.pdf
+cell_protocol	Stam:AG04450_Stam_protocol.pdf
+cell_sex	Female
+cell_tag	8988T
+cell_tag	AG04450
+cell_termId	BTO:0000763
+cell_termId	BTO:0001521 (non-specific)
+cell_termUrl	http://www.ebi.ac.uk/ontology-lookup/browse.do?ontName=BTO&termId=BTO%3A0000763
+cell_termUrl	http://www.ebi.ac.uk/ontology-lookup/browse.do?ontName=BTO&termId=BTO%3A0001521
+cell_tier	1
+cell_tier	3
+cell_tissue	liver
+cell_tissue	lung
+cell_type	Cell Line
+cell_vendorId	ACC 162
+cell_vendorId	AG04450
+cell_vendorName	Coriell
+cell_vendorName	DSMZ
+composite	wgEncodeAwgDnaseUniPk
+composite	wgEncodeUwDnase
+dataType	DnaseSeq
+dataType_dataGroup	Open Chromatin
+dataType_description	DNaseI HS Sequencing
+dataType_label	DNase-seq
+dataType_tag	DNASESEQ
+dataType_type	dataType
+dataVersion	ENCODE Jan 2011 Freeze
+dataVersion	ENCODE June 2010 Freeze
+dateResubmitted	2010-06-17
+dateSubmitted	2010-01-07
+dateUnrestricted	2010-10-07
+dccAccession	wgEncodeEH000506
+dccAccession	wgEncodeEH001103
+geoSampleAccession	GSM736563
+grant	Stam
+grant_description	Stamatoyannopoulous
+grant_grantInst	University of Washington
+grant_label	Stamatoyannopoulous
+grant_projectName	UW
+grant_tag	STAM
+grant_type	grant
+lab	Duke
+lab	UW
+labExpId	DS12255
+labVersion	lmax-v1.0
+lab_description	Crawford - Duke University
+lab_description	Stamatoyannopoulous - University of Washington
+lab_grantPi	Crawford
+lab_grantPi	Stam
+lab_labInst	Duke University
+lab_labInst	University of Washington
+lab_labPi	Crawford
+lab_labPi	Stam
+lab_labPiFull	Greg Crawford
+lab_labPiFull	John Stamatoyannopoulous
+lab_label	Crawford - Duke University
+lab_label	Stamatoyannopoulous - UW
+lab_organism	human
+lab_tag	DUKE
+lab_tag	UW
+lab_type	lab
+md5sum	1250e67a89764a7e877bca3bbee70f62
+md5sum	80fadeb7a14a72add38203910d937f50
+origAssembly	hg18
+patient_age	64
+patient_age	75
+project	wgEncode
+replicate	2
+sex	Female
+size	1.7M
+size	1.8M
+subId	1549
+tableName	wgEncodeAwgDnaseDuke8988tUniPk
+tableName	wgEncodeUwDnaseAg04450PkRep2
+treatment	None
+treatment_description	No special treatment or protocol applies
+treatment_label	No treatment or prot
+treatment_tag	NONE
+treatment_type	control
+type	narrowPeak
+url	http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeAwgDnaseUniform/wgEncodeAwgDnaseDuke8988tUniPk.narrowPeak.gz
+url	http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeUwDnase/wgEncodeUwDnaseAg04450PkRep2.narrowPeak.gz
+view	Peaks
+view_description	Regions of enriched signal in experiment
+view_label	Peaks
+view_tag	PKS
+view_type	view

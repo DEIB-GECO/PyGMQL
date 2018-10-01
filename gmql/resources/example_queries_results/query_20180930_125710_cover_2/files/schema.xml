@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<gmqlSchemaCollection name="query_20180930_125710_cover_2" xmlns="http://genomic.elet.polimi.it/entities">
+	<gmqlSchema type="Peak" coordinate_system="default">
+		<field type="STRING">chr</field>
+		<field type="LONG">left</field>
+		<field type="LONG">right</field>
+		<field type="CHAR">strand</field>
+		<field type="INTEGER">AccIndex</field>
+		<field type="DOUBLE">JaccardIntersect</field>
+		<field type="DOUBLE">JaccardResult</field>
+		<field type="DOUBLE">min_pvalue</field>
+	</gmqlSchema>
+</gmqlSchemaCollection>

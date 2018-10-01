@@ -1,0 +1,61 @@
+ID	870
+cell	8988T
+cell_description	pancreas adenocarcinoma (PA-TU-8988T), "established in 1985 from the liver metastasis of a primary pancreatic adenocarcinoma from a 64-year-old woman" - DSMZ
+cell_karyotype	cancer
+cell_lineage	endoderm
+cell_orderUrl	http://www.dsmz.de/human_and_animal_cell_lines/info.php?dsmz_nr=162&term=162&highlight=
+cell_organism	human
+cell_protocol	Crawford:8988T_Crawford_protocol.pdf
+cell_sex	Female
+cell_tag	8988T
+cell_termId	BTO:0001521 (non-specific)
+cell_termUrl	http://www.ebi.ac.uk/ontology-lookup/browse.do?ontName=BTO&termId=BTO%3A0001521
+cell_tier	3
+cell_tissue	liver
+cell_type	Cell Line
+cell_vendorId	ACC 162
+cell_vendorName	DSMZ
+composite	wgEncodeOpenChromDnase
+controlId	generic_female
+dataType	DnaseSeq
+dataType_dataGroup	Open Chromatin
+dataType_description	DNaseI HS Sequencing
+dataType_label	DNase-seq
+dataType_tag	DNASESEQ
+dataType_type	dataType
+dataVersion	ENCODE Jan 2011 Freeze
+dateSubmitted	2010-11-01
+dateUnrestricted	2011-08-01
+dccAccession	wgEncodeEH001103
+geoSampleAccession	GSM816667
+grant	Crawford
+grant_description	Crawford
+grant_grantInst	Duke
+grant_projectName	OpenChrom
+grant_tag	CRAWFORD
+grant_type	grant
+lab	Duke
+labVersion	p-value cutoff: 0.05
+lab_description	Crawford - Duke University
+lab_grantPi	Crawford
+lab_labInst	Duke University
+lab_labPi	Crawford
+lab_labPiFull	Greg Crawford
+lab_label	Crawford - Duke University
+lab_organism	human
+lab_tag	DUKE
+lab_type	lab
+md5sum	3760564816698c035f8b67c90c3b7759
+origAssembly	hg19
+project	wgEncode
+sex	Female
+size	2.4M
+subId	2786
+tableName	wgEncodeOpenChromDnase8988tPk
+type	narrowPeak
+url	http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeOpenChromDnase/wgEncodeOpenChromDnase8988tPk.narrowPeak.gz
+view	Peaks
+view_description	Regions of enriched signal in experiment
+view_label	Peaks
+view_tag	PKS
+view_type	view

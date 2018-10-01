@@ -1,0 +1,71 @@
+ID	1459
+Info	example text
+avg_score	5
+cell	AG04450
+cell_description	fetal lung fibroblast
+cell_karyotype	normal
+cell_lineage	endoderm
+cell_orderUrl	http://ccr.coriell.org/Sections/Search/Sample_Detail.aspx?Ref=AG04450
+cell_organism	human
+cell_protocol	Stam:AG04450_Stam_protocol.pdf
+cell_sex	Male
+cell_tag	AG04450
+cell_termId	BTO:0000763
+cell_termUrl	http://www.ebi.ac.uk/ontology-lookup/browse.do?ontName=BTO&termId=BTO%3A0000763
+cell_tier	2
+cell_tissue	lung
+cell_type	Cell Line
+cell_vendorId	AG04450
+cell_vendorName	Coriell
+composite	wgEncodeUwDnase
+dataType	DnaseSeq
+dataType_dataGroup	Open Chromatin
+dataType_description	DNaseI HS Sequencing
+dataType_label	DNase-seq
+dataType_tag	DNASESEQ
+dataType_type	dataType
+dataVersion	ENCODE June 2010 Freeze
+dateResubmitted	2010-06-17
+dateSubmitted	2010-01-07
+dateUnrestricted	2010-10-07
+dccAccession	wgEncodeEH000506
+geoSampleAccession	GSM736514
+grant	Stam
+grant_description	Stamatoyannopoulous
+grant_grantInst	University of Washington
+grant_label	Stamatoyannopoulous
+grant_projectName	UW
+grant_tag	STAM
+grant_type	grant
+lab	UW
+labExpId	DS12270
+labVersion	lmax-v1.0
+lab_description	Stamatoyannopoulous - University of Washington
+lab_grantPi	Stam
+lab_labInst	University of Washington
+lab_labPi	Stam
+lab_labPiFull	John Stamatoyannopoulous
+lab_label	Stamatoyannopoulous - UW
+lab_organism	human
+lab_tag	UW
+lab_type	lab
+md5sum	8f7c4f145d130385f9b5e732961b3c42
+origAssembly	hg18
+project	wgEncode
+replicate	1
+sex	Male
+size	1.7M
+subId	1550
+tableName	wgEncodeUwDnaseAg04450PkRep1
+treatment	None
+treatment_description	No special treatment or protocol applies
+treatment_label	No treatment or prot
+treatment_tag	NONE
+treatment_type	control
+type	narrowPeak
+url	http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeUwDnase/wgEncodeUwDnaseAg04450PkRep1.narrowPeak.gz
+view	Peaks
+view_description	Regions of enriched signal in experiment
+view_label	Peaks
+view_tag	PKS
+view_type	view
