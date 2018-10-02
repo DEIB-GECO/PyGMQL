@@ -8,8 +8,8 @@ install:
   - pip install codecov
   - pip install .
 script:
-  - python -m unittest discover test -p *.py
-  - coverage run -m unittest discover test -p *.py
+  - python -m unittest discover -p test_*.py
+  - coverage run -m unittest discover -p test_*.py
 deploy:
   provider: pypi
   user: $pypi_username
