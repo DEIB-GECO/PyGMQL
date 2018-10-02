@@ -8,8 +8,7 @@ install:
   - pip install codecov
   - pip install .
 script:
-  - python -m unittest discover gmql/test/ -p *.py
-  - coverage run --source ./gmql/ -m unittest discover -s ./gmql/test/ -t ./gmql/test/ -p *.py
+  - coverage run --source gmql/ -m unittest discover -s test/ -p *.py
 deploy:
   provider: pypi
   user: $pypi_username

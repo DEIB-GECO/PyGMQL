@@ -189,9 +189,7 @@ ENV/
 .ropeproject
 
 # End of https://www.gitignore.io/api/pycharm,python
-tests
-test
-!gmql/test/
+testing
 gmql/resources/instances
 gmql/resources/dependencies_info.xml
 gmql/resources/*.jar
