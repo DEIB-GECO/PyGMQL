@@ -9,6 +9,8 @@ from pkg_resources import resource_filename
 import os
 import time
 import atexit
+import signal
+import warnings
 
 
 __remote_manager = None
@@ -99,12 +101,19 @@ def set_py4j_path(path):
 
 
 def stop():
-    global __gateway, __session_manager
-    # flushing the tmp files
-    TempFileManager.flush_everything()
+    global __gateway, __session_manager, __remote_manager, __source_table
+    # storing the session
     store_sessions(__session_manager.sessions)
+    # killing the gateway
     if __gateway is not None:
         __gateway.shutdown()
+    # removing remote files
+    if __remote_manager is not None:
+        remote_deletable = __source_table.get_deletable("remote")
+        for rd in remote_deletable:
+            __remote_manager.delete_dataset(rd)
+    # flushing the tmp files
+    TempFileManager.flush_everything()
 
 
 def is_backend_on():
@@ -175,6 +184,7 @@ def login():
     res = __session_manager.get_session(remote_address)
     if res is None:
         # there is no session for this address, let's login as guest
+        warnings.warn("There is no active session for address {}. Logging as Guest user".format(remote_address))
         rm = RemoteManager(address=remote_address)
         rm.login()
         session_type = "guest"
@@ -225,7 +235,9 @@ def get_session_manager():
 
 
 def init_managers():
-    atexit.register(stop)
     __initialize_source_table()
     __initialize_session_manager()
     __initialize_dependency_manager()
+
+    atexit.register(stop)
+    signal.signal(signal.SIGINT, stop)
