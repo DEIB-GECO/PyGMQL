@@ -1,7 +1,9 @@
 import pandas as pd
 
 LOCAL = "local"
+DELETE_LOCAL = "delete_local"
 REMOTE = "remote"
+DELETE_REMOTE = "delete_remote"
 PARSER = "parser"
 
 
@@ -11,11 +13,15 @@ class SourcesTable:
     detected to send or download data sources to/from the remote server.
     """
     def __init__(self):
-        self.table = pd.DataFrame(columns=[LOCAL, REMOTE, PARSER])
+        self.table = pd.DataFrame(columns=[LOCAL, DELETE_LOCAL,  REMOTE, DELETE_REMOTE, PARSER])
         self.id_count = 0
 
-    def add_source(self, local=None, remote=None, parser=None):
-        self.table = self.table.append({LOCAL: local, REMOTE: remote, PARSER: parser}, ignore_index=True)
+    def add_source(self, local=None, delete_local=False, remote=None, delete_remote=False, parser=None):
+        self.table = self.table.append({LOCAL: local,
+                                        DELETE_LOCAL: delete_local,
+                                        REMOTE: remote,
+                                        DELETE_REMOTE: delete_remote,
+                                        PARSER: parser}, ignore_index=True)
         result = self.id_count
         self.id_count += 1
         return result
@@ -24,11 +30,15 @@ class SourcesTable:
         res = self.table.loc[id].to_dict()
         return res
 
-    def modify_source(self, id, local=None, remote=None):
+    def modify_source(self, id, local=None, delete_local=None, remote=None, delete_remote=None):
         if local is not None:
             self.table.loc[id][LOCAL] = local
+        if delete_local is not None:
+            self.table.loc[id][DELETE_LOCAL] = delete_local
         if remote is not None:
             self.table.loc[id][REMOTE] = remote
+        if delete_remote is not None:
+            self.table.loc[id][DELETE_REMOTE] = delete_remote
 
     def search_source(self, local=None, remote=None):
         if local is not None:
@@ -38,3 +48,12 @@ class SourcesTable:
         else:
             raise ValueError("local or remote must be given")
         return ids[0] if len(ids) > 0 else None
+
+    def get_deletable(self, where="remote"):
+        if where == 'remote':
+            names = self.table.loc[self.table[DELETE_REMOTE], REMOTE].tolist()
+        elif where == 'local':
+            names = self.table.loc[self.table[DELETE_LOCAL], LOCAL].tolist()
+        else:
+            raise ValueError("where must be 'remote' or 'local'")
+        return names
