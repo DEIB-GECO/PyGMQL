@@ -3,7 +3,7 @@ import gmql as gl
 import shutil
 import os
 
-gl.set_backend_path("C:\\Users\\lucan\\Documents\\progetti_phd\\GMQL\\GMQL-PythonAPI\\target\\GMQL-PythonAPI-1.0-SNAPSHOT-jackofall.jar")
+#gl.set_backend_path("C:\\Users\\lucan\\Documents\\progetti_phd\\GMQL\\GMQL-PythonAPI\\target\\GMQL-PythonAPI-1.0-SNAPSHOT-jackofall.jar")
 gl.set_progress(False)
 gl.set_remote_address("http://gmql.eu/gmql-rest/")
 
