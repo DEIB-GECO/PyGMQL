@@ -1265,7 +1265,7 @@ class GMQLDataset(object):
                 if local is None:
                     new_name = get_new_dataset_tmp_folder()
                     remote_manager.download_dataset(dataset_name=remote, local_path=new_name, how="stream")
-                    sources.modify_source(id=d, local=new_name)
+                    sources.modify_source(id=d, local=new_name, delete_local=True)
                 else:
                     new_name = local
                 pmg.modify_dag_source(new_index, str(d), new_name)
@@ -1291,7 +1291,7 @@ class GMQLDataset(object):
                     schema_tmp_path = os.path.join(schema_dir, new_name + ".schema")
                     parserToXML(parser, new_name, schema_tmp_path)
                     remote_manager.upload_dataset(dataset=local, dataset_name=new_name, schema_path=schema_tmp_path)
-                    sources.modify_source(id=d, remote=new_name)
+                    sources.modify_source(id=d, remote=new_name, delete_remote=True)
                 else:
                     new_name = remote
                 pmg.modify_dag_source(new_index, str(d), new_name)
