@@ -1,7 +1,7 @@
 
 import os
 from glob import glob
-from ...managers import get_python_manager, get_remote_manager
+from ...managers import get_python_manager, get_remote_manager, get_source_table
 from . import MetaLoaderFile, RegLoaderFile, MemoryLoader, Loader
 from ...FileManagment.TempFileManager import get_unique_identifier, get_new_dataset_tmp_folder
 
@@ -78,6 +78,8 @@ def materialize_remote(id, output_name=None, download_path=None, all_load=True):
     pmg = get_python_manager()
     if not isinstance(output_name, str):
         output_name = get_unique_identifier()
+        st = get_source_table()
+        st.add_source(remote=output_name, delete_remote=True)
     pmg.materialize(id, output_name)
     remote_manager = get_remote_manager()
     if (download_path is None) and all_load:
