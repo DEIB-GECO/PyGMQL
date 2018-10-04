@@ -342,6 +342,12 @@ class RemoteManager:
 
         response = requests.post(url, data=m_encoder,
                                  headers=header)
+
+        # closing files
+        for fn in fields.keys():
+            _, f, _ = fields[fn]
+            f.close()
+
         if response.status_code != 200:
             raise ValueError("Code {}: {}".format(response.status_code, response.content))
 
