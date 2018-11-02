@@ -512,13 +512,18 @@ class RemoteManager:
         status_resp = self._wait_for_result(jobid)
 
         datasets = status_resp.get("datasets")
+        return self.__process_result_datasets(datasets, output_path)
+
+    def __process_result_datasets(self, datasets, output_path=None):
         result = []
         for dataset in datasets:
             name = dataset.get("name")
-            result.append({'dataset': name})
             if output_path is not None:
                 path = os.path.join(output_path, name)
                 self.download_dataset(dataset_name=name, local_path=path)
+            else:
+                path = None
+            result.append({'dataset': name, 'path': path})
         return pd.DataFrame.from_dict(result)
 
     def _wait_for_result(self, jobid):
@@ -572,22 +577,13 @@ class RemoteManager:
         status_resp = self._wait_for_result(jobid)
 
         datasets = status_resp.get("datasets")
-        result = []
 
         if isinstance(output_path, bool):
             if output_path:
                 output_path = TempFileManager.get_new_dataset_tmp_folder()
             else:
                 output_path = None
-
-        for dataset in datasets:
-            name = dataset.get("name")
-            if isinstance(output_path, str):
-                path = os.path.join(output_path, name)
-                result.append(path)
-                self.download_dataset(dataset_name=name, local_path=path)
-
-        return result
+        return self.__process_result_datasets(datasets, output_path)
 
     def get_memory_usage(self):
         header = self.__check_authentication()

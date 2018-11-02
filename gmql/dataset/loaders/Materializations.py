@@ -78,14 +78,15 @@ def materialize_remote(id, output_name=None, download_path=None, all_load=True):
     pmg = get_python_manager()
     if not isinstance(output_name, str):
         output_name = get_unique_identifier()
-        st = get_source_table()
-        st.add_source(remote=output_name, delete_remote=True)
     pmg.materialize(id, output_name)
     remote_manager = get_remote_manager()
     if (download_path is None) and all_load:
         download_path = get_new_dataset_tmp_folder()
     result = remote_manager.execute_remote_all(output_path=download_path)
     # pmg.getServer().clearMaterializationList()
-    if len(result) == 1:  # TODO: change this!!!
-        path = result[0]
-        return Loader.load_from_path(local_path=path, all_load=all_load)
+    if result.shape[0] == 1:  # TODO: change this!!!
+        dataset_name = result.iloc[0].dataset
+        st = get_source_table()
+        st.add_source(remote=dataset_name, delete_remote=True)
+        dataset_path = result.iloc[0].path
+        return Loader.load_from_path(local_path=dataset_path, all_load=all_load)

@@ -2,15 +2,20 @@ import unittest
 import gmql as gl
 import shutil
 import os
+import logging
 
-#gl.set_backend_path("C:\\Users\\lucan\\Documents\\progetti_phd\\GMQL\\GMQL-PythonAPI\\target\\GMQL-PythonAPI-1.0-SNAPSHOT-jackofall.jar")
 gl.set_progress(False)
 gl.set_remote_address("http://gmql.eu/gmql-rest/")
 
 
 class GMQLRemoteTester(unittest.TestCase):
     def setUp(self):
-        gl.login()
+        log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        logging.basicConfig(level=logging.INFO, format=log_fmt)
+        try:
+            gl.login()
+        except ConnectionError:
+            self.skipTest("Impossible to connect to the remote system! Remote testing will not be done!")
         self.rm = gl.get_remote_manager()
         self.remote_output_path = "./remote_out/"
         os.makedirs(self.remote_output_path)
@@ -51,21 +56,27 @@ class GMQLRemoteTester(unittest.TestCase):
                 AND start >= 130 AND stop <= 250) Example_Dataset_2;
             MATERIALIZE RES INTO select_1;
         """
+
+        logging.info("Query: {}".format(querytext))
+        logging.info("Executing REMOTE TEXTUAL query")
         respaths = self.rm.query(querytext, self.remote_output_path)
         dataset_name = respaths.iloc[0].dataset
         respaths = os.path.join(self.remote_output_path, dataset_name)
+        logging.info("Deleting remote dataset {}".format(dataset_name))
         self.rm.delete_dataset(dataset_name)
         res_query = gl.load_from_path(respaths, all_load=True)
 
+        logging.info("Executing LOCAL PYTHON query")
         d = gl.get_example_dataset("Example_Dataset_2")
         d = d.select(region_predicate=(d.chr.isin(['chr2', 'chr3'])) & (~d.strand.isin(['+', '-'])) &
                                       (d.start >= 130) & (d.stop <= 250))
         res_local = d.materialize()
         self.gdataframe_equality(res_query, res_local)
 
+        logging.info("Executing REMOTE PYTHON query")
         gl.set_mode("remote")
         res_remote = d.materialize()
-        self.gdataframe_equality(res_query, res_remote)
+        self.gdataframe_equality(res_local, res_remote)
 
 
 if __name__ == '__main__':
