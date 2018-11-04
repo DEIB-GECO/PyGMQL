@@ -14,7 +14,7 @@ class GMQLRemoteTester(unittest.TestCase):
         logging.basicConfig(level=logging.INFO, format=log_fmt)
         try:
             gl.login()
-        except ConnectionError:
+        except Exception:
             self.skipTest("Impossible to connect to the remote system! Remote testing will not be done!")
         self.rm = gl.get_remote_manager()
         self.remote_output_path = "./remote_out/"
