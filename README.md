@@ -3,16 +3,27 @@
 API for calling interactively the GMQL Engine from Python
 
 
-[![Join the chat at https://gitter.im/DEIB-GECO/PyGMQL](https://badges.gitter.im/DEIB-GECO/PyGMQL.svg)](https://gitter.im/DEIB-GECO/PyGMQL?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Documentation Status](https://readthedocs.org/projects/pygmql/badge/?version=latest)](http://pygmql.readthedocs.io/en/latest/?badge=latest)
 [![Build status](https://travis-ci.org/DEIB-GECO/PyGMQL.svg?branch=master)](https://travis-ci.org/DEIB-GECO)
 [![PyPI version](https://badge.fury.io/py/gmql.svg)](https://badge.fury.io/py/gmql)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/Django.svg)](https://github.com/DEIB-GECO/PyGMQL)
 [![codecov](https://codecov.io/gh/DEIB-GECO/PyGMQL/branch/master/graph/badge.svg)](https://codecov.io/gh/DEIB-GECO/PyGMQL)
-[![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/DEIB-GECO/PyGMQL/master?filepath=examples%2F00_Introduction.ipynb)
 
 ## Documentation
 The doucumentation can be found at the following link: http://pygmql.readthedocs.io
+
+[![Documentation Status](https://readthedocs.org/projects/pygmql/badge/?version=latest)](http://pygmql.readthedocs.io/en/latest/?badge=latest)
+
+## Try the library
+You can try the library without any previous setup using Binder.
+
+[![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/DEIB-GECO/PyGMQL/master?filepath=examples%2F00_Introduction.ipynb)
+
+
+## Get in touch
+You can ask questions or provide some feedback through our Gitter channel.
+
+[![Join the chat at https://gitter.im/DEIB-GECO/PyGMQL](https://badges.gitter.im/DEIB-GECO/PyGMQL.svg)](https://gitter.im/DEIB-GECO/PyGMQL?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 
 ## Setup
 
