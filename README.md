@@ -9,6 +9,7 @@ API for calling interactively the GMQL Engine from Python
 [![PyPI version](https://badge.fury.io/py/gmql.svg)](https://badge.fury.io/py/gmql)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/Django.svg)](https://github.com/DEIB-GECO/PyGMQL)
 [![codecov](https://codecov.io/gh/DEIB-GECO/PyGMQL/branch/master/graph/badge.svg)](https://codecov.io/gh/DEIB-GECO/PyGMQL)
+[![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/DEIB-GECO/PyGMQL/master?filepath=examples%2F00_Introduction.ipynb)
 
 ## Documentation
 The doucumentation can be found at the following link: http://pygmql.readthedocs.io
