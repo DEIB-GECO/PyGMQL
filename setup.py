@@ -10,11 +10,11 @@ with open(os.path.join(".", "gmql", "resources", "github_url"), "r") as f_ver:
     github_url = f_ver.read().strip()
 
 # Checking the numpy installation
-try:
-    import numpy
-except ImportError:
-    sys.exit("install requires: 'numpy'.\n"
-             "Use 'pip install numpy' first")
+# try:
+#     import numpy
+# except ImportError:
+#     sys.exit("install requires: 'numpy'.\n"
+#              "Use 'pip install numpy' first")
 
 
 setup(name='gmql',
@@ -40,6 +40,7 @@ setup(name='gmql',
                         'requests-toolbelt',
                         'strconv',
                         'typecheck-decorator',
+                        'numpy'
                         # 'sklearn',
                         # 'pyclustering',
                         # 'matplotlib',
