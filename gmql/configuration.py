@@ -5,6 +5,7 @@ class Configuration:
     def __init__(self):
         self.app_name = "gmql_api"
         self.master = "local[*]"
+        self.sc = None
         self._properties = dict()
         self._system = dict()
 
@@ -13,6 +14,9 @@ class Configuration:
 
     def get_system_confs(self):
         return self._system
+
+    def set_spark_context(self, sc):
+        self.sc = sc
 
     def set_app_name(self, name):
         """ Sets the name of the application in spark,

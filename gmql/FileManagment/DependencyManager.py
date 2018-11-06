@@ -2,7 +2,7 @@ import xml.etree.ElementTree as ET
 import requests
 from requests.exceptions import ConnectionError
 from xml.dom import minidom
-from pkg_resources import resource_filename
+from . import get_resources_dir, get_user_dir
 import os
 from tqdm import tqdm
 from glob import glob
@@ -13,15 +13,14 @@ backend_name = "GMQL-PythonAPI"
 
 class DependencyManager:
     def __init__(self):
-        self.resources_path = resource_filename("gmql", "resources")
-        self.dependency_file_path = os.path.join(self.resources_path, "dependencies.xml")
+        self.dependency_file_path = os.path.join(get_resources_dir(), "dependencies.xml")
         self.repo_name, self.repo_url, self.deps = self._parse_dependency_file(self.dependency_file_path)
-        self.backend_info_file = os.path.join(self.resources_path, "dependencies_info.xml")
+        self.backend_info_file = os.path.join(get_user_dir(), "dependencies_info.xml")
         backend_info = None
         if os.path.isfile(self.backend_info_file):
             backend_info = self._parse_dependency_info(self.backend_info_file)
         self.backend_info = backend_info
-        backend_jar_path = glob(os.path.join(self.resources_path, "{}*.jar".format(backend_name)))
+        backend_jar_path = glob(os.path.join(get_user_dir(), "{}*.jar".format(backend_name)))
         backend_jar_path = backend_jar_path[0] if len(backend_jar_path) == 1 else None
         self.backend_jar_path = backend_jar_path
 
@@ -122,7 +121,7 @@ class DependencyManager:
                     raise ValueError("Unable to connect to repository to retrieve GMQL backend. Check your connection")
             resp = self._parse_dependency_info_fromstring(resp_text)
             location = self.repo_url + resp['repositoryPath']
-            output_path = os.path.join(self.resources_path, resp['repositoryPath'].split("/")[-1])
+            output_path = os.path.join(get_user_dir(), resp['repositoryPath'].split("/")[-1])
             if not self.is_backend_present():
                 # there is no backend (first start)
                 self.download_from_location(location, output_path)
@@ -157,10 +156,11 @@ class DependencyManager:
         self.download_from_location(location, output_path)
         self._save_dependency(resp_text)
 
-    def _save_dependency(self, resp):
+    @staticmethod
+    def _save_dependency(resp):
         resp_nice = minidom.parseString(resp)
         resp_nice = resp_nice.toprettyxml()
-        with open(os.path.join(self.resources_path, "dependencies_info.xml"), "w") as f:
+        with open(os.path.join(get_user_dir(), "dependencies_info.xml"), "w") as f:
             f.write(resp_nice)
 
     @staticmethod

@@ -1,6 +1,4 @@
-from pkg_resources import resource_filename
-from .FileManagment.SessionFileManager import initialize_user_folder
-from .FileManagment import TempFileManager
+from .FileManagment import TempFileManager, initialize_user_folder, get_resources_dir
 from .configuration import Configuration
 import os
 import sys
@@ -26,9 +24,14 @@ __configuration = None
 
 def get_configuration():
     global __configuration
-    if not isinstance(__configuration, Configuration):
-        raise TypeError("Configuration expected. {} was found".format(type(__configuration)))
     return __configuration
+
+
+def set_configuration(conf):
+    global __configuration
+    if not isinstance(conf, Configuration):
+        raise TypeError("Configuration expected. {} was found".format(type(conf)))
+    __configuration = conf
 
 
 def set_mode(how):
@@ -53,7 +56,7 @@ def get_mode():
 
 
 def get_version():
-    version_file_name = resource_filename("gmql", os.path.join("resources", "version"))
+    version_file_name = os.path.join(get_resources_dir(),  "version")
     with open(version_file_name, "r") as f_ver:
         version = f_ver.read().strip()
     return version
@@ -137,13 +140,11 @@ def initialize_configuration():
 def init_settings():
     global __version__, __folders, __configuration
     __version__ = get_version()
-    __folders = TempFileManager.initialize_tmp_folders()
     initialize_user_folder()
+    __folders = TempFileManager.initialize_tmp_folders()
     initialize_configuration()
     __configuration.set_spark_conf("spark.local.dir", __folders['spark'])
     if sys.platform.startswith("win32"):
         # if we are on windows set the hadoop home to winutils.exe
-        hadoop_folder_fn = resource_filename(
-            "gmql", os.path.join("resources", "hadoop")
-        )
+        hadoop_folder_fn = os.path.join(get_resources_dir(), "hadoop")
         __configuration.set_system_conf("hadoop.home.dir", hadoop_folder_fn)

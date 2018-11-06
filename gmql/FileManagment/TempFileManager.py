@@ -1,13 +1,14 @@
-from pkg_resources import resource_filename
-import os, shutil, time
+import os
+import shutil
+import time
+from . import get_user_dir
 
 
 def get_current_time():
     return time.strftime("%Y%m%d_%H%M%S")
 
 
-resource_folder = resource_filename("gmql", "resources")
-tmp_folder_name = os.path.join(resource_folder, "tmp")
+tmp_folder_name = os.path.join(get_user_dir(), "tmp")
 tmp_folder_instance = os.path.join(tmp_folder_name, "Instance_" + get_current_time())
 tmp_folder_spark = os.path.join(tmp_folder_instance, "spark")
 tmp_folder_datasets = os.path.join(tmp_folder_instance, "datasets")
@@ -52,4 +53,3 @@ def flush_everything():
     # check if the top folder is empty or not
     if not os.listdir(tmp_folder_name):
         flush_tmp_folder(tmp_folder_name)
-

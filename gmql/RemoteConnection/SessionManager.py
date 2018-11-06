@@ -1,7 +1,7 @@
 import os
 import xml.etree.ElementTree as ET
-from ..FileManagment.SessionFileManager import get_user_dir
 from xml.dom import minidom
+from ..FileManagment import get_user_dir
 
 SESSIONS_TAG = "sessions"
 SESSION_TAG = "session"

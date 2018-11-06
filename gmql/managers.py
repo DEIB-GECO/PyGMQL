@@ -1,11 +1,11 @@
 from .FileManagment.DependencyManager import DependencyManager
+from .FileManagment import get_user_dir
 from .RemoteConnection.SessionManager import load_sessions, store_sessions
 from .FileManagment import TempFileManager
 from .settings import get_remote_address, get_configuration
 from .configuration import Configuration
 import py4j
 from py4j.java_gateway import JavaGateway, launch_gateway, GatewayParameters
-from pkg_resources import resource_filename
 import os
 import time
 import atexit
@@ -65,7 +65,7 @@ def _set_system_configuration(conf):
 
 def __check_py4j_backend():
     py4j_version = py4j.__version__
-    py4j_backend_jar = resource_filename("gmql", os.path.join("resources", "py4j-{}.jar".format(py4j_version)))
+    py4j_backend_jar = os.path.join(get_user_dir(), "py4j-{}.jar".format(py4j_version))
     if not os.path.isfile(py4j_backend_jar):
         py4j_location = DependencyManager.find_package(
                             repo="https://oss.sonatype.org/content/repositories/releases/",
