@@ -15,6 +15,7 @@ deploy:
   password: "$pypi_password"
   on:
     branch: release
+    python: '3.6'
 after_success:
 - codecov
 env:
