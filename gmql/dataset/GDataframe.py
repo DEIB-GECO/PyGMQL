@@ -81,7 +81,58 @@ class GDataframe:
         meta = self.meta
         meta = meta.apply(_normalize_column)
         return GDataframe(regs=self.regs, meta=meta)
-    
+
+    def project_meta(self, attributes):
+        """ Projects the specified metadata attributes to new region fields
+
+        :param attributes: a list of metadata attributes
+        :return: a new GDataframe with additional region fields
+        """
+        if not isinstance(attributes, list):
+            raise TypeError('attributes must be a list')
+        meta_to_project = self.meta[attributes].applymap(lambda l: ", ".join(l))
+        new_regs = self.regs.merge(meta_to_project, left_index=True, right_index=True)
+        return GDataframe(regs=new_regs, meta=self.meta)
+
+    def to_matrix(self, index_regs=None, index_meta=None,
+                  columns_regs=None, columns_meta=None,
+                  values_regs=None, values_meta=None, **kwargs):
+        """ Transforms the GDataframe to a pivot matrix having as index and columns the
+        ones specified. This function is a wrapper around the pivot_table function of Pandas.
+
+        :param index_regs: list of region fields to use as index
+        :param index_meta: list of metadata attributes to use as index
+        :param columns_regs: list of region fields to use as columns
+        :param columns_meta: list of metadata attributes to use as columns
+        :param values_regs: list of region fields to use as values
+        :param values_meta: list of metadata attributes to use as values
+        :param kwargs: other parameters to pass to the pivot_table function
+        :return: a Pandas dataframe having as index the union of index_regs and index_meta, as
+                 columns the union of columns_regs and columns_meta and as values ths union
+                 of values_regs and values_meta
+        """
+
+        index_regs = index_regs if index_regs is not None else []
+        index_meta = index_meta if index_meta is not None else []
+        columns_regs = columns_regs if columns_regs is not None else []
+        columns_meta = columns_meta if columns_meta is not None else []
+        values_regs = values_regs if values_regs is not None else []
+        values_meta = values_meta if values_meta is not None else []
+
+        index_meta_s = set(index_meta)
+        columns_meta_s = set(columns_meta)
+        values_meta_s = set(values_meta)
+
+        meta_to_project = list(index_meta_s.union(columns_meta_s)\
+                                           .union(values_meta_s)\
+                                           .difference(set(self.regs.columns)))
+        res = self.project_meta(meta_to_project)
+        pivot_columns = columns_meta + columns_regs
+        pivot_index = index_meta + index_regs
+        pivot_values = values_regs + values_meta
+
+        return res.regs.pivot_table(index=pivot_index, columns=pivot_columns, values=pivot_values, **kwargs)
+
 
 def _normalize_column(column):
     lengths = column.map(len)
