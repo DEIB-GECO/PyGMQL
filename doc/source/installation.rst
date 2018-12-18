@@ -45,7 +45,7 @@ In that case the following steps must be perfomed:
 ++++++
 Python
 ++++++
-Currently PyGMQL supports only Python 3+
+Currently PyGMQL supports only Python 3.5, 3.6 and 3.7.
 
 
 ---------------------------
@@ -68,3 +68,13 @@ Using PIP
 The package can be also downloaded and installed directly in your python distribution using::
 
     pip install gmql
+
+
+---------
+Installation of the backend
+---------
+PyGMQL computational engine is written in Scala. The backend comes as a JAR file which will be downloaded at the first
+usage of the library::
+
+    import gmql
+

@@ -22,19 +22,30 @@ classical Python packages for machine learning and data science.
    installation
    introduction
    genomic_data_model
+   GMQL
    GMQLDataset
    expressions
    GDataframe
    remote
    settings
    configurations
-   ml
 
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
 
-Indices and tables
+Tutorials
+==================
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Contents:
+
+   tutorial_chapter0
+   tutorial_chapter1
+   tutorial_chapter2
+
+Data structures and functions
 ==================
 
 ------------------

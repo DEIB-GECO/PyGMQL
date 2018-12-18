@@ -141,7 +141,8 @@ def load_from_remote(remote_name, owner=None):
     :param remote_name: The name of the dataset in the remote repository
     :param owner: (optional) The owner of the dataset. If nothing is provided, the current user
                   is used. For public datasets use 'public'.
-    :return A new GMQLDataset or a GDataframe
+
+    :return: A new GMQLDataset or a GDataframe
     """
     from .. import GMQLDataset
     pmg = get_python_manager()

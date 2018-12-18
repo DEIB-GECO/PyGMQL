@@ -241,3 +241,5 @@ def init_managers():
 
     atexit.register(stop)
     signal.signal(signal.SIGINT, stop)
+
+    get_gateway()

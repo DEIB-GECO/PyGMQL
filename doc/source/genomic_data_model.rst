@@ -21,3 +21,8 @@ Data Model. Datasets are composed of samples , which in turn contains two kinds 
     * **Metadata**, storing all the knowledge about the particular sample, are arbitrary
       attribute-value pairs, independent from any standardization attempt; they trace the
       data provenance, including biological and clinical aspects
+
+
+This is exemplified by the figure below, showing on the left the regions and on the right the metadata of a dataset sample.
+
+.. image:: images/GDM.png

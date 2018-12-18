@@ -80,6 +80,15 @@ class GMQLDataset(object):
         print("\tIndex:\t{}".format(self.__index))
 
     def get_metadata(self):
+        """ Returns the metadata related to the current GMQLDataset. This function can be used only
+        when a local dataset is loaded using the :meth:`~gmql.dataset.loaders.Loader.load_from_path` and no other
+        operation has been called on the GMQLDataset.
+
+        The metadata are returned in the form of a Pandas Dataframe having as index the sample ids and as columns
+        the metadata attributes.
+
+        :return: a Pandas Dataframe
+        """
         if self.path_or_name is None:
             raise ValueError("You cannot explore the metadata of an intermediate query."
                              "You can get metadata only after a load_from_local or load_from_remote")
@@ -109,10 +118,15 @@ class GMQLDataset(object):
         or conditions for projection or selection.
         Notice that this function is equivalent to call::
             
-            dataset[name]
-        
+            dataset["name"]
+
+        If the MetaField is used in a region projection (:meth:`~.reg_project`), the user has also to specify the type
+        of the metadata attribute that is selected::
+
+            dataset.reg_project(new_field_dict={'new_field': dataset['name', 'string']})
+
         :param name: the name of the metadata that is considered
-        :param t: the type of the metadata attribute
+        :param t: the type of the metadata attribute {string, int, boolean, double}
 
         :return: a MetaField instance
         """
@@ -133,6 +147,19 @@ class GMQLDataset(object):
 
     def select(self, meta_predicate=None, region_predicate=None,
                semiJoinDataset=None,  semiJoinMeta=None):
+        """ *Wrapper of* ``SELECT``
+
+        Selection operation. Enables to filter datasets on the basis of region features or metadata attributes. In
+        addition it is possibile to perform a selection based on the existence of certain metadata
+        :attr:`~.semiJoinMeta` attributes and the matching of their values with those associated with at
+        least one sample in an external dataset :attr:`~.semiJoinDataset`
+
+        :param meta_predicate: logical predicate on the metadata <attribute, value> pairs
+        :param region_predicate: logical predicate on the region feature values
+        :param semiJoinDataset: an other GMQLDataset
+        :param semiJoinMeta: a list of metadata attributes (strings)
+        :return: a new GMQLDataset
+        """
 
         semiJoinDataset_exists = False
         if isinstance(meta_predicate, MetaField):
@@ -187,6 +214,8 @@ class GMQLDataset(object):
 
     def meta_select(self, predicate=None, semiJoinDataset=None, semiJoinMeta=None):
         """
+        *Wrapper of* ``SELECT``
+
         The META_SELECT operation creates a new dataset from an existing one 
         by extracting a subset of samples from the input dataset; each sample 
         in the output dataset has the same region attributes and metadata 
@@ -235,6 +264,8 @@ class GMQLDataset(object):
 
     def reg_select(self, predicate=None, semiJoinDataset=None, semiJoinMeta=None):
         """
+        *Wrapper of* ``SELECT``
+
         Select only the regions in the dataset that satisfy the predicate
 
         :param predicate: logical predicate on the values of the regions
@@ -264,6 +295,17 @@ class GMQLDataset(object):
 
     def project(self, projected_meta=None, new_attr_dict=None, all_but_meta=None,
                 projected_regs=None, new_field_dict=None, all_but_regs=None):
+        """
+        *Wrapper of* ``PROJECT``
+
+        :param projected_meta:
+        :param new_attr_dict:
+        :param all_but_meta:
+        :param projected_regs:
+        :param new_field_dict:
+        :param all_but_regs:
+        :return:
+        """
         projected_meta_exists = False
         if isinstance(projected_meta, list) and \
                 all([isinstance(x, str) for x in projected_meta]):
@@ -377,6 +419,8 @@ class GMQLDataset(object):
 
     def meta_project(self, attr_list=None, all_but=None, new_attr_dict=None):
         """
+        *Wrapper of* ``PROJECT``
+
         Project the metadata based on a list of attribute names
         
         :param attr_list: list of the metadata fields to select
@@ -398,6 +442,8 @@ class GMQLDataset(object):
 
     def reg_project(self, field_list=None, all_but=None, new_field_dict=None):
         """
+        *Wrapper of* ``PROJECT``
+
         Project the region data based on a list of field names
 
         :param field_list: list of the fields to select
@@ -428,6 +474,8 @@ class GMQLDataset(object):
 
     def extend(self, new_attr_dict):
         """
+        *Wrapper of* ``EXTEND``
+
         For each sample in an input dataset, the EXTEND operator builds new metadata attributes,
         assigns their values as the result of arithmetic and/or aggregate functions calculated on 
         sample region attributes, and adds them to the existing metadata attribute-value pairs of 
@@ -474,6 +522,8 @@ class GMQLDataset(object):
 
     def cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None, cover_type="normal"):
         """
+        *Wrapper of* ``COVER``
+
         COVER is a GMQL operator that takes as input a dataset (of usually, 
         but not necessarily, multiple samples) and returns another dataset 
         (with a single sample, if no groupby option is specified) by “collapsing”
@@ -570,6 +620,8 @@ class GMQLDataset(object):
 
     def normal_cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None):
         """
+        *Wrapper of* ``COVER``
+
         The normal cover operation as described in :meth:`~.cover`.
         Equivalent to calling::
         
@@ -579,6 +631,8 @@ class GMQLDataset(object):
 
     def flat_cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None):
         """
+        *Wrapper of* ``COVER``
+
         Variant of the function :meth:`~.cover` that returns the union of all the regions 
         which contribute to the COVER. More precisely, it returns the contiguous regions 
         that start from the first end and stop at the last end of the regions which would 
@@ -592,6 +646,8 @@ class GMQLDataset(object):
 
     def summit_cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None):
         """
+        *Wrapper of* ``COVER``
+
         Variant of the function :meth:`~.cover` that returns only those portions of the COVER
         result where the maximum number of regions overlap (this is done by returning only
         regions that start from a position after which the number of overlaps does not 
@@ -606,6 +662,8 @@ class GMQLDataset(object):
 
     def histogram_cover(self, minAcc, maxAcc, groupBy=None, new_reg_fields=None):
         """
+        *Wrapper of* ``COVER``
+
         Variant of the function :meth:`~.cover` that returns all regions contributing to 
         the COVER divided in different (contiguous) parts according to their accumulation 
         index value (one part for each different accumulation value), which is assigned to 
@@ -619,7 +677,10 @@ class GMQLDataset(object):
 
     def join(self, experiment, genometric_predicate, output="LEFT", joinBy=None,
              refName="REF", expName="EXP", left_on=None, right_on=None):
-        """ The JOIN operator takes in input two datasets, respectively known as anchor
+        """
+        *Wrapper of* ``JOIN``
+
+        The JOIN operator takes in input two datasets, respectively known as anchor
         (the first/left one) and experiment (the second/right one) and returns a
         dataset of samples consisting of regions extracted from the operands 
         according to the specified condition (known as genometric predicate). 
@@ -732,6 +793,8 @@ class GMQLDataset(object):
 
     def map(self, experiment, new_reg_fields=None, joinBy=None, refName="REF", expName="EXP"):
         """
+        *Wrapper of* ``MAP``
+
         MAP is a non-symmetric operator over two datasets, respectively called
         reference and experiment. The operation computes, for each sample in 
         the experiment dataset, aggregates over the values of the experiment 
@@ -821,7 +884,10 @@ class GMQLDataset(object):
 
     def order(self, meta=None, meta_ascending=None, meta_top=None, meta_k=None,
               regs=None, regs_ascending=None, region_top=None, region_k=None):
-        """ The ORDER operator is used to order either samples, sample regions, or both,
+        """
+        *Wrapper of* ``ORDER``
+
+        The ORDER operator is used to order either samples, sample regions, or both,
         in a dataset according to a set of metadata and/or region attributes, and/or 
         region coordinates. The number of samples and their regions in the output dataset 
         is as in the input dataset, as well as their metadata and region attributes 
@@ -944,7 +1010,10 @@ class GMQLDataset(object):
                            meta_profile=self.meta_profile)
 
     def difference(self, other, joinBy=None, exact=False):
-        """ DIFFERENCE is a binary, non-symmetric operator that produces one sample
+        """
+        *Wrapper of* ``DIFFERENCE``
+
+        DIFFERENCE is a binary, non-symmetric operator that produces one sample
         in the result for each sample of the first operand, by keeping the same
         metadata of the first operand sample and only those regions (with their
         schema and values) of the first operand sample which do not intersect with
@@ -986,6 +1055,8 @@ class GMQLDataset(object):
 
     def union(self, other, left_name="LEFT", right_name="RIGHT"):
         """
+        *Wrapper of* ``UNION``
+
         The UNION operation is used to integrate homogeneous or heterogeneous samples of two
         datasets within a single dataset; for each sample of either one of the input datasets, a
         sample is created in the result as follows:
@@ -1026,6 +1097,8 @@ class GMQLDataset(object):
 
     def merge(self, groupBy=None):
         """
+        *Wrapper of* ``MERGE``
+
         The MERGE operator builds a new dataset consisting of a single sample having
         
             * as regions all the regions of all the input samples, with the 
@@ -1060,7 +1133,10 @@ class GMQLDataset(object):
 
     def group(self, meta=None, meta_aggregates=None, regs=None,
               regs_aggregates=None, meta_group_name="_group"):
-        """ The GROUP operator is used for grouping both regions and/or metadata of input
+        """
+        *Wrapper of* ``GROUP``
+
+        The GROUP operator is used for grouping both regions and/or metadata of input
         dataset samples according to distinct values of certain attributes (known as grouping
         attributes); new grouping attributes are added to samples in the output dataset,
         storing the results of aggregate function evaluations over metadata and/or regions
@@ -1166,19 +1242,28 @@ class GMQLDataset(object):
                            meta_profile=self.meta_profile)
 
     def meta_group(self, meta, meta_aggregates=None):
-        """ Group operation only for metadata. For further information check :meth:`~.group`
+        """
+        *Wrapper of* ``GROUP``
+
+        Group operation only for metadata. For further information check :meth:`~.group`
         """
         return self.group(meta=meta, meta_aggregates=meta_aggregates)
 
     def regs_group(self, regs, regs_aggregates=None):
-        """ Group operation only for region data. For further information check :meth:`~.group`
+        """
+        *Wrapper of* ``GROUP``
+
+        Group operation only for region data. For further information check :meth:`~.group`
         """
         return self.group(regs=regs, regs_aggregates=regs_aggregates)
     """
         Materialization utilities
     """
     def materialize(self, output_path=None, output_name=None,  all_load=True):
-        """ Starts the execution of the operations for the GMQLDataset. PyGMQL implements lazy execution
+        """
+        *Wrapper of* ``MATERIALIZE``
+
+        Starts the execution of the operations for the GMQLDataset. PyGMQL implements lazy execution
         and no operation is performed until the materialization of the results is requestd.
         This operation can happen both locally or remotely.
 

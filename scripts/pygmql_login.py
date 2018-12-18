@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 import gmql as gl
 import argparse
 import getpass

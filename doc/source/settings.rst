@@ -12,8 +12,6 @@ Logging and progress bars
 
 .. autofunction:: set_progress
 
-.. autofunction:: set_logging
-
 -----------------
 Remote Management
 -----------------
@@ -25,6 +23,8 @@ Remote Management
 .. autofunction:: login
 
 .. autofunction:: logout
+
+.. currentmodule:: gmql.settings
 
 .. autofunction:: set_remote_address
 
