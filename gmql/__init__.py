@@ -13,5 +13,12 @@ from .settings import set_remote_address, set_meta_profiling, set_mode, set_prog
 from .managers import login, logout, get_remote_address, get_session_manager, set_backend_path, set_py4j_path, \
     get_configuration, get_remote_manager
 
-__init_settings()
-__init_managers()
+__initiated = False
+
+
+def init():
+    global __initiated
+    if not __initiated:
+        __init_settings()
+        __init_managers()
+        __initiated = True
