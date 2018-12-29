@@ -5,10 +5,10 @@ from xml.dom import minidom
 from . import get_resources_dir, get_user_dir
 import os
 from glob import glob
-import wget
+from tqdm import tqdm
 import logging
 
-CHUNK_SIZE = 5 * 1024 * 1024  # 5 MB
+CHUNK_SIZE = 1 * 1024 * 1024  # 5 MB
 backend_name = "GMQL-PythonAPI"
 
 
@@ -173,13 +173,11 @@ class DependencyManager:
 
     @staticmethod
     def download_from_location(location, output_path):
-        # r = requests.get(location, stream=True)
-        # total_size = int(r.headers.get("content-length", 0))
-        # with open(output_path, "wb") as f:
-        #     for data in tqdm(r.iter_content(chunk_size=CHUNK_SIZE), total=total_size/CHUNK_SIZE, unit="B",
-        #                      unit_scale=True):
-        #         f.write(data)
-        wget.download(location, output_path, bar=wget.bar_thermometer)
+        r = requests.get(location, stream=True)
+        total_size = int(r.headers.get("content-length", 0))
+        with open(output_path, "wb") as f:
+            for data in tqdm(r.iter_content(chunk_size=CHUNK_SIZE), total=int(total_size/CHUNK_SIZE), unit="M"):
+                f.write(data)
 
     def _delete_current_backend(self):
         # search for the only jar file in the resources path
