@@ -17,8 +17,14 @@ __initiated = False
 
 
 def init():
+    """ Initializes the library.
+    :return: None
+    """
     global __initiated
     if not __initiated:
         __init_settings()
         __init_managers()
         __initiated = True
+
+
+init()
