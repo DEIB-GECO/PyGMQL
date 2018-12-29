@@ -16,7 +16,7 @@ from .managers import login, logout, get_remote_address, get_session_manager, se
 __initiated = False
 
 
-def init():
+def __init():
     """ Initializes the library.
     :return: None
     """
@@ -27,4 +27,4 @@ def init():
         __initiated = True
 
 
-init()
+__init()
