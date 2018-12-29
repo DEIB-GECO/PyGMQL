@@ -11,6 +11,7 @@ import time
 import atexit
 import signal
 import warnings
+import logging
 
 
 __remote_manager = None
@@ -180,6 +181,8 @@ def login():
     """
     from .RemoteConnection.RemoteManager import RemoteManager
     global __remote_manager, __session_manager
+
+    logger = logging.getLogger()
     remote_address = get_remote_address()
     res = __session_manager.get_session(remote_address)
     if res is None:
@@ -191,6 +194,7 @@ def login():
     else:
         # there is a previous session for this address, let's do an auto login
         # using that access token
+        logger.info("Logging using stored authentication token")
         rm = RemoteManager(address=remote_address, auth_token=res[1])
         # if the access token is not valid anymore (therefore we are in guest mode)
         # the auto_login function will perform a guest login from scratch
@@ -234,10 +238,16 @@ def get_session_manager():
     return __session_manager
 
 
+def __initialize_logger():
+    log_fmt = '[PyGMQL] %(message)s'
+    logging.basicConfig(level=logging.INFO, format=log_fmt)
+
+
 def init_managers():
     __initialize_source_table()
     __initialize_session_manager()
     __initialize_dependency_manager()
+    __initialize_logger()
 
     atexit.register(stop)
     signal.signal(signal.SIGINT, stop)

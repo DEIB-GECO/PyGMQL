@@ -7,14 +7,13 @@ from . import generateNameKey
 import os
 import pandas as pd
 
-logger = logging.getLogger("PyGML logger")
-
 
 def load_meta_from_path(path):
     meta_files = glob(pathname=path + '/*.gdm.meta')
     parsed = []
     parser = GenericMetaParser()
-    logger.info("Loading meta data from path {}".format(path))
+    logger = logging.getLogger()
+    logger.debug("Loading meta data from path {}".format(path))
     from ...settings import is_progress_enabled
     for f in tqdm(meta_files, total=len(meta_files), disable=not is_progress_enabled()):
         abs_path = os.path.abspath(f)
@@ -37,7 +36,8 @@ def to_pandas(meta_list):
         # grouping by 'id_sample'
         g = df.groupby('id_sample')
 
-        logger.info("dataframe construction")
+        logger = logging.getLogger()
+        logger.debug("dataframe construction")
         result_df = pd.DataFrame()
         from ...settings import is_progress_enabled
         for col in tqdm(columns, total=len(columns), disable=not is_progress_enabled()):

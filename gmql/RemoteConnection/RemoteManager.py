@@ -52,7 +52,7 @@ class RemoteManager:
         if req.status_code != 200:
             raise ConnectionError("The server at {} is not responding".format(self.address))
 
-        self.logger = logging.getLogger("PyGML logger")
+        self.logger = logging.getLogger()
 
         # checking of the auth_token
         if auth_token is not None:
@@ -338,7 +338,7 @@ class RemoteManager:
         m_encoder = MultipartEncoderMonitor(encoder, callback)
         header['Content-Type'] = m_encoder.content_type
 
-        self.logger.info("Uploading dataset at {} with name {}".format(dataset, dataset_name))
+        self.logger.debug("Uploading dataset at {} with name {}".format(dataset, dataset_name))
 
         response = requests.post(url, data=m_encoder,
                                  headers=header)
@@ -365,7 +365,7 @@ class RemoteManager:
         response = requests.delete(url, headers=header)
         if response.status_code != 200:
             raise ValueError("Code {}: {}".format(response.status_code, response.json().get("error")))
-        self.logger.info("Dataset {} was deleted from the repository".format(dataset_name))
+        self.logger.debug("Dataset {} was deleted from the repository".format(dataset_name))
 
     """
         Download repository
@@ -399,7 +399,7 @@ class RemoteManager:
     def download_as_zip(self, dataset_name, local_path):
         header = self.__check_authentication()
         url = self.address + "/datasets/" + dataset_name + "/zip"
-        self.logger.info("Downloading dataset {} to {}".format(dataset_name, local_path))
+        self.logger.debug("Downloading dataset {} to {}".format(dataset_name, local_path))
         response = requests.get(url, stream=True, headers=header)
         if response.status_code != 200:
             raise ValueError("Code {}: {}".format(response.status_code, response.json().get("error")))
@@ -507,7 +507,7 @@ class RemoteManager:
             raise ValueError("Code {}. {}".format(response.status_code, response.json().get("error")))
         response = response.json()
         jobid = response.get("id")
-        self.logger.info("JobId: {}. Waiting for the result".format(jobid))
+        self.logger.debug("JobId: {}. Waiting for the result".format(jobid))
 
         status_resp = self._wait_for_result(jobid)
 
@@ -573,7 +573,7 @@ class RemoteManager:
             raise ValueError("Code {}. {}".format(response.status_code, response.json().get("error")))
         response = response.json()
         jobid = response.get("id")
-        self.logger.info("JobId: {}. Waiting for the result".format(jobid))
+        self.logger.debug("JobId: {}. Waiting for the result".format(jobid))
         status_resp = self._wait_for_result(jobid)
 
         datasets = status_resp.get("datasets")

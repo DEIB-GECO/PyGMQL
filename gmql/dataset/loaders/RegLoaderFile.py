@@ -14,10 +14,6 @@ from ...settings import is_progress_enabled
 from . import SCHEMA_FILE
 
 
-# global logger
-logger = logging.getLogger("PyGML logger")
-
-
 def load_reg_from_path(path, parser=None):
     if parser is None:
         # get the parser for the dataset
@@ -28,7 +24,8 @@ def load_reg_from_path(path, parser=None):
 
     only_region_files = all_files - meta_files
     # print(only_region_files)
-    logger.info("Loading region data from path {}".format(path))
+    logger = logging.getLogger()
+    logger.debug("Loading region data from path {}".format(path))
 
     n_files = len(only_region_files)
     dfs = []

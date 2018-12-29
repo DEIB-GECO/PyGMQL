@@ -6,7 +6,7 @@ import shutil
 from ..parsers import TAB, COORDS_DEFAULT
 from ..loaders import SCHEMA_FILE
 
-logger = logging.getLogger("PyGML logger")
+logger = logging.getLogger()
 
 
 def to_dataset_files(gframe, path_local=None, path_remote=None):
@@ -33,7 +33,7 @@ def to_local(gframe, path_local):
         shutil.rmtree(path_local)
     os.makedirs(path_local)
 
-    logger.info("Saving data at {}".format(path_local))
+    logger.debug("Saving data at {}".format(path_local))
     all_file_names = regs.index.unique()
     from ...settings import is_progress_enabled
     for file in tqdm(all_file_names, disable=not is_progress_enabled()):

@@ -4,8 +4,9 @@ from requests.exceptions import ConnectionError
 from xml.dom import minidom
 from . import get_resources_dir, get_user_dir
 import os
-from tqdm import tqdm
 from glob import glob
+import wget
+import logging
 
 CHUNK_SIZE = 5 * 1024 * 1024  # 5 MB
 backend_name = "GMQL-PythonAPI"
@@ -13,6 +14,9 @@ backend_name = "GMQL-PythonAPI"
 
 class DependencyManager:
     def __init__(self):
+
+        self.logger = logging.getLogger()
+
         self.dependency_file_path = os.path.join(get_resources_dir(), "dependencies.xml")
         self.repo_name, self.repo_url, self.deps = self._parse_dependency_file(self.dependency_file_path)
         self.backend_info_file = os.path.join(get_user_dir(), "dependencies_info.xml")
@@ -123,6 +127,7 @@ class DependencyManager:
             location = self.repo_url + resp['repositoryPath']
             output_path = os.path.join(get_user_dir(), resp['repositoryPath'].split("/")[-1])
             if not self.is_backend_present():
+                self.logger.info("Downloading backend")
                 # there is no backend (first start)
                 self.download_from_location(location, output_path)
                 self._save_dependency(resp_text)
@@ -133,10 +138,12 @@ class DependencyManager:
                 retrieved_timestamp = resp['snapshotTimeStamp']
                 if current_timestamp < retrieved_timestamp:
                     # we are using an outdated backend
+                    self.logger.info("Updating backend to latest version")
                     self.__set_backend(location, output_path, resp_text)
             elif self.repo_name == 'releases':
                 # If we need a release, it always wins
                 if self.backend_info['snapshot'] == 'true':
+                    self.logger.info("Updating backend")
                     self.__set_backend(location, output_path, resp_text)
                 else:
                     current_version = float(self.backend_info['version'])
@@ -145,6 +152,7 @@ class DependencyManager:
                     retrieved_classifier = resp.get("classifier")
                     if (current_version != retrieved_version) or (current_classifier != retrieved_classifier):
                         # the versions do not match
+                        self.logger.info("Updating backend")
                         self.__set_backend(location, output_path, resp_text)
             else:
                 raise NotImplementedError("Need to implement the backend download in the case"
@@ -165,12 +173,13 @@ class DependencyManager:
 
     @staticmethod
     def download_from_location(location, output_path):
-        r = requests.get(location, stream=True)
-        total_size = int(r.headers.get("content-length", 0))
-        with open(output_path, "wb") as f:
-            for data in tqdm(r.iter_content(chunk_size=CHUNK_SIZE), total=total_size/CHUNK_SIZE, unit="B",
-                             unit_scale=True):
-                f.write(data)
+        # r = requests.get(location, stream=True)
+        # total_size = int(r.headers.get("content-length", 0))
+        # with open(output_path, "wb") as f:
+        #     for data in tqdm(r.iter_content(chunk_size=CHUNK_SIZE), total=total_size/CHUNK_SIZE, unit="B",
+        #                      unit_scale=True):
+        #         f.write(data)
+        wget.download(location, output_path, bar=wget.bar_thermometer)
 
     def _delete_current_backend(self):
         # search for the only jar file in the resources path
