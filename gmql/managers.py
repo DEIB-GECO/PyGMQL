@@ -31,10 +31,6 @@ def start():
     if java_home is None:
         raise SystemError("The environment variable JAVA_HOME is not set")
     java_path = os.path.join(java_home, "bin", "java")
-    if __gmql_jar_path is None:
-        __gmql_jar_path = __dependency_manager.resolve_dependencies()
-    if __py4j_path is None:
-        __py4j_path = __check_py4j_backend()
     _port = launch_gateway(classpath=__gmql_jar_path, die_on_exit=True,
                            java_path=java_path, javaopts=['-Xmx8192m'],
                            jarpath=__py4j_path)
@@ -243,6 +239,14 @@ def __initialize_logger():
     logging.basicConfig(level=logging.INFO, format=log_fmt)
 
 
+def __check_dependencies():
+    global __gmql_jar_path, __py4j_path
+    if __gmql_jar_path is None:
+        __gmql_jar_path = __dependency_manager.resolve_dependencies()
+    if __py4j_path is None:
+        __py4j_path = __check_py4j_backend()
+
+
 def init_managers():
     __initialize_source_table()
     __initialize_session_manager()
@@ -252,4 +256,4 @@ def init_managers():
     atexit.register(stop)
     signal.signal(signal.SIGINT, stop)
 
-    get_gateway()
+    __check_dependencies()
