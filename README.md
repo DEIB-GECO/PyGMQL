@@ -25,6 +25,13 @@ You can ask questions or provide some feedback through our Gitter channel.
 [![Join the chat at https://gitter.im/DEIB-GECO/PyGMQL](https://badges.gitter.im/DEIB-GECO/PyGMQL.svg)](https://gitter.im/DEIB-GECO/PyGMQL?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 
+## Requirements
+The library requires the following:
+* Python 3.4+
+* The latest version of JAVA installed
+* The JAVA_HOME variable set to the Java installation folder (example: `C:\Program Files\Java\jdk1.8.0_161` or `~/jdk1.8.0_161`)
+
+
 ## Installation
 ### From github
 First of all download this repository in a choosen location:
