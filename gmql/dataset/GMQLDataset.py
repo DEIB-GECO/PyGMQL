@@ -22,6 +22,9 @@ class GMQLDataset(object):
     A GMQLDataset represents a genomic dataset in the GMQL standard and it is divided
     in region data and meta data. The function that can be applied to a GMQLDataset
     affect one of these two features or both.
+
+    For each operator function that can be applied to a GMQLDataset we provide the documentation, some examples, and
+    we specify which operator of GMQL the function is wrapper of.
     """
 
     def __init__(self, parser=None, index=None, location="local", path_or_name=None,
@@ -152,7 +155,31 @@ class GMQLDataset(object):
         Selection operation. Enables to filter datasets on the basis of region features or metadata attributes. In
         addition it is possibile to perform a selection based on the existence of certain metadata
         :attr:`~.semiJoinMeta` attributes and the matching of their values with those associated with at
-        least one sample in an external dataset :attr:`~.semiJoinDataset`
+        least one sample in an external dataset :attr:`~.semiJoinDataset`.
+
+        Therefore, the selection can be based on:
+
+            * *Metadata predicates*: selection based on the existence and values of certain
+              metadata attributes in each sample. In predicates, attribute-value conditions
+              can be composed using logical predicates & (and), | (or) and ~ (not)
+            * *Region predicates*: selection based on region attributes. Conditions
+              can be composed using logical predicates & (and), | (or) and ~ (not)
+            * *SemiJoin clauses*: selection based on the existence of certain metadata :attr:`~.semiJoinMeta`
+              attributes and the matching of their values with those associated with at
+              least one sample in an external dataset :attr:`~.semiJoinDataset`
+
+
+        In the following example we select all the samples from Example_Dataset_1 regarding antibody CTCF.
+        From these samples we select only the regions on chromosome 6. Finally we select only the samples which have
+        a matching antibody_targetClass in Example_Dataset_2::
+
+            import gmql as gl
+            d1 = gl.get_example_dataset("Example_Dataset_1")
+            d2 = gl.get_example_dataset("Example_Dataset_2")
+
+            d_select = d.select(meta_predicate = d['antibody'] == "CTCF",
+                                region_predicate = d.chr == "chr6",
+                                semiJoinDataset=d2, semiJoinMeta=["antibody_targetClass"])
 
         :param meta_predicate: logical predicate on the metadata <attribute, value> pairs
         :param region_predicate: logical predicate on the region feature values
@@ -216,19 +243,8 @@ class GMQLDataset(object):
         """
         *Wrapper of* ``SELECT``
 
-        The META_SELECT operation creates a new dataset from an existing one 
-        by extracting a subset of samples from the input dataset; each sample 
-        in the output dataset has the same region attributes and metadata 
-        as in the input dataset.
-        The selection can be based on:
-        
-            * *Metadata predicates*: selection based on the existence and values of certain 
-              metadata attributes in each sample. In predicates, attribute-value conditions 
-              can be composed using logical predicates & (and), | (or) and ~ (not)
-            * *SemiJoin clauses*: selection based on the existence of certain metadata :attr:`~.semiJoinMeta`
-              attributes and the matching of their values with those associated with at 
-              least one sample in an external dataset :attr:`~.semiJoinDataset`
-        
+        Wrapper of the :meth:`~.select` function filtering samples only based on metadata.
+
         :param predicate: logical predicate on the values of the rows
         :param semiJoinDataset: an other GMQLDataset 
         :param semiJoinMeta: a list of metadata
@@ -266,7 +282,7 @@ class GMQLDataset(object):
         """
         *Wrapper of* ``SELECT``
 
-        Select only the regions in the dataset that satisfy the predicate
+        Wrapper of the :meth:`~.select` function filtering regions only based on region attributes.
 
         :param predicate: logical predicate on the values of the regions
         :param semiJoinDataset: an other GMQLDataset 
@@ -298,13 +314,25 @@ class GMQLDataset(object):
         """
         *Wrapper of* ``PROJECT``
 
-        :param projected_meta:
-        :param new_attr_dict:
-        :param all_but_meta:
-        :param projected_regs:
-        :param new_field_dict:
-        :param all_but_regs:
-        :return:
+        The PROJECT operator creates, from an existing dataset, a new dataset with all the samples
+        (with their regions and region values) in the input one, but keeping for each sample in the input
+        dataset only those metadata and/or region attributes expressed in the operator parameter list.
+        Region coordinates and values of the remaining metadata and region attributes remain equal
+        to those in the input dataset. Differently from the SELECT operator, PROJECT allows to:
+            * Remove existing metadata and/or region attributes from a dataset;
+            * Create new metadata and/or region attributes to be added to the result.
+
+        :param projected_meta: list of metadata attributes to project on
+        :param new_attr_dict: an optional dictionary of the form {'new_meta_1': function1,
+               'new_meta_2': function2, ...} in which every function computes
+               the new metadata attribute based on the values of the others
+        :param all_but_meta: list of metadata attributes that must be excluded from the projection
+        :param projected_regs: list of the region fields to select
+        :param new_field_dict: an optional dictionary of the form {'new_field_1':
+               function1, 'new_field_2': function2, ...} in which every function
+               computes the new region field based on the values of the others
+        :param all_but_regs: list of region fields that must be excluded from the projection
+        :return: a new GMQLDataset
         """
         projected_meta_exists = False
         if isinstance(projected_meta, list) and \
@@ -485,12 +513,12 @@ class GMQLDataset(object):
         :param new_attr_dict: a dictionary of the type {'new_metadata' : AGGREGATE_FUNCTION('field'), ...}
         :return: new GMQLDataset
         
-        An example of usage::
+        An example of usage, in which we count the number of regions in each sample and the minimum
+        value of the `pValue` field and export it respectively as metadata attributes `regionCount` and `minPValue`::
         
             import gmql as gl
             
-            # ....previous operations on the dataset
-            
+            dataset = gl.get_example_dataset("Example_Dataset_1")
             new_dataset = dataset.extend({'regionCount' : gl.COUNT(),
                                           'minPValue' : gl.MIN('pValue')})
         """
@@ -693,7 +721,8 @@ class GMQLDataset(object):
         with their attribute names prefixed with their input dataset name.
         
         :param experiment: an other GMQLDataset
-        :param genometric_predicate: a list of Genometric atomic conditions
+        :param genometric_predicate: a list of Genometric atomic conditions. For an explanation of each of them
+                                     go to the respective page.
         :param output: one of four different values that declare which region is given in output 
                        for each input pair of anchor and experiment regions satisfying the genometric predicate:
                        
@@ -714,15 +743,18 @@ class GMQLDataset(object):
         :param right_on: list of region fields of the experiment on which the join must be performed
         :return: a new GMQLDataset
         
-        An example of usage::
+        An example of usage, in which we perform the join operation between Example_Dataset_1 and Example_Dataset_2
+        specifying than we want to join the regions of the former with the first regions at a minimim distance of 120Kb
+        of the latter and finally we want to output the regions of Example_Dataset_2 matching the criteria::
             
             import gmql as gl
-            
-            # anchor_dataset and experiment_dataset are created
-            
-            result_dataset = anchor_dataset.join(experiment=experiment_dataset, 
-                                                    genometric_predicate=[gl.MD(1), gl.DGE(120000)], 
-                                                    output="right")
+
+            d1 = gl.get_example_dataset("Example_Dataset_1")
+            d2 = gl.get_example_dataset("Example_Dataset_2")
+
+            result_dataset = d1.join(experiment=d2,
+                                     genometric_predicate=[gl.MD(1), gl.DGE(120000)],
+                                     output="right")
         """
 
         if isinstance(experiment, GMQLDataset):
@@ -822,6 +854,20 @@ class GMQLDataset(object):
         :param refName: name that you want to assign to the reference dataset
         :param expName: name that you want to assign to the experiment dataset
         :return: a new GMQLDataset
+
+        In the following example, we map the regions of Example_Dataset_2 on the ones of Example_Dataset_1 and for
+        each region of Example_Dataset_1 we ouput the average Pvalue and number of mapped regions of Example_Dataset_2.
+        In addition we specify that the output region fields and metadata attributes will have the `D1` and `D2` suffixes
+        respectively for attributes and fields belonging the Example_Dataset_1 and Example_Dataset_2::
+
+            import gmql as gl
+
+            d1 = gl.get_example_dataset("Example_Dataset_1")
+            d2 = gl.get_example_dataset("Example_Dataset_2")
+
+            result = d1.map(experiment=d2, refName="D1", expName="D2",
+                            new_reg_fields={"avg_pValue": gl.AVG("pvalue")})
+
         """
         if isinstance(experiment, GMQLDataset):
             other_idx = experiment.__index
@@ -903,6 +949,20 @@ class GMQLDataset(object):
         :param region_top: "top", "topq" or "topp" or None
         :param region_k: a number specifying how many results to be retained
         :return: a new GMQLDataset
+
+
+        Example of usage. We order Example_Dataset_1 metadata by ascending `antibody` and descending `antibody_class`
+        keeping only the first sample. We also order the resulting regions based on the `score` field in descending
+        order, keeping only the first one also in this case::
+
+            import gmql as gl
+
+            d1 = gl.get_example_dataset("Example_Dataset_1")
+
+            result = d1.order(meta=["antibody", "antibody_targetClass"],
+                              meta_ascending=[True, False], meta_top="top", meta_k=1,
+                              regs=['score'], regs_ascending=[False],
+                              region_top="top", region_k=1)
         """
         meta_exists = False
         meta_len = 0
@@ -1020,9 +1080,23 @@ class GMQLDataset(object):
         any region in the second operand sample (also known as negative regions)
         
         :param other: GMQLDataset
-        :param joinBy: list of metadata attributes
-        :param exact: boolean
+        :param joinBy: (optional) list of metadata attributes.  It is used to extract subsets of samples on which
+                       to apply the operator: only those samples in the current and other dataset that have the same
+                       value for each specified attribute are considered when performing the operation
+        :param exact: boolean. If true, the the regions are considered as intersecting only if their coordinates
+                      are exactly the same
         :return: a new GMQLDataset
+
+
+        Example of usage. We compute the exact difference between Example_Dataset_1 and Example_Dataset_2,
+        considering only the samples with same `antibody`::
+
+            import gmql as gl
+
+            d1 = gl.get_example_dataset("Example_Dataset_1")
+            d2 = gl.get_example_dataset("Example_Dataset_2")
+
+            result = d1.difference(other=d2, exact=True, joinBy=['antibody'])
         """
 
         if isinstance(other, GMQLDataset):
@@ -1070,8 +1144,17 @@ class GMQLDataset(object):
                 
         :param other: a GMQLDataset
         :param left_name: name that you want to assign to the left dataset
-        :param right_name: name that you want to assign to the right dataset
+        :param right_name: name tha t you want to assign to the right dataset
         :return: a new GMQLDataset
+
+        Example of usage::
+
+            import gmql as gl
+
+            d1 = gl.get_example_dataset("Example_Dataset_1")
+            d2 = gl.get_example_dataset("Example_Dataset_2")
+
+            result = d1.union(other=d2, left_name="D1", right_name="D2")
         """
 
         if not isinstance(left_name, str) or \
@@ -1114,6 +1197,13 @@ class GMQLDataset(object):
         
         :param groupBy: list of metadata attributes
         :return: a new GMQLDataset
+
+        Example of usage::
+
+            import gmql as gl
+
+            d1 = gl.get_example_dataset("Example_Dataset_1")
+            result = d1.merge(['antibody'])
         """
 
         if isinstance(groupBy, list) and \
@@ -1151,6 +1241,14 @@ class GMQLDataset(object):
         :param meta_group_name: (optional) the name to give to the group attribute in the
                metadata
         :return: a new GMQLDataset
+
+        Example of usage. We group samples by `antibody` and we aggregate the region pvalues taking the maximum value
+        calling the new region field `maxPvalue`::
+
+            import gmql as gl
+
+            d1 = gl.get_example_dataset("Example_Dataset_1")
+            result = d1.group(meta=['antibody'], regs_aggregates={'maxPvalue': gl.MAX("pvalue")})
         """
 
         if isinstance(meta, list) and \
