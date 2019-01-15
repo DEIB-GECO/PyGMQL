@@ -61,7 +61,10 @@ class GMQLDataset(object):
 
         # setting the schema as properties of the dataset
         for field in self.schema:
-            self.__setattr__(field, self.RegField(field))
+            if field not in dir(self):
+                self.__setattr__(field, self.RegField(field))
+            else:
+                self.__setattr__(field.upper(), self.RegField(field))
         # add also left and right
         self.left = self.RegField("left")
         self.right = self.RegField("right")
