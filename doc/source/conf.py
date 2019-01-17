@@ -59,7 +59,7 @@ html_favicon = "./images/logo-geco.ico"
 # General information about the project.
 project = 'PyGMQL'
 copyright = '2017, Luca Nanni'
-author = 'Luca Nanni'
+author = 'Luca Nanni, Pietro Pinoli and Stefano Ceri'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
