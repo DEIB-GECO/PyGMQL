@@ -188,8 +188,9 @@ class RemoteManager:
             for d in infoList:
                 result[d['key']] = d['value']
             return result
-        res = pd.concat([res, pd.DataFrame.from_dict(res[info_column].map(extract_infos).tolist())], axis=1)\
-            .drop("info", axis=1)
+        if info_column in res.columns:
+            res = pd.concat([res, pd.DataFrame.from_dict(res[info_column].map(extract_infos).tolist())], axis=1)\
+                .drop("info", axis=1)
         return res
 
     def get_dataset_list(self):
