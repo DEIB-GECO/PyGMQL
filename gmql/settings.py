@@ -6,9 +6,10 @@ import sys
 
 __version__ = None
 __progress_bar = True
-__metadata_profiling = True
+__metadata_profiling = False
 __remote_address = None
 __mode = "local"
+__master = "local"
 __folders = None
 __init_configs = {
     "spark.serializer": 'org.apache.spark.serializer.KryoSerializer',
@@ -32,6 +33,16 @@ def set_configuration(conf):
     if not isinstance(conf, Configuration):
         raise TypeError("Configuration expected. {} was found".format(type(conf)))
     __configuration = conf
+
+
+def set_master(master: str):
+    global __master
+    __master = master
+
+
+def get_master():
+    global __master
+    return __master
 
 
 def set_mode(how):

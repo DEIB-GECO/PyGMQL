@@ -3,7 +3,7 @@ class Configuration:
     """
 
     def __init__(self):
-        self.app_name = "gmql_api"
+        self.app_name = "PyGMQL"
         self.master = "local[*]"
         self.sc = None
         self._properties = dict()
