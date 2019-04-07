@@ -12,21 +12,31 @@ __mode = "local"
 __master = "local"
 __gcloud_token = None
 __folders = None
-__init_configs = {
+__init_configs_local = {
     "spark.serializer": 'org.apache.spark.serializer.KryoSerializer',
     'spark.executor.memory': '6g',
     'spark.driver.memory': '8g',
     'spark.kryoserializer.buffer.max': '1g',
-    'spark.driver.maxResultSize': '5g',
+    'spark.driver.maxResultSize': '5g'
+}
+
+__init_configs = __init_configs.copy()
+
+__init_configs_local.update({
     'spark.driver.host': 'localhost',
     'spark.local.dir': '/tmp'
-}
+})
 __configuration = None
 
 
 def get_configuration():
     global __configuration
     return __configuration
+
+
+def get_init_config():
+    global __init_configs
+    return __init_configs
 
 
 def set_configuration(conf):
@@ -153,9 +163,9 @@ def get_folders():
 
 
 def initialize_configuration():
-    global __configuration, __init_configs
+    global __configuration, __init_configs_local
     configs = Configuration()
-    configs.set_spark_conf(d=__init_configs)
+    configs.set_spark_conf(d=__init_configs_local)
     __configuration = configs
 
 

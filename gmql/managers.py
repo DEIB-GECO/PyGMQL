@@ -2,7 +2,7 @@ from .FileManagment.DependencyManager import DependencyManager
 from .FileManagment import get_user_dir
 from .RemoteConnection.SessionManager import load_sessions, store_sessions
 from .FileManagment import TempFileManager
-from .settings import get_remote_address, get_configuration, get_master
+from .settings import get_remote_address, get_configuration, get_master, get_init_config
 from .configuration import Configuration
 import py4j
 from subprocess import Popen, PIPE
@@ -50,7 +50,15 @@ def start():
     else:
         # use spark-submit
         logger.info("Submitting backend to {}".format(master))
-        command = ['spark-submit', '--master', master, '--deploy-mode', "client", __gmql_jar_path]
+
+        configs = get_init_config()
+        command = ['spark-submit', '--master', master, '--deploy-mode', "client"]
+
+        for cname, c in configs.items():
+            command.extend(['--conf', '{}={}'.format(cname, c)])
+
+        command.append(__gmql_jar_path)
+
         stderr = open(os.devnull, "w")
         proc = Popen(command, stdout=PIPE, stdin=PIPE, stderr=stderr)
         _port = int(proc.stdout.readline())
