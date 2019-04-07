@@ -10,6 +10,7 @@ __metadata_profiling = False
 __remote_address = None
 __mode = "local"
 __master = "local"
+__gcloud_token = None
 __folders = None
 __init_configs = {
     "spark.serializer": 'org.apache.spark.serializer.KryoSerializer',
@@ -43,6 +44,16 @@ def set_master(master: str):
 def get_master():
     global __master
     return __master
+
+
+def set_gcloud_token(token: str):
+    global __gcloud_token
+    __gcloud_token = token
+
+
+def get_gcloud_token():
+    global __gcloud_token
+    return __gcloud_token
 
 
 def set_mode(how):

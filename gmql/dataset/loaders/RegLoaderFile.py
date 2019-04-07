@@ -1,6 +1,6 @@
 from glob import glob
 import tqdm
-import os
+import os, gcsfs
 import xml.etree.ElementTree as ET
 from ..parsers.RegionParser import RegionParser
 from ..parsers import GTF, COORDS_DEFAULT
@@ -10,7 +10,7 @@ from . import generateNameKey
 from ..DataStructures import reg_fixed_fileds, \
     chr_aliases, start_aliases, stop_aliases, strand_aliases
 import numpy as np
-from ...settings import is_progress_enabled
+from ...settings import is_progress_enabled, get_gcloud_token
 from . import SCHEMA_FILE
 
 
@@ -54,9 +54,31 @@ def load_reg_from_path(path, parser=None):
     return result
 
 
-def get_parser(path):
+def getGCSchemaPath(path):
+    if path.endswith("/"):
+        return path + SCHEMA_FILE
+    else:
+        return path + "/" + SCHEMA_FILE
+
+
+def getGCSchema(path):
+    fs = gcsfs.GCSFileSystem(token=get_gcloud_token())
+    xml = fs.read_block(getGCSchemaPath(path), 0, None).decode("utf-8")
+    tree = ET.ElementTree(ET.fromstring(xml))
+    return tree
+
+
+def getLocalSchema(path):
     schema_file = get_schema_path(path)
     tree = ET.parse(schema_file)
+    return tree
+
+
+def get_parser(path):
+    if path.startswith("gs://"):
+        tree = getGCSchema(path)
+    else:
+        tree = getLocalSchema(path)
     gmqlSchema = tree.getroot().getchildren()[0]
     parser_type = gmqlSchema.get('type')
     coordinate_system = gmqlSchema.get("coordinate_system")

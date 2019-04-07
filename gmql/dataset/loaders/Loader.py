@@ -40,6 +40,10 @@ def preprocess_path(path):
     :param path
     :return: the path where the gdm data are
     """
+    if path.startswith("gs://") or path.startswith("hdfs://"):
+        # currently, we cannot check for properties if the data are
+        # on a remote filesystem
+        return path
     for sub_f in os.listdir(path):
         sub_f_tot = os.path.join(path, sub_f)
         if os.path.isdir(sub_f_tot) and sub_f == FILES_FOLDER:
