@@ -20,7 +20,7 @@ __init_configs_local = {
     'spark.driver.maxResultSize': '5g'
 }
 
-__init_configs = __init_configs.copy()
+__init_configs = __init_configs_local.copy()
 
 __init_configs_local.update({
     'spark.driver.host': 'localhost',
