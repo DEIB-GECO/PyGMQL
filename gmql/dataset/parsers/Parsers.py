@@ -82,6 +82,25 @@ class NarrowPeakParser(RegionParser):
                          schema_format=TAB)
 
 
+
+class BroadPeakParser(RegionParser):
+    """ Broad Peaks Parser. 10 columns
+    """
+    def __init__(self):
+        super().__init__(chrPos=0,
+                         startPos=1,
+                         stopPos=2,
+                         strandPos=5,
+                         otherPos=[(3, "name", "string"),
+                                   (4, "score", 'double'),
+                                   (6, "signalValue", 'double'),
+                                   (7, "pValue", 'double'),
+                                   (8, "qValue", 'double')],
+                         delimiter="\t",
+                         coordinate_system=COORDS_DEFAULT,
+                         schema_format=TAB)
+
+
 class RnaSeqParser(RegionParser):
     """ Standard Full BED Parser of 10 Columns
     """
