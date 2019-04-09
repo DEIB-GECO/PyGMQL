@@ -72,8 +72,6 @@ def check_for_dataset(files):
     :return: True if the path contains a gdm dataset
     """
     all_files = os.listdir(files)
-    if SCHEMA_FILE not in all_files:
-        return False
     meta_files = set(map(lambda y: y[: -9], filter(lambda x: x.endswith(".gdm.meta"), all_files)))
     regs_files = set(map(lambda y: y[: -4], filter(lambda x: x.endswith(".gdm"), all_files)))
     return meta_files == regs_files
