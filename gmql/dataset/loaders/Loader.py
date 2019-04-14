@@ -1,9 +1,10 @@
 from ...managers import get_python_manager, get_remote_manager, get_source_table
-from ...settings import get_mode
+from ...settings import get_mode, get_gcloud_token
 from ...FileManagment import TempFileManager
 from ..parsers.RegionParser import RegionParser
 from . import MetaLoaderFile, RegLoaderFile
 import os
+import gcsfs
 from .MetadataProfiler import create_metadata_profile
 from . import FILES_FOLDER, SCHEMA_FILE, WEB_PROFILE_FILE, PROFILE_FILE
 
@@ -40,10 +41,11 @@ def preprocess_path(path):
     :param path
     :return: the path where the gdm data are
     """
-    if path.startswith("gs://") or path.startswith("hdfs://"):
-        # currently, we cannot check for properties if the data are
-        # on a remote filesystem
-        return path
+    if path.startswith("gs://"):
+        fs = gcsfs.GCSFileSystem(token=get_gcloud_token())
+        for sub_f in map(os.path.basename, fs.ls(path)):
+            if sub_f == FILES_FOLDER:
+                return os.path.join(path, sub_f)
     for sub_f in os.listdir(path):
         sub_f_tot = os.path.join(path, sub_f)
         if os.path.isdir(sub_f_tot) and sub_f == FILES_FOLDER:
