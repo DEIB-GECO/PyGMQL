@@ -38,7 +38,7 @@ def materialize(datasets):
     return result
 
 
-def materialize_local(id, output_path=None):
+def materialize_local(id, output_path=None, all_load=True):
     from .. import GDataframe
     pmg = get_python_manager()
 
@@ -49,24 +49,27 @@ def materialize_local(id, output_path=None):
 
         pmg.materialize(id, output_path)
         pmg.execute()
-
-        # taking in memory the data structure
-        real_path = Loader.preprocess_path(output_path)
-        # real_path = os.path.join(output_path, 'exp')
-
-        remove_side_effects(real_path)
-        # metadata
-        meta = MetaLoaderFile.load_meta_from_path(real_path)
-        # region data
-        regs = RegLoaderFile.load_reg_from_path(real_path)
+        if all_load:
+            # taking in memory the data structure
+            real_path = Loader.preprocess_path(output_path)
+            # real_path = os.path.join(output_path, 'exp')
+            if not (real_path.startswith("gs://") or real_path.startswith("hdfs://")):
+                remove_side_effects(real_path)
+            # metadata
+            meta = MetaLoaderFile.load_meta_from_path(real_path)
+            # region data
+            regs = RegLoaderFile.load_reg_from_path(real_path)
+            result = GDataframe.GDataframe(regs=regs, meta=meta)
+            return result
+        else:
+            return Loader.load_from_path(output_path)
     else:
         # We load the structure directly from the memory
         collected = pmg.collect(id)
         regs = MemoryLoader.load_regions(collected)
         meta = MemoryLoader.load_metadata(collected)
-
-    result = GDataframe.GDataframe(regs=regs, meta=meta)
-    return result
+        result = GDataframe.GDataframe(regs=regs, meta=meta)
+        return result
 
 
 def remove_side_effects(path):
