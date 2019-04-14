@@ -46,6 +46,7 @@ def preprocess_path(path):
         for sub_f in map(os.path.basename, fs.ls(path)):
             if sub_f == FILES_FOLDER:
                 return os.path.join(path, sub_f)
+        return path
     for sub_f in os.listdir(path):
         sub_f_tot = os.path.join(path, sub_f)
         if os.path.isdir(sub_f_tot) and sub_f == FILES_FOLDER:
