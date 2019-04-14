@@ -43,9 +43,9 @@ def preprocess_path(path):
     """
     if path.startswith("gs://"):
         fs = gcsfs.GCSFileSystem(token=get_gcloud_token())
-        for sub_f in map(os.path.basename, fs.ls(path)):
-            if sub_f == FILES_FOLDER:
-                return os.path.join(path, sub_f)
+        for sub_f in fs.ls(path):
+            if sub_f.endswith("/") and sub_f.split("/")[-2] == FILES_FOLDER:
+                return "gs://" + sub_f
         return path
     for sub_f in os.listdir(path):
         sub_f_tot = os.path.join(path, sub_f)
