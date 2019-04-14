@@ -1374,15 +1374,14 @@ class GMQLDataset(object):
                             of the computations.
         :param output_name: (Optional) Can be used only if the dataset is remote. It represents the name that
                             the user wants to give to the resulting dataset on the server
-        :param all_load: (Optional) It affects the computation only when the dataset is remote. It specifies if
-                         the downloaded result dataset should be directly converted to a GDataframe (True) or to a
+        :param all_load: (Optional) It specifies if the result dataset should be directly converted to a GDataframe (True) or to a
                          GMQLDataset (False) for future local queries.
         :return: A GDataframe or a GMQLDataset
         """
         current_mode = get_mode()
         new_index = self.__modify_dag(current_mode)
         if current_mode == 'local':
-            return Materializations.materialize_local(new_index, output_path)
+            return Materializations.materialize_local(new_index, output_path, all_load)
         elif current_mode == 'remote':
             return Materializations.materialize_remote(new_index, output_name, output_path, all_load)
         else:
