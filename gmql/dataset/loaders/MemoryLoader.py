@@ -1,57 +1,64 @@
 from ..parsers import get_parsing_function
 import pandas as pd
 from tqdm import tqdm
-# from concurrent.futures import ThreadPoolExecutor
-import math
 from ..DataStructures import reg_fixed_fileds
-from multiprocessing import pool, cpu_count
-from functools import partial
-from ...scala_wrapper import none, Some
+from ...settings import get_regions_batch_size
+
 
 # Loading strategy
 loading_strategy = "single_core"
+batch = get_regions_batch_size()
 
 
 def load_regions(collected_result):
     # get the number of regions
-    n_regions = collected_result.getNumberOfRegions()
+    # n_regions = collected_result.getNumberOfRegions()
     # get the string delimiters
     regions_delimiter = collected_result.REGIONS_DELIMITER()
     values_delimiter = collected_result.VALUES_DELIMITER()
+    end_of_stream = collected_result.END_OF_STREAM()
     # get how the strings are structured
     names, types = get_schema(collected_result)
     result = []
 
     from ...settings import is_progress_enabled
     if loading_strategy == 'single_core':
-        # get the full string
-        regions_string = collected_result.getRegionsAsString(none())
-        if regions_string:
-            # convert to list of strings
-            regions_string = regions_string.split(regions_delimiter)
-            iterator = map(lambda x: string_to_dictionary(x, values_delimiter, names, types),
-                           tqdm(regions_string, disable=not is_progress_enabled()))
-            result.extend(iterator)
-    elif loading_strategy == 'multi_core':
-        # number of divisions
-        divisions = 10
-        chunk_size = math.ceil(n_regions / divisions)
-        p = pool.Pool(min(4, cpu_count()))
+        bar = tqdm(disable=not is_progress_enabled(), desc='Collecting regions')
+        region = collected_result.getRegionAsString(batch)
+        while region != end_of_stream:
+            region = region.split(regions_delimiter)
+            bar.update(len(region))
+            result.extend(map(lambda x: string_to_dictionary(x, values_delimiter, names, types), region))
+            region = collected_result.getRegionAsString(batch)
 
-        std_partial = partial(string_to_dictionary, values_delimiter=values_delimiter,
-                              names=names, types=types)
-
-        for _ in tqdm(range(divisions), disable=not is_progress_enabled()):
-            # get the full string
-            regions_string = collected_result.getRegionsAsString(Some(chunk_size))
-            if regions_string:
-                # convert to list of strings
-                regions_string = regions_string.split(regions_delimiter)
-
-                iterator = p.map(std_partial, regions_string)
-                result.extend(iterator)
-
-        p.close()
+        # # get the full string
+        # regions_string = collected_result.getRegionAsString(none())
+        # if regions_string:
+        #     # convert to list of strings
+        #     regions_string = regions_string.split(regions_delimiter)
+        #     iterator = map(lambda x: string_to_dictionary(x, values_delimiter, names, types),
+        #                    tqdm(regions_string, disable=not is_progress_enabled()))
+        #     result.extend(iterator)
+    # elif loading_strategy == 'multi_core':
+    #     # number of divisions
+    #     divisions = 10
+    #     chunk_size = math.ceil(n_regions / divisions)
+    #     p = pool.Pool(min(4, cpu_count()))
+    #
+    #     std_partial = partial(string_to_dictionary, values_delimiter=values_delimiter,
+    #                           names=names, types=types)
+    #
+    #     for _ in tqdm(range(divisions), disable=not is_progress_enabled()):
+    #         # get the full string
+    #         regions_string = collected_result.getRegionsAsString(Some(chunk_size))
+    #         if regions_string:
+    #             # convert to list of strings
+    #             regions_string = regions_string.split(regions_delimiter)
+    #
+    #             iterator = p.map(std_partial, regions_string)
+    #             result.extend(iterator)
+    #
+    #     p.close()
     else:
         raise ValueError("Unknown loading mode ({})".format(loading_strategy))
 

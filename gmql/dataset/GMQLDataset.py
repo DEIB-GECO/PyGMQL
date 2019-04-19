@@ -1387,21 +1387,21 @@ class GMQLDataset(object):
         else:
             raise ValueError("Current mode is not defined. {} given".format(current_mode))
 
-    def take(self, n=5):
-        """ Returns a small set of regions and metadata from a query. It is supposed to
-        be used for debugging purposes or for data exploration.
-
-        :param n: how many samples to retrieve
-        :return: a GDataframe
-        """
-        if n <= 0:
-            raise ValueError("n must be a positive number. {} was given".format(n))
-
-        collected = self.pmg.take(self.__index, n)
-        regs = MemoryLoader.load_regions(collected)
-        meta = MemoryLoader.load_metadata(collected)
-        result = GDataframe.GDataframe(regs, meta)
-        return result
+    # def take(self, n=5):
+    #     """ Returns a small set of regions and metadata from a query. It is supposed to
+    #     be used for debugging purposes or for data exploration.
+    #
+    #     :param n: how many samples to retrieve
+    #     :return: a GDataframe
+    #     """
+    #     if n <= 0:
+    #         raise ValueError("n must be a positive number. {} was given".format(n))
+    #
+    #     collected = self.pmg.take(self.__index, n)
+    #     regs = MemoryLoader.load_regions(collected)
+    #     meta = MemoryLoader.load_metadata(collected)
+    #     result = GDataframe.GDataframe(regs, meta)
+    #     return result
 
     def _get_serialized_dag(self):
         serialized_dag = self.pmg.serializeVariable(self.__index)

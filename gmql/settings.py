@@ -19,9 +19,9 @@ __init_configs_local = {
     'spark.kryoserializer.buffer.max': '1g',
     'spark.driver.maxResultSize': '5g'
 }
+__regions_batch_size = 10000
 
 __init_configs = __init_configs_local.copy()
-
 __init_configs_local.update({
     'spark.driver.host': 'localhost',
     'spark.local.dir': '/tmp'
@@ -37,6 +37,16 @@ def get_configuration():
 def get_init_config():
     global __init_configs
     return __init_configs
+
+
+def set_regions_batch_size(batch: int):
+    global __regions_batch_size
+    __regions_batch_size = batch
+
+
+def get_regions_batch_size():
+    global __regions_batch_size
+    return __regions_batch_size
 
 
 def set_configuration(conf):
