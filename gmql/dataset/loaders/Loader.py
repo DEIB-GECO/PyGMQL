@@ -47,6 +47,8 @@ def preprocess_path(path):
             if sub_f.endswith("/") and sub_f.split("/")[-2] == FILES_FOLDER:
                 return "gs://" + sub_f
         return path
+    if path.startswith("hdfs://"):
+        return path
     for sub_f in os.listdir(path):
         sub_f_tot = os.path.join(path, sub_f)
         if os.path.isdir(sub_f_tot) and sub_f == FILES_FOLDER:
