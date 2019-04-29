@@ -57,8 +57,8 @@ def load_reg_from_path(path, parser=None):
 
 def getHdfsSchema(path):
     path = getGCSchemaPath(path)
-    client = InsecureClient('http://ip-172-31-37-168.us-east-2.compute.internal:50070')
-    with client.read(path) as reader:
+    client = InsecureClient('http://ip-172-31-37-168.us-east-2.compute.internal:50070', 'hadoop')
+    with client.read(path[5:]) as reader:
         xml = reader.read().decode("utf-8")
     tree = ET.ElementTree(ET.fromstring(xml))
     return tree
