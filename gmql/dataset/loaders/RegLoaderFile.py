@@ -86,6 +86,8 @@ def getLocalSchema(path):
 def get_parser(path):
     if path.startswith("gs://"):
         tree = getGCSchema(path)
+    elif path.startswith("hdfs://"):
+        tree = getHdfsSchema(path)
     else:
         tree = getLocalSchema(path)
     gmqlSchema = tree.getroot().getchildren()[0]
