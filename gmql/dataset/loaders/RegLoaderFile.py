@@ -12,6 +12,7 @@ from ..DataStructures import reg_fixed_fileds, \
 import numpy as np
 from ...settings import is_progress_enabled, get_gcloud_token
 from . import SCHEMA_FILE
+from hdfs import InsecureClient
 
 
 def load_reg_from_path(path, parser=None):
@@ -53,6 +54,14 @@ def load_reg_from_path(path, parser=None):
     result = result.sort_index()
     return result
 
+
+def getHdfsSchema(path):
+    path = getGCSchemaPath(path)
+    client = InsecureClient('http://ip-172-31-37-168.us-east-2.compute.internal:50070')
+    with client.read(path) as reader:
+        xml = reader.read().decode("utf-8")
+    tree = ET.ElementTree(ET.fromstring(xml))
+    return tree
 
 def getGCSchemaPath(path):
     if path.endswith("/"):
