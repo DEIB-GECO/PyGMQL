@@ -101,8 +101,7 @@ class RegionParser:
                 attr_name = sch._1()
                 typeFun = get_parsing_function(poss._2().toString().lower())
                 res.append((pos, attr_name, typeFun))
-        else:
-            return res
+        return res
 
     def get_coordinates_system(self):
         return self.gmql_parser.coordinateSystem().toString()
