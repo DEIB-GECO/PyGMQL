@@ -7,7 +7,7 @@ import re
 
 
 class RegionParser:
-    def __init__(self, chrPos, startPos, stopPos,
+    def __init__(self, gmql_parser=None, chrPos=None, startPos=None, stopPos=None,
                  strandPos=None, otherPos=None, delimiter="\t",
                  coordinate_system='0-based', schema_format="del",
                  parser_name="parser"):
@@ -23,62 +23,92 @@ class RegionParser:
         :param schema_format: (optional) type of file. Can be {'tab', 'gtf', 'vcf', 'del'}. Default is 'del'
         :param parser_name: (optional) name of the parser. Default is 'parser'
         """
-        if isinstance(delimiter, str):
-            self.delimiter = delimiter
-        if isinstance(chrPos, int) and chrPos >= 0:
-            self.chrPos = chrPos
-        else:
-            raise ValueError("Chromosome position must be >=0")
-        if isinstance(startPos, int) and startPos >= 0:
-            self.startPos = startPos
-        else:
-            raise ValueError("Start position must be >=0")
-        if isinstance(stopPos, int) and stopPos >= 0:
-            self.stopPos = stopPos
-        else:
-            raise ValueError("Stop position must be >=0")
-        if isinstance(strandPos, int) and strandPos >= 0:
-            self.strandPos = strandPos
-            strandGmql = Some(strandPos)
-        elif strandPos is None:
-            self.strandPos = None
-            strandGmql = none()
-        else:
-            raise ValueError("Strand position must be >= 0")
+
         if isinstance(parser_name, str):
             self.parser_name = parser_name
         else:
             raise TypeError("Parser name must be a string")
-        if isinstance(coordinate_system, str):
-            if coordinate_system in coordinate_systems:
-                self.coordinate_system = coordinate_system
+
+        if gmql_parser is None:
+            if not isinstance(delimiter, str):
+                raise ValueError("delimiter must be a string")
+            if not (isinstance(chrPos, int) and chrPos >= 0):
+                raise ValueError("Chromosome position must be >=0")
+            if not (isinstance(startPos, int) and startPos >= 0):
+                raise ValueError("Start position must be >=0")
+            if not (isinstance(stopPos, int) and stopPos >= 0):
+                raise ValueError("Stop position must be >=0")
+            if isinstance(strandPos, int) and strandPos >= 0:
+                strandGmql = Some(strandPos)
+            elif strandPos is None:
+                strandGmql = none()
             else:
+                raise ValueError("Strand position must be >= 0")
+            if not isinstance(coordinate_system, str):
+                raise TypeError("Coordinate system must be a string")
+            if coordinate_system not in coordinate_systems:
                 raise ValueError("{} is not a valid coordinate system".format(coordinate_system))
-        else:
-            raise TypeError("Coordinate system must be a string")
-        if isinstance(schema_format, str):
-            self.schema_format = schema_format
-        else:
-            raise TypeError("Schema Format must be a string")
+            if not isinstance(schema_format, str):
+                raise TypeError("Schema Format must be a string")
+            if isinstance(otherPos, list):
+                otherPosGmql = Some(convert_to_gmql(otherPos))
+            else:
+                otherPosGmql = none()
 
-        if isinstance(otherPos, list):
-            self.otherPos = convert_otherPos(otherPos)
-            otherPosGmql = Some(convert_to_gmql(otherPos))
-        else:
-            otherPosGmql = none()
-            self.otherPos = None
+            pmg = get_python_manager()
 
+            self.gmql_parser = pmg.buildParser(delimiter, chrPos, startPos,
+                                               stopPos, strandGmql, otherPosGmql,
+                                               schema_format, coordinate_system)
+        else:
+            self.gmql_parser = gmql_parser
+
+    @staticmethod
+    def from_schema_file(schema_file):
         pmg = get_python_manager()
+        gmql_parser = pmg.getParserFromPath(schema_file)
+        return RegionParser(gmql_parser)
 
-        self.gmql_parser = pmg.buildParser(delimiter, self.chrPos, self.startPos,
-                                           self.stopPos, strandGmql, otherPosGmql,
-                                           self.schema_format, self.coordinate_system)
+    @property
+    def delimiter(self):
+        return self.gmql_parser.delimiter()
+
+    @property
+    def chrPos(self):
+        return self.gmql_parser.chrPos()
+
+    @property
+    def startPos(self):
+        return self.gmql_parser.startPos()
+
+    @property
+    def stopPos(self):
+        return self.gmql_parser.stopPos()
+
+    @property
+    def strandPos(self):
+        if self.gmql_parser.strandPos().isDefined():
+            return self.gmql_parser.strandPos().get()
+        else:
+            return None
+
+    @property
+    def otherPos(self):
+        res = []
+        if self.gmql_parser.otherPos().isDefined():
+            for poss, sch in zip(self.gmql_parser.otherPos().get(), self.gmql_parser.getSchema()):
+                pos = poss._1()
+                attr_name = sch._1()
+                typeFun = get_parsing_function(poss._2().toString().lower())
+                res.append((pos, attr_name, typeFun))
+        else:
+            return res
 
     def get_coordinates_system(self):
-        return self.coordinate_system
+        return self.gmql_parser.coordinateSystem().toString()
 
     def get_parser_type(self):
-        return self.schema_format
+        return self.gmql_parser.parsingType().toString()
 
     def get_gmql_parser(self):
         """ Gets the Scala implementation of the parser
@@ -87,7 +117,8 @@ class RegionParser:
         """
         return self.gmql_parser
 
-    def parse_strand(self, strand):
+    @staticmethod
+    def parse_strand(strand):
         """ Defines how to parse the strand column
 
         :param strand: a string representing the strand
@@ -104,7 +135,7 @@ class RegionParser:
         :param path: file path
         :return: a Pandas Dataframe
         """
-        if self.schema_format.lower() == GTF.lower():
+        if self.get_parser_type().lower() == GTF.lower():
             res = self._parse_gtf_regions(path)
         else:
             res = self._parse_tab_regions(path)
@@ -158,9 +189,8 @@ class RegionParser:
         attr = ['chr', 'start', 'stop']
         if self.strandPos is not None:
             attr.append('strand')
-        if self.otherPos:
-            for i, o in enumerate(self.otherPos):
-                attr.append(o[1])
+        for i, o in enumerate(self.otherPos):
+            attr.append(o[1])
 
         return attr
 
@@ -174,10 +204,8 @@ class RegionParser:
         poss = [self.chrPos, self.startPos, self.stopPos]
         if self.strandPos is not None:
             poss.append(self.strandPos)
-        if self.otherPos:
-            for o in self.otherPos:
-                poss.append(o[0])
-
+        for o in self.otherPos:
+            poss.append(o[0])
         idx_sort = np.array(poss).argsort()
         return attr_arr[idx_sort].tolist()
 
@@ -189,10 +217,8 @@ class RegionParser:
         types = [str, int, int]
         if self.strandPos is not None:
             types.append(str)
-        if self.otherPos:
-            for o in self.otherPos:
-                types.append(o[2])
-
+        for o in self.otherPos:
+            types.append(o[2])
         return types
 
     def get_name_type_dict(self):
@@ -204,7 +230,7 @@ class RegionParser:
         attrs = self.get_attributes()
         types = self.get_types()
         d = dict()
-        for i,a in enumerate(attrs):
+        for i, a in enumerate(attrs):
             d[a] = types[i]
 
         return d
