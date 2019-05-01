@@ -30,7 +30,7 @@ setup(name='gmql',
                         'requests-toolbelt',
                         'strconv',
                         'typecheck-decorator',
-                        'numpy', 'gcsfs'
+                        'numpy',
                         # 'sklearn',
                         # 'pyclustering',
                         # 'matplotlib',
