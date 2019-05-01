@@ -3,7 +3,6 @@ from ...settings import get_mode, get_gcloud_token
 from ...FileManagment import TempFileManager
 from ..parsers.RegionParser import RegionParser
 import os
-import gcsfs
 from . import FILES_FOLDER, SCHEMA_FILE, WEB_PROFILE_FILE, PROFILE_FILE
 
 
@@ -45,6 +44,7 @@ def preprocess_path(path):
     :return: the path where the gdm data are
     """
     if path.startswith("gs://"):
+        import gcsfs
         fs = gcsfs.GCSFileSystem(token=get_gcloud_token())
         for sub_f in fs.ls(path):
             if sub_f.endswith("/") and sub_f.split("/")[-2] == FILES_FOLDER:
