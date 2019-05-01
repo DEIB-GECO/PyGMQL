@@ -15,7 +15,6 @@ import signal
 import warnings
 import logging
 
-
 __remote_manager = None
 __session_manager = None
 __dependency_manager = None
@@ -30,8 +29,9 @@ def start():
     global __pythonManager, __gateway, __dependency_manager, __gmql_jar_path, __py4j_path
     logger = logging.getLogger()
     master = get_master()
-    if master == 'local':
-        logger.info("Starting LOCAL backend")
+
+    if master.lower().startswith('local'):
+        logger.info(f"Starting LOCAL backend (master: {master.lower()})")
         java_home = os.environ.get("JAVA_HOME")
         if java_home is None:
             raise SystemError("The environment variable JAVA_HOME is not set")
@@ -45,17 +45,18 @@ def start():
         __pythonManager = start_gmql_manager(python_api_package)
 
         conf = get_configuration()
+        conf.set_master(master.lower())
         _set_spark_configuration(conf)
         _set_system_configuration(conf)
     else:
         # use spark-submit
         logger.info("Submitting backend to {}".format(master))
 
-        configs = get_init_config()
+        # configs = get_init_config()
         command = ['spark-submit', '--master', master, '--deploy-mode', "client"]
 
-        for cname, c in configs.items():
-            command.extend(['--conf', '{}={}'.format(cname, c)])
+        # for cname, c in configs.items():
+        #     command.extend(['--conf', '{}={}'.format(cname, c)])
 
         command.append(__gmql_jar_path)
 
