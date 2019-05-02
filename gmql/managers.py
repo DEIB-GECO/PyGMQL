@@ -2,7 +2,7 @@ from .FileManagment.DependencyManager import DependencyManager
 from .FileManagment import get_user_dir
 from .RemoteConnection.SessionManager import load_sessions, store_sessions
 from .FileManagment import TempFileManager
-from .settings import get_remote_address, get_configuration, get_master, get_init_config
+from .settings import get_remote_address, get_configuration, get_master, get_local_java_options  # get_init_config
 from .configuration import Configuration
 import py4j
 from subprocess import Popen, PIPE
@@ -37,7 +37,7 @@ def start():
             raise SystemError("The environment variable JAVA_HOME is not set")
         java_path = os.path.join(java_home, "bin", "java")
         _port = launch_gateway(classpath=__gmql_jar_path, die_on_exit=True,
-                               java_path=java_path, javaopts=['-Xmx8192m'],
+                               java_path=java_path, javaopts=get_local_java_options(),
                                jarpath=__py4j_path)
         __gateway = JavaGateway(gateway_parameters=GatewayParameters(port=_port,
                                                                      auto_convert=True))
