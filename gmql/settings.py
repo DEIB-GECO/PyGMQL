@@ -27,7 +27,7 @@ __init_configs_local.update({
     'spark.local.dir': '/tmp'
 })
 __configuration = None
-__java_options = ['-Xmx8192m']
+__java_options = []  # ['-Xmx8192m']
 
 
 def get_configuration():
