@@ -1,5 +1,5 @@
 from ...managers import get_python_manager, get_remote_manager, get_source_table
-from ...settings import get_mode, get_gcloud_token
+from ...settings import get_mode
 from ...FileManagment import TempFileManager
 from ..parsers.RegionParser import RegionParser
 import os
@@ -43,15 +43,6 @@ def preprocess_path(path):
     :param path
     :return: the path where the gdm data are
     """
-    if path.startswith("gs://"):
-        import gcsfs
-        fs = gcsfs.GCSFileSystem(token=get_gcloud_token())
-        for sub_f in fs.ls(path):
-            if sub_f.endswith("/") and sub_f.split("/")[-2] == FILES_FOLDER:
-                return "gs://" + sub_f
-        return path
-    if path.startswith("hdfs://"):
-        return path
     for sub_f in os.listdir(path):
         sub_f_tot = os.path.join(path, sub_f)
         if os.path.isdir(sub_f_tot) and sub_f == FILES_FOLDER:
