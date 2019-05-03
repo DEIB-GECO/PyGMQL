@@ -31,7 +31,7 @@ def start():
     master = get_master()
 
     if master.lower().startswith('local'):
-        logger.info(f"Starting LOCAL backend (master: {master.lower()})")
+        logger.info("Starting LOCAL backend (master: {})".format(master.lower()))
         java_home = os.environ.get("JAVA_HOME")
         if java_home is None:
             raise SystemError("The environment variable JAVA_HOME is not set")
