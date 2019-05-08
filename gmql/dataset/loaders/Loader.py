@@ -1,12 +1,14 @@
 from ...managers import get_python_manager, get_remote_manager, get_source_table
-from ...settings import get_mode, get_gcloud_token
+from ...settings import get_mode
 from ...FileManagment import TempFileManager
 from ..parsers.RegionParser import RegionParser
-from . import MetaLoaderFile, RegLoaderFile
 import os
-import gcsfs
-from .MetadataProfiler import create_metadata_profile
 from . import FILES_FOLDER, SCHEMA_FILE, WEB_PROFILE_FILE, PROFILE_FILE
+
+
+def get_schema_path(path):
+    schema_path = os.path.join(path, SCHEMA_FILE)
+    return schema_path
 
 
 def get_file_paths(path):
@@ -18,7 +20,7 @@ def get_file_paths(path):
 
     files_paths = list(map(lambda x: os.path.join(real_path, x), filter(filter_files, all_files)))
     # files_paths = set(glob.glob(real_path + "/[!_]*"))
-    schema_path = RegLoaderFile.get_schema_path(real_path)
+    schema_path = get_schema_path(real_path)
     return files_paths, schema_path
 
 
@@ -41,14 +43,6 @@ def preprocess_path(path):
     :param path
     :return: the path where the gdm data are
     """
-    if path.startswith("gs://"):
-        fs = gcsfs.GCSFileSystem(token=get_gcloud_token())
-        for sub_f in fs.ls(path):
-            if sub_f.endswith("/") and sub_f.split("/")[-2] == FILES_FOLDER:
-                return "gs://" + sub_f
-        return path
-    if path.startswith("hdfs://"):
-        return path
     for sub_f in os.listdir(path):
         sub_f_tot = os.path.join(path, sub_f)
         if os.path.isdir(sub_f_tot) and sub_f == FILES_FOLDER:
@@ -82,7 +76,7 @@ def check_for_dataset(files):
     return meta_files == regs_files
 
 
-def load_from_path(local_path=None, parser=None,  all_load=False):
+def load_from_path(local_path=None, parser=None):
     """ Loads the data from a local path into a GMQLDataset.
     The loading of the files is "lazy", which means that the files are loaded only when the
     user does a materialization (see :func:`~gmql.dataset.GMQLDataset.GMQLDataset.materialize` ).
@@ -100,46 +94,46 @@ def load_from_path(local_path=None, parser=None,  all_load=False):
     :return: A new GMQLDataset or a GDataframe
     """
 
-    from .. import GDataframe
+    # from .. import GDataframe
     from .. import GMQLDataset
     pmg = get_python_manager()
 
-    local_path = preprocess_path(local_path)
+    local_path = pmg.preProcessPath(local_path)
 
-    if all_load:
-        # load directly the metadata for exploration
-        meta = MetaLoaderFile.load_meta_from_path(local_path)
-        if isinstance(parser, RegionParser):
-            # region data
-            regs = RegLoaderFile.load_reg_from_path(local_path, parser)
-        else:
-            regs = RegLoaderFile.load_reg_from_path(local_path)
+    # if all_load:
+    #     # load directly the metadata for exploration
+    #     meta = MetaLoaderFile.load_meta_from_path(local_path)
+    #     if isinstance(parser, RegionParser):
+    #         # region data
+    #         regs = RegLoaderFile.load_reg_from_path(local_path, parser)
+    #     else:
+    #         regs = RegLoaderFile.load_reg_from_path(local_path)
+    #
+    #     return GDataframe.GDataframe(regs=regs, meta=meta)
+    # else:
+    # from ...settings import is_metaprofiling_enabled
+    # if is_metaprofiling_enabled():
+    #     meta_profile = create_metadata_profile(local_path)
+    # else:
+    meta_profile = None
 
-        return GDataframe.GDataframe(regs=regs, meta=meta)
-    else:
-        from ...settings import is_metaprofiling_enabled
-        if is_metaprofiling_enabled():
-            meta_profile = create_metadata_profile(local_path)
-        else:
-            meta_profile = None
+    if parser is None:
+        # find the parser
+        parser = RegionParser.from_schema_file(local_path)
+    elif not isinstance(parser, RegionParser):
+        raise ValueError("parser must be RegionParser. {} was provided".format(type(parser)))
 
-        if parser is None:
-            # find the parser
-            parser = RegLoaderFile.get_parser(local_path)
-        elif not isinstance(parser, RegionParser):
-            raise ValueError("parser must be RegionParser. {} was provided".format(type(parser)))
+    source_table = get_source_table()
+    id = source_table.search_source(local=local_path)
+    if id is None:
+        id = source_table.add_source(local=local_path, parser=parser)
+    local_sources = [id]
 
-        source_table = get_source_table()
-        id = source_table.search_source(local=local_path)
-        if id is None:
-            id = source_table.add_source(local=local_path, parser=parser)
-        local_sources = [id]
-
-        index = pmg.read_dataset(str(id), parser.get_gmql_parser())
-        return GMQLDataset.GMQLDataset(index=index, parser=parser,
-                                       location="local", path_or_name=local_path,
-                                       local_sources=local_sources,
-                                       meta_profile=meta_profile)
+    index = pmg.read_dataset(str(id), parser.get_gmql_parser())
+    return GMQLDataset.GMQLDataset(index=index, parser=parser,
+                                   location="local", path_or_name=local_path,
+                                   local_sources=local_sources,
+                                   meta_profile=meta_profile)
 
 
 def load_from_remote(remote_name, owner=None):

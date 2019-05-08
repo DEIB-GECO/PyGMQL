@@ -17,7 +17,7 @@ class GMQLQueryTester(unittest.TestCase):
 
     def get_query_results(self, queryname):
         datapath = glob(os.path.join(self.query_results_path, "*{}".format(queryname)))[0]
-        return gl.load_from_path(datapath, all_load=True)
+        return gl.load_from_path(datapath).materialize()
 
     def gdataframe_equality(self, gd1, gd2):
         sample_mapping = {}

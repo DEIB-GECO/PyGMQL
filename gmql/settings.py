@@ -9,7 +9,7 @@ __progress_bar = True
 __metadata_profiling = False
 __remote_address = None
 __mode = "local"
-__master = "local"
+__master = "local[*]"
 __gcloud_token = None
 __folders = None
 __init_configs_local = {
@@ -27,9 +27,14 @@ __init_configs_local.update({
     'spark.local.dir': '/tmp'
 })
 __configuration = None
+__java_options = []  # ['-Xmx8192m']
 
 
 def get_configuration():
+    """ Returns the configurations of the current PyGMQL instance
+
+    :return: a Configuration object
+    """
     global __configuration
     return __configuration
 
@@ -40,6 +45,13 @@ def get_init_config():
 
 
 def set_regions_batch_size(batch: int):
+    """ Set the number of regions to be loaded for each batch at the end of the materialize operation.
+    This setting is very low level and does not affect the result of the query, but changing this parameter
+    could speed up the loading of the results in Python in certain contexts.
+
+    :param batch: Number of regions.
+    :return: None
+    """
     global __regions_batch_size
     __regions_batch_size = batch
 
@@ -57,6 +69,11 @@ def set_configuration(conf):
 
 
 def set_master(master: str):
+    """ Set the master of the PyGMQL instance. It accepts any master configuration available in Spark.
+
+    :param master: master configuration
+    :return: None
+    """
     global __master
     __master = master
 
@@ -66,14 +83,20 @@ def get_master():
     return __master
 
 
-def set_gcloud_token(token: str):
-    global __gcloud_token
-    __gcloud_token = token
+def set_local_java_options(options: list):
+    """ When the mode is set to local, this function can be used to add JVM specific options before starting the
+    backend. It accepts any Java option.
+
+    :param options: list of string, one for each Java option
+    :return: None
+    """
+    global __java_options
+    __java_options = options
 
 
-def get_gcloud_token():
-    global __gcloud_token
-    return __gcloud_token
+def get_local_java_options():
+    global __java_options
+    return __java_options
 
 
 def set_mode(how):

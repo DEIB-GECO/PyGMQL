@@ -1,8 +1,7 @@
-
 import os
 from glob import glob
 from ...managers import get_python_manager, get_remote_manager, get_source_table
-from . import MetaLoaderFile, RegLoaderFile, MemoryLoader, Loader
+from . import MemoryLoader, Loader
 from ...FileManagment.TempFileManager import get_unique_identifier, get_new_dataset_tmp_folder
 
 
@@ -43,24 +42,23 @@ def materialize_local(id, output_path=None, all_load=True):
     pmg = get_python_manager()
 
     if output_path is not None:
-        # check that the folder does not exists
-        if os.path.isdir(output_path):
-            raise ValueError("Folder {} already exists!".format(output_path))
-
+        # # check that the folder does not exists
+        # if os.path.isdir(output_path):
+        #     raise ValueError("Folder {} already exists!".format(output_path))
         pmg.materialize(id, output_path)
         pmg.execute()
         if all_load:
             # taking in memory the data structure
-            real_path = Loader.preprocess_path(output_path)
-            # real_path = os.path.join(output_path, 'exp')
-            if not (real_path.startswith("gs://") or real_path.startswith("hdfs://")):
-                remove_side_effects(real_path)
-            # metadata
-            meta = MetaLoaderFile.load_meta_from_path(real_path)
-            # region data
-            regs = RegLoaderFile.load_reg_from_path(real_path)
-            result = GDataframe.GDataframe(regs=regs, meta=meta)
-            return result
+            # real_path = pmg.preProcessPath(output_path)
+
+            # if not (real_path.startswith("gs://") or real_path.startswith("hdfs://")):
+            #     remove_side_effects(real_path)
+            # # metadata
+            # meta = MetaLoaderFile.load_meta_from_path(real_path)
+            # # region data
+            # regs = RegLoaderFile.load_reg_from_path(real_path)
+            # result = GDataframe.GDataframe(regs=regs, meta=meta)
+            return Loader.load_from_path(output_path).materialize()
         else:
             return Loader.load_from_path(output_path)
     else:

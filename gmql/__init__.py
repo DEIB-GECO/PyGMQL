@@ -9,7 +9,7 @@ from .RemoteConnection.RemoteManager import RemoteManager
 
 from .settings import init_settings as __init_settings
 from .managers import init_managers as __init_managers
-from .settings import set_remote_address, set_meta_profiling, set_mode, set_progress, set_master, set_gcloud_token
+from .settings import set_remote_address, set_meta_profiling, set_mode, set_progress, set_master, set_local_java_options
 from .managers import login, logout, get_remote_address, get_session_manager, set_backend_path, set_py4j_path, \
     get_configuration, get_remote_manager
 

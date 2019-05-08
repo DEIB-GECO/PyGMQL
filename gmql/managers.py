@@ -2,7 +2,7 @@ from .FileManagment.DependencyManager import DependencyManager
 from .FileManagment import get_user_dir
 from .RemoteConnection.SessionManager import load_sessions, store_sessions
 from .FileManagment import TempFileManager
-from .settings import get_remote_address, get_configuration, get_master, get_init_config
+from .settings import get_remote_address, get_configuration, get_master, get_local_java_options  # get_init_config
 from .configuration import Configuration
 import py4j
 from subprocess import Popen, PIPE
@@ -14,7 +14,7 @@ import atexit
 import signal
 import warnings
 import logging
-
+import re
 
 __remote_manager = None
 __session_manager = None
@@ -30,14 +30,15 @@ def start():
     global __pythonManager, __gateway, __dependency_manager, __gmql_jar_path, __py4j_path
     logger = logging.getLogger()
     master = get_master()
-    if master == 'local':
-        logger.info("Starting LOCAL backend")
+
+    if master.lower().startswith('local'):
+        logger.info("Starting LOCAL backend (master: {})".format(master.lower()))
         java_home = os.environ.get("JAVA_HOME")
         if java_home is None:
             raise SystemError("The environment variable JAVA_HOME is not set")
         java_path = os.path.join(java_home, "bin", "java")
         _port = launch_gateway(classpath=__gmql_jar_path, die_on_exit=True,
-                               java_path=java_path, javaopts=['-Xmx8192m'],
+                               java_path=java_path, javaopts=get_local_java_options(),
                                jarpath=__py4j_path)
         __gateway = JavaGateway(gateway_parameters=GatewayParameters(port=_port,
                                                                      auto_convert=True))
@@ -45,23 +46,30 @@ def start():
         __pythonManager = start_gmql_manager(python_api_package)
 
         conf = get_configuration()
+        conf.set_master(master.lower())
         _set_spark_configuration(conf)
         _set_system_configuration(conf)
     else:
         # use spark-submit
         logger.info("Submitting backend to {}".format(master))
-
-        configs = get_init_config()
+        master = re.sub("^spark_", "", master.lower())
+        # configs = get_init_config()
         command = ['spark-submit', '--master', master, '--deploy-mode', "client"]
 
-        for cname, c in configs.items():
-            command.extend(['--conf', '{}={}'.format(cname, c)])
+        # for cname, c in configs.items():
+        #     command.extend(['--conf', '{}={}'.format(cname, c)])
 
         command.append(__gmql_jar_path)
 
         stderr = open(os.devnull, "w")
         proc = Popen(command, stdout=PIPE, stdin=PIPE, stderr=stderr)
-        _port = int(proc.stdout.readline())
+        while True:
+            try:
+                _port = int(proc.stdout.readline())
+                break
+            except:
+                pass
+
         logger.info("Backend listening at port {}".format(_port))
         redirect_stdout = open(os.devnull, "w")
         OutputConsumer(redirect_stdout, proc.stdout, daemon=True).start()

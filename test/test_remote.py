@@ -64,7 +64,7 @@ class GMQLRemoteTester(unittest.TestCase):
         respaths = os.path.join(self.remote_output_path, dataset_name)
         logging.info("Deleting remote dataset {}".format(dataset_name))
         self.rm.delete_dataset(dataset_name)
-        res_query = gl.load_from_path(respaths, all_load=True)
+        res_query = gl.load_from_path(respaths).materialize()
 
         logging.info("Executing LOCAL PYTHON query")
         d = gl.get_example_dataset("Example_Dataset_2")

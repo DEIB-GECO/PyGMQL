@@ -85,27 +85,27 @@ class GMQLDataset(object):
         print("\tParser:\t{}".format(self.parser.get_parser_name()))
         print("\tIndex:\t{}".format(self.__index))
 
-    def get_metadata(self):
-        """ Returns the metadata related to the current GMQLDataset. This function can be used only
-        when a local dataset is loaded using the :meth:`~gmql.dataset.loaders.Loader.load_from_path` and no other
-        operation has been called on the GMQLDataset.
-
-        The metadata are returned in the form of a Pandas Dataframe having as index the sample ids and as columns
-        the metadata attributes.
-
-        :return: a Pandas Dataframe
-        """
-        if self.path_or_name is None:
-            raise ValueError("You cannot explore the metadata of an intermediate query."
-                             "You can get metadata only after a load_from_local or load_from_remote")
-        if self.location == 'local':
-            return self.__get_metadata_local()
-        elif self.location == 'remote':
-            return self.__get_metadata_remote()
-
-    def __get_metadata_local(self):
-        meta = MetaLoaderFile.load_meta_from_path(self.path_or_name)
-        return meta
+    # def get_metadata(self):
+    #     """ Returns the metadata related to the current GMQLDataset. This function can be used only
+    #     when a local dataset is loaded using the :meth:`~gmql.dataset.loaders.Loader.load_from_path` and no other
+    #     operation has been called on the GMQLDataset.
+    #
+    #     The metadata are returned in the form of a Pandas Dataframe having as index the sample ids and as columns
+    #     the metadata attributes.
+    #
+    #     :return: a Pandas Dataframe
+    #     """
+    #     if self.path_or_name is None:
+    #         raise ValueError("You cannot explore the metadata of an intermediate query."
+    #                          "You can get metadata only after a load_from_local or load_from_remote")
+    #     if self.location == 'local':
+    #         return self.__get_metadata_local()
+    #     elif self.location == 'remote':
+    #         return self.__get_metadata_remote()
+    #
+    # def __get_metadata_local(self):
+    #     meta = MetaLoaderFile.load_meta_from_path(self.path_or_name)
+    #     return meta
 
     def __get_metadata_remote(self):
         pass
