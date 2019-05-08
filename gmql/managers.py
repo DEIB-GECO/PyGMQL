@@ -14,6 +14,7 @@ import atexit
 import signal
 import warnings
 import logging
+import re
 
 __remote_manager = None
 __session_manager = None
@@ -51,7 +52,7 @@ def start():
     else:
         # use spark-submit
         logger.info("Submitting backend to {}".format(master))
-
+        master = re.sub("^spark_", "", master.lower())
         # configs = get_init_config()
         command = ['spark-submit', '--master', master, '--deploy-mode', "client"]
 
@@ -62,7 +63,13 @@ def start():
 
         stderr = open(os.devnull, "w")
         proc = Popen(command, stdout=PIPE, stdin=PIPE, stderr=stderr)
-        _port = int(proc.stdout.readline())
+        while True:
+            try:
+                _port = int(proc.stdout.readline())
+                break
+            except:
+                pass
+
         logger.info("Backend listening at port {}".format(_port))
         redirect_stdout = open(os.devnull, "w")
         OutputConsumer(redirect_stdout, proc.stdout, daemon=True).start()
