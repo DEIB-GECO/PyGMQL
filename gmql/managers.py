@@ -63,12 +63,7 @@ def start():
 
         stderr = open(os.devnull, "w")
         proc = Popen(command, stdout=PIPE, stdin=PIPE, stderr=stderr)
-        while True:
-            try:
-                _port = int(proc.stdout.readline())
-                break
-            except:
-                pass
+        _port = int(proc.stdout.readline())
 
         logger.info("Backend listening at port {}".format(_port))
         redirect_stdout = open(os.devnull, "w")
