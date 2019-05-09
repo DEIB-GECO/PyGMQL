@@ -15,6 +15,7 @@ import signal
 import warnings
 import logging
 import re
+from findspark import find
 
 __remote_manager = None
 __session_manager = None
@@ -54,7 +55,8 @@ def start():
         logger.info("Submitting backend to {}".format(master))
         master = re.sub("^spark_", "", master.lower())
         # configs = get_init_config()
-        command = ['spark-submit', '--master', master, '--deploy-mode', "client"]
+
+        command = [os.path.join(find(), 'bin', 'spark-submit'), '--master', master, '--deploy-mode', "client"]
 
         # for cname, c in configs.items():
         #     command.extend(['--conf', '{}={}'.format(cname, c)])
