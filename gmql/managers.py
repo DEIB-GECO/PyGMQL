@@ -33,7 +33,7 @@ def start():
     master = get_master()
 
     if master.lower().startswith('local'):
-        logger.info("Starting LOCAL backend (master: {})".format(master.lower()))
+        logger.debug("Starting LOCAL backend (master: {})".format(master.lower()))
         java_home = os.environ.get("JAVA_HOME")
         if java_home is None:
             raise SystemError("The environment variable JAVA_HOME is not set")
@@ -52,11 +52,12 @@ def start():
         _set_system_configuration(conf)
     else:
         # use spark-submit
-        logger.info("Submitting backend to {}".format(master))
+        logger.debug("Submitting backend to {}".format(master))
         master = re.sub("^spark_", "", master.lower())
         # configs = get_init_config()
-
-        command = [os.path.join(find(), 'bin', 'spark-submit'), '--master', master, '--deploy-mode', "client"]
+        spark_location = find()
+        logger.info("Found spark at location: {}".format(spark_location))
+        command = [os.path.join(spark_location, 'bin', 'spark-submit'), '--master', master, '--deploy-mode', "client"]
 
         # for cname, c in configs.items():
         #     command.extend(['--conf', '{}={}'.format(cname, c)])
@@ -65,7 +66,13 @@ def start():
 
         stderr = open(os.devnull, "w")
         proc = Popen(command, stdout=PIPE, stdin=PIPE, stderr=stderr)
-        _port = int(proc.stdout.readline())
+
+        while True:
+            try:
+                _port = int(proc.stdout.readline())
+                break
+            except ValueError:
+                pass
 
         logger.info("Backend listening at port {}".format(_port))
         redirect_stdout = open(os.devnull, "w")
