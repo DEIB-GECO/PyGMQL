@@ -76,7 +76,25 @@ def check_for_dataset(files):
     return meta_files == regs_files
 
 
-def load_from_path(local_path=None, parser=None):
+def load_from_file(path, parser: RegionParser):
+    """ Loads a GDM dataset from a single BED-like file.
+
+    :param path: location of the file
+    :param parser: RegionParser object specifying the parser of the file
+    :return: a GMQLDataset
+    """
+    from .. import GMQLDataset
+    pmg = get_python_manager()
+    id = add_to_sources(local_path=path, parser=parser)
+    local_sources = [id]
+
+    index = pmg.readFile(str(id), parser.get_gmql_parser())
+    return GMQLDataset.GMQLDataset(index=index, parser=parser,
+                                   location="local", path_or_name=path,
+                                   local_sources=local_sources)
+
+
+def load_from_path(local_path, parser=None):
     """ Loads the data from a local path into a GMQLDataset.
     The loading of the files is "lazy", which means that the files are loaded only when the
     user does a materialization (see :func:`~gmql.dataset.GMQLDataset.GMQLDataset.materialize` ).
@@ -123,10 +141,7 @@ def load_from_path(local_path=None, parser=None):
     elif not isinstance(parser, RegionParser):
         raise ValueError("parser must be RegionParser. {} was provided".format(type(parser)))
 
-    source_table = get_source_table()
-    id = source_table.search_source(local=local_path)
-    if id is None:
-        id = source_table.add_source(local=local_path, parser=parser)
+    id = add_to_sources(local_path=local_path, parser=parser)
     local_sources = [id]
 
     index = pmg.read_dataset(str(id), parser.get_gmql_parser())
@@ -134,6 +149,14 @@ def load_from_path(local_path=None, parser=None):
                                    location="local", path_or_name=local_path,
                                    local_sources=local_sources,
                                    meta_profile=meta_profile)
+
+
+def add_to_sources(local_path=None, remote_path=None, parser=None):
+    source_table = get_source_table()
+    id = source_table.search_source(local=local_path, remote=remote_path)
+    if id is None:
+        id = source_table.add_source(local=local_path, remote=remote_path, parser=parser)
+    return id
 
 
 def load_from_remote(remote_name, owner=None):
@@ -150,10 +173,7 @@ def load_from_remote(remote_name, owner=None):
     remote_manager = get_remote_manager()
     parser = remote_manager.get_dataset_schema(remote_name, owner)
 
-    source_table = get_source_table()
-    id = source_table.search_source(remote=remote_name)
-    if id is None:
-        id = source_table.add_source(remote=remote_name, parser=parser)
+    id = add_to_sources(remote_path=remote_name, parser=parser)
     index = pmg.read_dataset(str(id), parser.get_gmql_parser())
     remote_sources = [id]
     return GMQLDataset.GMQLDataset(index=index, location="remote", path_or_name=remote_name,

@@ -11,4 +11,4 @@ Loading functions
 You can create a GMQLDataset by loading the data using the following functions:
 
 ..  automodule:: gmql.dataset.loaders.Loader
-    :members:
+    :members: load_from_path, load_from_file, load_from_remote

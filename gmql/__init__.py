@@ -1,5 +1,5 @@
 from .dataset.GDataframe import from_pandas
-from .dataset.loaders.Loader import load_from_path, load_from_remote, load
+from .dataset.loaders.Loader import load_from_path, load_from_remote, load_from_file
 from .dataset import parsers, get_example_dataset
 from .dataset.DataStructures.Aggregates import *
 from .dataset.DataStructures.ExpressionNodes import *
