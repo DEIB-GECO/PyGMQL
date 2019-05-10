@@ -1,6 +1,6 @@
 from .RegionParser import RegionParser
 from . import COORDS_DEFAULT
-from . import TAB
+from . import TAB, VCF
 
 
 class BedParser(RegionParser):
@@ -129,3 +129,20 @@ class BedScoreParser(RegionParser):
                          coordinate_system=COORDS_DEFAULT,
                          schema_format=TAB)
 
+class VCFParser(RegionParser):
+    """ Parser for VCF files
+    """
+    def __init__(self):
+        super().__init__(chrPos=0,
+                         startPos=1,
+                         stopPos=1,
+                         otherPos=[(2, "ID", "string"),
+                                   (3, "REF", "string"),
+                                   (4, "ALT", "string"),
+                                   (5, "QUAL", "float"),
+                                   (6, "FILTER", "string"),
+                                   (7, "INFO", "string"),
+                                   (8, "FORMAT", "string")],
+                         delimiter="\t",
+                         coordinate_system=COORDS_DEFAULT,
+                         schema_format=VCF)

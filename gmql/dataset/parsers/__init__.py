@@ -8,6 +8,7 @@ null_values = [NULL, INF, UNDEFINED]
 
 GTF = "gtf"
 TAB = "tab"
+VCF = "vcf"
 
 string_aliases = ['string', 'char']
 int_aliases = ['long', 'int', 'integer']
