@@ -12,6 +12,30 @@ Logging and progress bars
 
 .. autofunction:: set_progress
 
+
+--------------
+Execution Mode
+--------------
+
+.. currentmodule:: gmql.settings
+
+.. autofunction:: set_mode
+
+
+-------------------------
+Master Configuration
+-------------------------
+
+.. currentmodule:: gmql.settings
+
+.. autofunction:: set_master
+
+.. autofunction:: get_configuration
+
+.. autofunction:: set_spark_configs
+
+.. autofunction:: set_local_java_options
+
 -----------------
 Remote Management
 -----------------
@@ -29,13 +53,5 @@ Remote Management
 .. autofunction:: set_remote_address
 
 
---------------
-Execution Mode
---------------
 
-.. currentmodule:: gmql.settings
-
-.. autofunction:: set_mode
-
-.. autofunction:: set_meta_profiling
 
