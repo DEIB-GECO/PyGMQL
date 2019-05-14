@@ -56,7 +56,7 @@ def start():
         master = re.sub("^spark_", "", master.lower())
         configs = get_spark_configs()
         spark_location = find()
-        logger.info("Found spark at location: {}".format(spark_location))
+        logger.debug("Found spark at location: {}".format(spark_location))
         command = [os.path.join(spark_location, 'bin', 'spark-submit'), '--master', master, '--deploy-mode', "client"]
 
         for cname, c in configs.items():
@@ -74,7 +74,7 @@ def start():
             except ValueError:
                 pass
 
-        logger.info("Backend listening at port {}".format(_port))
+        logger.debug("Backend listening at port {}".format(_port))
         redirect_stdout = open(os.devnull, "w")
         OutputConsumer(redirect_stdout, proc.stdout, daemon=True).start()
         ProcessConsumer(proc, [redirect_stdout], daemon=True).start()
@@ -279,7 +279,7 @@ def get_session_manager():
 
 def __initialize_logger():
     log_fmt = '[PyGMQL] %(message)s'
-    logging.basicConfig(level=logging.DEBUG, format=log_fmt)
+    logging.basicConfig(level=logging.INFO, format=log_fmt)
 
 
 def __check_dependencies():
