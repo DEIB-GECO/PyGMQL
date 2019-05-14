@@ -2,7 +2,7 @@ from .FileManagment.DependencyManager import DependencyManager
 from .FileManagment import get_user_dir
 from .RemoteConnection.SessionManager import load_sessions, store_sessions
 from .FileManagment import TempFileManager
-from .settings import get_remote_address, get_configuration, get_master, get_local_java_options  # get_init_config
+from .settings import get_remote_address, get_configuration, get_master, get_local_java_options,  get_spark_configs
 from .configuration import Configuration
 import py4j
 from subprocess import Popen, PIPE
@@ -54,13 +54,13 @@ def start():
         # use spark-submit
         logger.debug("Submitting backend to {}".format(master))
         master = re.sub("^spark_", "", master.lower())
-        # configs = get_init_config()
+        configs = get_spark_configs()
         spark_location = find()
         logger.info("Found spark at location: {}".format(spark_location))
         command = [os.path.join(spark_location, 'bin', 'spark-submit'), '--master', master, '--deploy-mode', "client"]
 
-        # for cname, c in configs.items():
-        #     command.extend(['--conf', '{}={}'.format(cname, c)])
+        for cname, c in configs.items():
+            command.extend(['--conf', '{}={}'.format(cname, c)])
 
         command.append(__gmql_jar_path)
 
@@ -279,7 +279,7 @@ def get_session_manager():
 
 def __initialize_logger():
     log_fmt = '[PyGMQL] %(message)s'
-    logging.basicConfig(level=logging.INFO, format=log_fmt)
+    logging.basicConfig(level=logging.DEBUG, format=log_fmt)
 
 
 def __check_dependencies():
