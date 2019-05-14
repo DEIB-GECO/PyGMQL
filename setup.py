@@ -30,7 +30,8 @@ setup(name='gmql',
                         'requests-toolbelt',
                         'strconv',
                         'typecheck-decorator',
-                        'numpy', 'findspark'
+                        'numpy', 'findspark',
+                        'sphinx_rtd_theme'
                         # 'sklearn',
                         # 'pyclustering',
                         # 'matplotlib',
