@@ -17,15 +17,12 @@ __init_configs_local = {
     'spark.executor.memory': '6g',
     'spark.driver.memory': '8g',
     'spark.kryoserializer.buffer.max': '1g',
-    'spark.driver.maxResultSize': '5g'
-}
-__regions_batch_size = 10000
-
-__init_configs = __init_configs_local.copy()
-__init_configs_local.update({
+    'spark.driver.maxResultSize': '5g',
     'spark.driver.host': 'localhost',
     'spark.local.dir': '/tmp'
-})
+}
+__regions_batch_size = 20000
+__init_configs_spark = {}
 __configuration = None
 __java_options = []  # ['-Xmx8192m']
 
@@ -39,9 +36,19 @@ def get_configuration():
     return __configuration
 
 
-def get_init_config():
-    global __init_configs
-    return __init_configs
+def set_spark_configs(d):
+    """ Set Spark configurations to be used during the spark-submit. Works only when the master is different from local.
+
+    :param d: a dictionary of {key: values}
+    :return: None
+    """
+    global __init_configs_spark
+    __init_configs_spark.update(d)
+
+
+def get_spark_configs():
+    global __init_configs_spark
+    return __init_configs_spark
 
 
 def set_regions_batch_size(batch: int):
