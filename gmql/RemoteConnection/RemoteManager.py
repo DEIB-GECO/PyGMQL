@@ -535,9 +535,9 @@ class RemoteManager:
             if status == 'SUCCESS':
                 break
             elif status in good_status:
-                print(" "*50, end='\r')
+                print("\r" + " "*50, end="")
                 dots = "." * (count % 4)
-                print(status + dots, end="\r")
+                print("\r" + status + dots, end="")
             else:
                 message = status_resp['message']
                 raise ValueError("Status: {}. Error during query execution: {}"
