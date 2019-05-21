@@ -90,4 +90,4 @@ def materialize_remote(id, output_name=None, download_path=None, all_load=True):
         st = get_source_table()
         st.add_source(remote=dataset_name, delete_remote=True)
         dataset_path = result.iloc[0].path
-        return Loader.load_from_path(local_path=dataset_path, all_load=all_load)
+        return Loader.load_from_path(local_path=dataset_path).materialize()
