@@ -5,7 +5,7 @@ import os
 import logging
 
 gl.set_progress(False)
-gl.set_remote_address("http://genomic.elet.polimi.it/gmql-rest/")
+gl.set_remote_address("http://gmql.eu/gmql-rest/")
 
 
 class GMQLRemoteTester(unittest.TestCase):

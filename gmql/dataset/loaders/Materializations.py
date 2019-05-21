@@ -58,7 +58,7 @@ def materialize_local(id, output_path=None, all_load=True):
             # # region data
             # regs = RegLoaderFile.load_reg_from_path(real_path)
             # result = GDataframe.GDataframe(regs=regs, meta=meta)
-            return Loader.load_from_path(output_path).materialize()
+            return Loader.load_from_path(output_path).materialize(mode='local')
         else:
             return Loader.load_from_path(output_path)
     else:
@@ -90,4 +90,4 @@ def materialize_remote(id, output_name=None, download_path=None, all_load=True):
         st = get_source_table()
         st.add_source(remote=dataset_name, delete_remote=True)
         dataset_path = result.iloc[0].path
-        return Loader.load_from_path(local_path=dataset_path).materialize()
+        return Loader.load_from_path(local_path=dataset_path).materialize(mode='local')

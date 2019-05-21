@@ -1360,7 +1360,7 @@ class GMQLDataset(object):
     """
         Materialization utilities
     """
-    def materialize(self, output_path=None, output_name=None,  all_load=True):
+    def materialize(self, output_path=None, output_name=None,  all_load=True, mode=None):
         """
         *Wrapper of* ``MATERIALIZE``
 
@@ -1378,7 +1378,7 @@ class GMQLDataset(object):
                          GMQLDataset (False) for future local queries.
         :return: A GDataframe or a GMQLDataset
         """
-        current_mode = get_mode()
+        current_mode = get_mode() if mode is None else mode
         new_index = self.__modify_dag(current_mode)
         if current_mode == 'local':
             return Materializations.materialize_local(new_index, output_path, all_load)
