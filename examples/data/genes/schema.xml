@@ -1,0 +1,46 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<gmqlSchemaCollection name= "_20190115_105225_id_20190115_105220" xmlns="http://genomic.elet.polimi.it/entities">
+	<gmqlSchema type="tab" coordinate_system="default">
+		<field type="string">chr</field>
+		<field type="integer">start</field>
+		<field type="integer">stop</field>
+		<field type="string">strand</field>
+		<field type="string">source</field>
+		<field type="string">feature</field>
+		<field type="double">score</field>
+		<field type="string">frame</field>
+		<field type="string">seqid</field>
+		<field type="string">id</field>
+		<field type="string">parent</field>
+		<field type="string">entrez_gene_id</field>
+		<field type="string">hgnc_id</field>
+		<field type="string">gene_symbol</field>
+		<field type="string">transcript_id</field>
+		<field type="string">note</field>
+		<field type="string">anticodon</field>
+		<field type="string">description</field>
+		<field type="string">exception</field>
+		<field type="string">original_feature_type</field>
+		<field type="string">gene_biotype</field>
+		<field type="string">gene_synonym</field>
+		<field type="string">partial</field>
+		<field type="string">product</field>
+		<field type="string">protein_id</field>
+		<field type="double">exon_number</field>
+		<field type="double">codons</field>
+		<field type="string">start_range</field>
+		<field type="string">end_range</field>
+		<field type="string">pseudo</field>
+		<field type="string">model_evidence</field>
+		<field type="string">transl_except</field>
+		<field type="string">transl_table</field>
+		<field type="string">chromosome</field>
+		<field type="string">is_circular</field>
+		<field type="string">genome</field>
+		<field type="string">mol_type</field>
+		<field type="string">map</field>
+		<field type="string">country</field>
+		<field type="string">isolation_source</field>
+		<field type="string">tissue_type</field>
+	</gmqlSchema>
+</gmqlSchemaCollection>

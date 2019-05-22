@@ -1,0 +1,12 @@
+annotation_type	gene
+assembly	hg19
+data_format_description	http://biomirror.aarnet.edu.au/biomirror/ncbigenomes/README_GFF3.txt
+download_link	ftp://ftp.ncbi.nlm.nih.gov/refseq/H_sapiens/annotation/GRCh37_latest/refseq_identifiers/GRCh37_latest_genomic.gff.gz
+full_name	RefSeq Reference Genome Annotation
+genome_build	GRCh37.p13
+genome_build_accession	GCF_000001405.25
+original_format	gff
+original_url	https://www.ncbi.nlm.nih.gov/projects/genome/guide/human/index.shtml
+provider	RefSeq
+release_date	2013-06-28
+release_version	13
