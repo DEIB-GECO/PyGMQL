@@ -1,14 +1,18 @@
 language: python
+
+services:
+  - docker
+
 python:
-- '3.4'
-- '3.5'
-- '3.6'
+  - '3.4'
+  - '3.5'
+  - '3.6'
 install:
-- pip install numpy
-- pip install codecov
-- pip install .
+  - pip install numpy
+  - pip install codecov
+  - pip install .
 script:
-- coverage run -m unittest discover test/ -p test_*.py
+  - coverage run -m unittest discover test/ -p test_*.py
 deploy:
   provider: pypi
   user: "$pypi_username"
@@ -17,8 +21,12 @@ deploy:
     branch: release
     python: '3.6'
 after_success:
-- codecov
+  - codecov
+  - chmod +x docker/setup.sh
+  - ./docker/setup.sh
 env:
   global:
   - secure: ugm3F6Xc7Bwed+JKfO1dJCD2jVOgVLjj7HssZFibkuDiavCfT0BkipVedeARKzJGRvhCQlqjBg11YsBpqBrZN93t0BaX2igHEY6tnAgT8uLVwPv6HcIG4uEhFGkfG6rqX3aUQXraTSP7b72C1buI3+XwHXc0JLU2OPM2YASoJmns83GnV5m5BlENvV2tuZc3JgZklYHqPOkilBCamw62L03z6yYSnRvRpDmipo6dIcVKtQz5dHzE4DwIUl8yKEdorXX8dc30lfaGArv7FLTKTJG2RnUI+s/FsJFGwB50wnfsiS8XUUDN9os452f9cTTF8C1NbBctpeOZ60UrL2413lb+Nbes9XgyB+oUZTtKXY9WURZOD/qfdZWjlIADtwnziwcju8276zES695sxHjWRjyUH9RkStwN7P/yjWEuYq5Nmm75RoEBmzdbSGEhY4lDp/YSU6ZHusmMB434i0R32A85y8vmold91h5EQHCqpCnU+qIq5vMl1FNPWCRQ5N1wzmCfaCwyaPp8HG3RruzCjDyVOVzTIUz2z9+I7ikXdCZYGzjR6JeivoyIU7ZLQ8x7qzy4hkLaaqIIRNDHicUCEUJUCMSJ+RHO06MnMMZGKsY5KoeHrwaFyovDUBznLOJgLpC5Ell/DMCpP9ouSYrTydmbFDRnFpxP74Zm5kESD4k=
   - secure: jMMI47te8CG8txKmXrZ5rBYl5sz8Zp1pVPymegsiM1VTr96w1TK94aZkXM/SsoNewiYCCtBmUZdYP+nPAU6+H4B5lAz6jazmXPPReWN0Xg1hXGhfI2X2zfpSzSU9dJtGVmsBCjniwKL3Hdof9hkHbKnOUAf7EmhJDmepIVl/vKDWvq+2tA3MtF/7pCyxMDiFpx2peE6d0QfzVNEWkvsr7KNJ6y8zWGrHupPlc0iFviry3jHrsRdQCbx29JDObAomNNOxp3WgKj7VMCJbOJlUiSYN308yfZtvlpiAQyr/Ng/ZPv9NrrsoBICFjgY4vdH03rZ8pgdZ7y5B8cROsl36wYnlZI150QKe3Yrg4GkpW/FI2HtedISwAo6zzCytNLl7WvUqmJmaXAriuq9Gu+agIZ6uTwjJSRYUuCtwKbjYXtp0ZDUAYDnn1LzkO/8tBC07784bdhv/6YM3+gVBoGhxYl7r2uf6AO15qGKYQ/KuxSI2hEd0aIdCtUTruuH16Ew3f6amDjXybMf4ldjV+Dx2Ua2V2hq+Gyp7jCR0aTCRplxwLc5iGCJg4xiWuAegJgrDoh+PD3V5OJVAZkIwv43WuaK3lOtLnH2Lp/o7EHnttNprt11HQSz9SjTjafVEbYXClkakHKjQ77C7WtPGSnqzgt8wK/sw+04kZhMhdweJpj0=
+  - secure: S04eOrUCqERF8GlWGLVxCihGMwW4Wo/HE5PUhg62VS76jw+H7Pf/8SkE/ijthnsm856GpqKJVGEBnj1Eg5zXaMGIfaPieOHPblWOYZa7pl0IYNTxgE3FPxoA4jHdXWGosf0XfV/y9Zg3AQD/1Ii3/wdgVGPlK1UYpWriPtWUxWz7UgJOCSHuc9/zasQnujtNPub7zB6lc18RiL728yvQzJ/j8ctaVbECHpIAGT1JQcbtto00Em8e3AM7bFsHeX2gJ0xCPpYN/I3r9dqQUlV0FMP1RAHTHpfNd7IfCdF9kzZKWkkeNf8YFcM3ZGTBUs1XVfojq7QeKWs+q3oqYEm7UssZFPA6B73GZdAdaOVRWSMZ+14+K2MoLBoV+8BkFE7wpMwdaZpc+h74tg2XZ+nUoIHh3YvdqadV6ZU47cF5KN60L5REFx3GTHoSKQsLxrnhcrAsY6DEIWgDD3y3EebABGV1eaBdmtUh/vdOpaVSXMKtE+bV+zWZ466m5WZjoJVb3IF/ImN8dAxabtUHMLfujDec0XQf8C9Xo+wKoaHZ2Atxgl6fNy7JAiF0k7egHOQiybMw+CT2OTYB7mIIiXQ7aBppXv7TQ5z2VRwExtkEfQdJIB2XaqMDm/Rs7OXf2uRxR57d8x/bnUqgu/SjF0f/xzITQkSoITM0ieUkhKaXGCo=
+  - secure: eu9CKpffuEEuZ7rp3rXH68zWyOamHuv9AM3fRM4hNF39XBPyG/pdF/442i/Zh1ps1bS4f1BQxCmuqEOXMkndVuAz51vM66y9KiALPxB2pqIccjJB6YnuVnO5RnZSko2G4VjpWAeKU7TEuzwChAif9YYmFJQ6ehEphaZwiMdK9u1LtxBqIrS+s5UXL0WDVXqQN2MuwX/YPTeugPE9sJffhq1FnGupVpHepRhKtU6XUkLh3Z7O6dFuMEgjX3SfpTuq6DnjWZOo1kM4Vr9A0agZq+oNXjyAaM6zasZz7ikOMY+lx/oSovcIzrRl+7HhcoQsFwLdkEyXNtcRkRL19aSsuygf9wxC7sFTTRxeyA/s7atjtiva8JbkysYMzyKtUwRJQ7Wjc8YFqKg65t6yoAWEyy7b9Vs2N4oiFsmBYxoXWigOmfkCY0ie4PpZuZCQChoss0kMBxdw8bvc27Zms5rw800Ha2eZR5v4S/6xrAQVaA3JsSO+f/Ovo454x+vjO53/FD5kGmuPhT+q6Kf9JU7B+EovbVBIGTwfAhwo98ePSrrB1q/Kbu72mIJV8BcSddZvMv+z+LzoGduKhqtHqN10CAT2osVGVo9KB4YTjYxoag7QF8ZgNQsvnSMVsKmX68iayrWtMTTgyvAFuWQwB/YOjPvy2uPM7uhM+BRTlnU00/4=
