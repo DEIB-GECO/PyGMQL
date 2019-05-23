@@ -13,11 +13,28 @@ The doucumentation can be found at the following link: http://pygmql.readthedocs
 
 [![Documentation Status](https://readthedocs.org/projects/pygmql/badge/?version=latest)](http://pygmql.readthedocs.io/en/latest/?badge=latest)
 
-## Try the library
-You can try the library without any previous setup using Binder.
+## Docker image
+If you want to run some of the examples provided in the example folder you can directly install the PyGMQL docker image.
 
-[![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/DEIB-GECO/PyGMQL/master?filepath=examples%2F00_Introduction.ipynb)
+```
+docker pull gecopolimi/pygmql
+```
 
+You can run the docker instance using the following command:
+```
+docker run --rm \
+           --name pygmql_instance \
+           -p <port>:8888 \
+           gecopolimi/pygmql
+```
+
+where you can set `<port>` to any free port number on your machine.
+This will start a Jupyter Lab server which will run at the address
+```
+https://localhost:<port>
+``` 
+
+Inside the docker you will find the `example` folder containing both notebooks and scripts.
 
 ## Get in touch
 You can ask questions or provide some feedback through our Gitter channel.
