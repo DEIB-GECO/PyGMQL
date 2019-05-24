@@ -9,14 +9,12 @@ with open(os.path.join(".", "gmql", "resources", "github_url"), "r") as f_ver:
 
 setup(name='gmql',
       version=version,
-      description='Python library for GMQL',
+      description='Python Library for data analysis based on GMQL',
       long_description="PyGMQL is a python module that enables the user "
                        "to perform operation on genomic data in a scalable way.",
       url=github_url,
-      author='Luca Nanni',
-      author_email='lucananni93dev@gmail.com',
-      # maintainer="Mustafa Anil Tuncel",
-      # maintainer_email="tuncel.manil@gmail.com",
+      author='Luca Nanni, Pietro Pinoli, Arif Canakoglu, Stefano Ceri',
+      author_email='luca.nanni@polimi.it',
       license='MIT',
       packages=find_packages(exclude=("gmql.ml",)),     # temporary
       scripts=['scripts/pygmql_login.py',
