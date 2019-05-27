@@ -13,6 +13,9 @@ The doucumentation can be found at the following link: http://pygmql.readthedocs
 
 [![Documentation Status](https://readthedocs.org/projects/pygmql/badge/?version=latest)](http://pygmql.readthedocs.io/en/latest/?badge=latest)
 
+## Examples
+In the [examples folder](./examples) are available the Notebooks and the scripts to reproduce the analysis presented in the manuscript.
+
 ## Docker image
 If you want to run some of the examples provided in the example folder you can directly install the PyGMQL docker image.
 
