@@ -1,0 +1,32 @@
+antibody_accession	ENCAB000ANA
+assay	ChIP-seq
+assembly	hg19
+audit_internal_action	biological replicates with identical biosample
+audit_internal_action	missing derived_from
+audit_warning	low read depth
+audit_warning	low read length
+audit_warning	mild to moderate bottlenecking
+biosample_age	58 year
+biosample_life_stage	adult
+biosample_organism	Homo sapiens
+biosample_sex	male
+biosample_term_id	EFO:0001086
+biosample_term_name	A549
+biosample_treatments	ethanol
+biosample_type	immortalized cell line
+experiment_accession	ENCSR000AUI
+experiment_date_released	2012-08-06
+experiment_target	H3K27ac-human
+file_accession	ENCFF001STA
+file_download_url	https://www.encodeproject.org/files/ENCFF001STA/@@download/ENCFF001STA.bed.gz
+file_format	bed broadPeak
+file_status	archived
+lab	Bradley Bernstein, Broad
+library_extraction_method	see document
+library_lysis_method	see document
+library_made_from	DNA
+library_strand_specific	False
+md5sum	c3226656a30cb49127afe0f2623baa25
+output_type	peaks
+project	ENCODE
+size	849291

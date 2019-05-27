@@ -1,0 +1,30 @@
+antibody_accession	ENCAB000ANA
+assay	ChIP-seq
+assembly	hg19
+audit_warning	low read depth
+audit_warning	low read length
+biological_replicate_s_	1, 2
+biosample_age	31 year
+biosample_life_stage	adult
+biosample_organism	Homo sapiens
+biosample_sex	female
+biosample_term_id	EFO:0002791
+biosample_term_name	HeLa-S3
+biosample_type	immortalized cell line
+derived_from	ENCFF000BAF, ENCFF000BAI, ENCFF000BBM, ENCFF000BBN
+experiment_accession	ENCSR000AOC
+experiment_date_released	2011-02-10
+experiment_target	H3K27ac-human
+file_accession	ENCFF001SVW
+file_download_url	https://www.encodeproject.org/files/ENCFF001SVW/@@download/ENCFF001SVW.bed.gz
+file_format	bed broadPeak
+file_status	archived
+lab	Bradley Bernstein, Broad
+library_extraction_method	see document
+library_lysis_method	see document
+library_made_from	DNA
+library_strand_specific	False
+md5sum	39af531d217f1a5984e13d6a4065ac06
+output_type	peaks
+project	ENCODE
+size	774250

@@ -1,0 +1,28 @@
+antibody_accession	ENCAB000ANA
+assay	ChIP-seq
+assembly	hg19
+audit_internal_action	missing derived_from
+audit_not_compliant	insufficient read depth
+biosample_age	unknown
+biosample_life_stage	adult
+biosample_organism	Homo sapiens
+biosample_sex	female
+biosample_term_id	EFO:0002784
+biosample_term_name	GM12878
+biosample_type	immortalized cell line
+experiment_accession	ENCSR000AKC
+experiment_date_released	2011-02-10
+experiment_target	H3K27ac-human
+file_accession	ENCFF001SUG
+file_download_url	https://www.encodeproject.org/files/ENCFF001SUG/@@download/ENCFF001SUG.bed.gz
+file_format	bed broadPeak
+file_status	archived
+lab	Bradley Bernstein, Broad
+library_extraction_method	see document
+library_lysis_method	see document
+library_made_from	DNA
+library_strand_specific	False
+md5sum	109d26a520f4f64fb46bf21fa50d6cd9
+output_type	peaks
+project	ENCODE
+size	929569

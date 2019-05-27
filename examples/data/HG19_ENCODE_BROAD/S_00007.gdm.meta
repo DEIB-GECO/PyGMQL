@@ -1,0 +1,30 @@
+antibody_accession	ENCAB000ANA
+assay	ChIP-seq
+assembly	hg19
+audit_internal_action	missing derived_from
+audit_warning	inconsistent platforms
+audit_warning	low read depth
+audit_warning	low read length
+biosample_age	unknown
+biosample_life_stage	unknown
+biosample_organism	Homo sapiens
+biosample_sex	female
+biosample_term_id	CL:0001054
+biosample_term_name	CD14-positive monocyte
+biosample_type	primary cell
+experiment_accession	ENCSR000ASJ
+experiment_date_released	2012-08-06
+experiment_target	H3K27ac-human
+file_accession	ENCFF001TAO
+file_download_url	https://www.encodeproject.org/files/ENCFF001TAO/@@download/ENCFF001TAO.bed.gz
+file_format	bed broadPeak
+file_status	archived
+lab	Bradley Bernstein, Broad
+library_extraction_method	see document
+library_lysis_method	see document
+library_made_from	DNA
+library_strand_specific	False
+md5sum	484c83fb42363d0d48e8c52298efb4f6
+output_type	peaks
+project	ENCODE
+size	1183619

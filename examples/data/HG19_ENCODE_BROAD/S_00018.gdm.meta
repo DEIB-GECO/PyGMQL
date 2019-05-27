@@ -1,0 +1,29 @@
+antibody_accession	ENCAB000ANA
+assay	ChIP-seq
+assembly	hg19
+audit_internal_action	missing derived_from
+audit_not_compliant	insufficient read depth
+audit_warning	low read length
+biosample_age	11 year, 45 year
+biosample_life_stage	unknown, adult
+biosample_organism	Homo sapiens
+biosample_sex	female, male
+biosample_term_id	CL:0002553
+biosample_term_name	fibroblast of lung
+biosample_type	primary cell
+experiment_accession	ENCSR000AMR
+experiment_date_released	2011-02-10
+experiment_target	H3K27ac-human
+file_accession	ENCFF001TCM
+file_download_url	https://www.encodeproject.org/files/ENCFF001TCM/@@download/ENCFF001TCM.bed.gz
+file_format	bed broadPeak
+file_status	archived
+lab	Bradley Bernstein, Broad
+library_extraction_method	see document
+library_lysis_method	see document
+library_made_from	DNA
+library_strand_specific	False
+md5sum	f3f24b67c7657a41f392cbaeac4f3d46
+output_type	peaks
+project	ENCODE
+size	1048307

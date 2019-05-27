@@ -1,0 +1,31 @@
+antibody_accession	ENCAB000ANA
+assay	ChIP-seq
+assembly	hg19
+audit_internal_action	biological replicates with identical biosample
+audit_internal_action	missing derived_from
+audit_warning	inconsistent platforms
+audit_warning	low read depth
+audit_warning	low read length
+biosample_age	unknown
+biosample_life_stage	embryonic
+biosample_organism	Homo sapiens
+biosample_sex	male
+biosample_term_id	EFO:0003042
+biosample_term_name	H1-hESC
+biosample_type	stem cell
+experiment_accession	ENCSR000ANP
+experiment_date_released	2011-02-10
+experiment_target	H3K27ac-human
+file_accession	ENCFF001SUX
+file_download_url	https://www.encodeproject.org/files/ENCFF001SUX/@@download/ENCFF001SUX.bed.gz
+file_format	bed broadPeak
+file_status	archived
+lab	Bradley Bernstein, Broad
+library_extraction_method	see document
+library_lysis_method	see document
+library_made_from	DNA
+library_strand_specific	False
+md5sum	2526f289ef11f8b8f2f0fc57c58005e2
+output_type	peaks
+project	ENCODE
+size	908085

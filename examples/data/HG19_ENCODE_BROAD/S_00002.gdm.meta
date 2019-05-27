@@ -1,0 +1,29 @@
+antibody_accession	ENCAB000ANA
+assay	ChIP-seq
+assembly	hg19
+audit_internal_action	missing derived_from
+audit_not_compliant	insufficient read depth
+audit_warning	low read length
+biosample_age	unknown
+biosample_life_stage	unknown
+biosample_organism	Homo sapiens
+biosample_sex	female
+biosample_term_id	CL:0000312
+biosample_term_name	keratinocyte
+biosample_type	primary cell
+experiment_accession	ENCSR000ALK
+experiment_date_released	2011-02-10
+experiment_target	H3K27ac-human
+file_accession	ENCFF001TBX
+file_download_url	https://www.encodeproject.org/files/ENCFF001TBX/@@download/ENCFF001TBX.bed.gz
+file_format	bed broadPeak
+file_status	archived
+lab	Bradley Bernstein, Broad
+library_extraction_method	see document
+library_lysis_method	see document
+library_made_from	DNA
+library_strand_specific	False
+md5sum	f5aa1832b3aac5a91a3e7083ea2f17cd
+output_type	peaks
+project	ENCODE
+size	1095429

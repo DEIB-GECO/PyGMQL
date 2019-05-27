@@ -1,0 +1,32 @@
+antibody_accession	ENCAB000ANA
+assay	ChIP-seq
+assembly	hg19
+audit_warning	low read depth
+audit_warning	low read length
+audit_warning	mild to moderate bottlenecking
+audit_warning	moderate library complexity
+biological_replicate_s_	1, 2
+biosample_age	unknown
+biosample_life_stage	unknown
+biosample_organism	Homo sapiens
+biosample_sex	unknown
+biosample_term_id	CL:0000062
+biosample_term_name	osteoblast
+biosample_type	primary cell
+derived_from	ENCFF000CUQ, ENCFF000CUR, ENCFF000CVH, ENCFF000CVJ
+experiment_accession	ENCSR000APH
+experiment_date_released	2011-02-10
+experiment_target	H3K27ac-human
+file_accession	ENCFF001TDC
+file_download_url	https://www.encodeproject.org/files/ENCFF001TDC/@@download/ENCFF001TDC.bed.gz
+file_format	bed broadPeak
+file_status	archived
+lab	Bradley Bernstein, Broad
+library_extraction_method	see document
+library_lysis_method	see document
+library_made_from	DNA
+library_strand_specific	False
+md5sum	b89eeedaabcdd16a194f819063a4c891
+output_type	peaks
+project	ENCODE
+size	1586930

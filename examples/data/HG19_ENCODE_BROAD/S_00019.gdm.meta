@@ -1,0 +1,29 @@
+antibody_accession	ENCAB000ANA
+assay	ChIP-seq
+assembly	hg19
+audit_internal_action	missing derived_from
+audit_not_compliant	insufficient read depth
+audit_warning	low read length
+biosample_age	22 year
+biosample_life_stage	adult
+biosample_organism	Homo sapiens
+biosample_sex	male
+biosample_term_id	CL:0000515
+biosample_term_name	skeletal muscle myoblast
+biosample_type	primary cell
+experiment_accession	ENCSR000ANF
+experiment_date_released	2011-02-10
+experiment_target	H3K27ac-human
+file_accession	ENCFF001SXI
+file_download_url	https://www.encodeproject.org/files/ENCFF001SXI/@@download/ENCFF001SXI.bed.gz
+file_format	bed broadPeak
+file_status	archived
+lab	Bradley Bernstein, Broad
+library_extraction_method	see document
+library_lysis_method	see document
+library_made_from	DNA
+library_strand_specific	False
+md5sum	9da668153f7995f045c9fcc46481ad35
+output_type	peaks
+project	ENCODE
+size	1188649

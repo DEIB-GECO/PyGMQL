@@ -1,0 +1,32 @@
+antibody_accession	ENCAB000ANA
+assay	ChIP-seq
+assembly	hg19
+audit_internal_action	missing derived_from
+audit_not_compliant	insufficient read depth
+audit_warning	inconsistent platforms
+audit_warning	low read length
+audit_warning	mild to moderate bottlenecking
+audit_warning	moderate library complexity
+biosample_age	unknown
+biosample_life_stage	unknown
+biosample_organism	Homo sapiens
+biosample_sex	unknown
+biosample_term_id	CL:0002551
+biosample_term_name	fibroblast of dermis
+biosample_type	primary cell
+experiment_accession	ENCSR000APN
+experiment_date_released	2011-02-10
+experiment_target	H3K27ac-human
+file_accession	ENCFF001TBL
+file_download_url	https://www.encodeproject.org/files/ENCFF001TBL/@@download/ENCFF001TBL.bed.gz
+file_format	bed broadPeak
+file_status	archived
+lab	Bradley Bernstein, Broad
+library_extraction_method	see document
+library_lysis_method	see document
+library_made_from	DNA
+library_strand_specific	False
+md5sum	ee7118659c5750ca6f80fc03b23dc026
+output_type	peaks
+project	ENCODE
+size	1513588

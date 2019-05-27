@@ -1,0 +1,32 @@
+antibody_accession	ENCAB000ANA
+assay	ChIP-seq
+assembly	hg19
+audit_internal_action	biological replicates with identical biosample
+audit_internal_action	missing derived_from
+audit_not_compliant	insufficient read depth
+audit_warning	low read depth
+audit_warning	low read length
+audit_warning	mild to moderate bottlenecking
+biosample_age	unknown
+biosample_life_stage	newborn
+biosample_organism	Homo sapiens
+biosample_sex	unknown
+biosample_term_id	CL:0002618
+biosample_term_name	endothelial cell of umbilical vein
+biosample_type	primary cell
+experiment_accession	ENCSR000ALB
+experiment_date_released	2011-02-10
+experiment_target	H3K27ac-human
+file_accession	ENCFF001SYJ
+file_download_url	https://www.encodeproject.org/files/ENCFF001SYJ/@@download/ENCFF001SYJ.bed.gz
+file_format	bed broadPeak
+file_status	archived
+lab	Bradley Bernstein, Broad
+library_extraction_method	see document
+library_lysis_method	see document
+library_made_from	DNA
+library_strand_specific	False
+md5sum	045c6895636fbe3e55f79f2266a272fb
+output_type	peaks
+project	ENCODE
+size	1000401

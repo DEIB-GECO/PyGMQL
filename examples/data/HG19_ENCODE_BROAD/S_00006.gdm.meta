@@ -1,0 +1,31 @@
+antibody_accession	ENCAB000ANA
+assay	ChIP-seq
+assembly	hg19
+audit_warning	low read depth
+audit_warning	low read length
+biological_replicate_s_	1
+biosample_age	12 week
+biosample_life_stage	fetal
+biosample_organism	Homo sapiens
+biosample_sex	male
+biosample_term_id	CL:0002553
+biosample_term_name	fibroblast of lung
+biosample_type	primary cell
+derived_from	ENCFF001ENH
+experiment_accession	ENCSR000DPL
+experiment_date_released	2012-07-24
+experiment_target	H3K27ac-human
+file_accession	ENCFF001WUX
+file_download_url	https://www.encodeproject.org/files/ENCFF001WUX/@@download/ENCFF001WUX.bed.gz
+file_format	bed broadPeak
+file_status	archived
+lab	John Stamatoyannopoulos, UW
+library_extraction_method	see document
+library_lysis_method	see document
+library_made_from	DNA
+library_strand_specific	False
+md5sum	b341d42e90ede97e610df5a582314bfe
+output_type	hotspots
+project	ENCODE
+read_length	36
+size	3497389

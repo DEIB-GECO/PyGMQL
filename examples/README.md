@@ -18,12 +18,18 @@ In this folder you can access a set of examples and script showcasing the usage 
     2. [On HDFS](notebooks/03b_GWAS_HDFS.ipynb): same example, but data reside on HDFS. **NB: this query cannot be executed in the docker image**
 
 ## Scripts
-1. [Transcriptional Interaction and Co-regulation Analyser (TICA)](): the last and most complex application example of the library. 
+1. [Transcriptional Interaction and Co-regulation Analyser (TICA)](./scripts/TICA.py): the last and most complex application example of the library. 
 This query has been tested and deployed on AWS EMR. We have a script for every cell line. **NB: this query cannot be executed in the docker image**
-    1. [GM12878](./scripts/TICA_gm12878.py)
-    2. [HEPG2](./scripts/TICA_hepg2.py)
-    3. [K562](./scripts/TICA_k562.py)
-    
+
+
+## Data
+In the [data folder](./data) are available the following example datasets:
+1. [`genes`](./data/genes): used in the first applicative example of the manuscript about Local/Remote computation
+2. [`HG19_ENCODE_BROAD`](./data/HG19_ENCODE_BROAD): used in the local version of the GWAS analysis
+
+For the TICA query, the user needs to download the complete set of GDM datasets from the following public S3 bucket: 
+https://s3.us-east-2.amazonaws.com/geco-repository/geco-repository-minimal.tar.gz
+
 ## Executing the queries on HDFS
 In order to run the programs which make use of a Spark cluster with an Hadoop file system it is necessary to have:
 
@@ -37,3 +43,14 @@ at [this link](https://spark.apache.org/docs/latest/running-on-yarn.html)
 [this link](https://s3.us-east-2.amazonaws.com/geco-repository/geco-repository-minimal.tar.gz)
     - unpack the `tar.gz` file 
     - use `hdfs dfs put ./geco-repository hdfs:///` to put the contents of the uncompressed folder in HDFS
+    
+## Amazon EMR cluster configuration
+We evaluated the performance of the system using Amazon Web Services Elastic Map Reduce, which offers the possibility to 
+specify the Hadoop cluster configuration, the number of nodes and the various instances specifications. For completeness 
+we provide as supplementary material also the AWS command line scripts to setup an EMR cluster for every configuration 
+defined in the paper. They are available in the [`cluster_configuration`](./cluster_configurations) folder:
+
+- `AWS_EMR_1m_1s.sh`: 1 master and 1 slave
+- `AWS_EMR_1m_3s.sh`: 1 master and 3 slaves
+- `AWS_EMR_1m_5s.sh`: 1 master and 5 slaves
+- `AWS_EMR_1m_10s.sh`: 1 master and 10 slaves
