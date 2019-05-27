@@ -25,7 +25,7 @@ push_docker() {
 	docker push $DOCKERHUB_USERNAME/$pygmql_docker_name
 }
 
-download_data
+#download_data
 build_docker
 docker_login
 push_docker
