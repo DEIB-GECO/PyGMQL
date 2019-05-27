@@ -17,6 +17,8 @@ In this folder you can access a set of examples and script showcasing the usage 
     with more visualizations. Data reside on Google Cloud Storage. **NB: this query cannot be executed in the docker image**
     2. [On HDFS](notebooks/03b_GWAS_HDFS.ipynb): same example, but data reside on HDFS. **NB: this query cannot be executed in the docker image**
 
+In the [HTML folder](./notebooks/html) are available the previous notebooks in HTML format for easy consultation through a web browser.
+
 ## Scripts
 1. [Transcriptional Interaction and Co-regulation Analyser (TICA)](./scripts/TICA.py): the last and most complex application example of the library. 
 This query has been tested and deployed on AWS EMR. We have a script for every cell line. **NB: this query cannot be executed in the docker image**
