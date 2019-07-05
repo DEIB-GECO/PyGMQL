@@ -17,7 +17,7 @@ Loggin in
 This can be done by firstly specifying the remote server address::
 
     import gmql as gl
-    gl.set_remote_address("http://gmql.eu/gmql-rest/")
+    gl.set_remote_address("http://genomic.elet.polimi.it/gmql-rest/")
 
 and then by logging in into the system::
 
