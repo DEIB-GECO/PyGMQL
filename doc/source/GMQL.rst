@@ -21,4 +21,4 @@ The GMQL engine is composed by various sub-systems:
 GMQL WEB interface
 ------------------
 
-The GMQL system is publicly available `at this link <http://genomic.elet.polimi.it/gmql-rest/>`_.
+The GMQL system is publicly available `at this link <http://gmql.eu/gmql-rest/>`_.
