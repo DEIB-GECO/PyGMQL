@@ -41,9 +41,9 @@ Tutorials
    :maxdepth: 1
    :caption: Contents:
 
-   tutorial_chapter0
-   tutorial_chapter1
-   tutorial_chapter2
+   tutorial1
+   tutorial2
+   tutorial3
 
 Data structures and functions
 ==================
