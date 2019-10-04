@@ -107,7 +107,7 @@ class DependencyManager:
         return location
 
     def resolve_dependencies(self):
-        first_part_url = "/".join(self.repo_url.split("/")[:3]) + "/"
+        first_part_url = "/".join(self.repo_url.split("/")[:3])
         query_url = first_part_url + "/service/local/artifact/maven/resolve?"
         for d in self.deps:
             query_url += "g={}&".format(d['groupId'])
