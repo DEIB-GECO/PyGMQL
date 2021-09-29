@@ -148,24 +148,24 @@ class GMQLQueryTester(unittest.TestCase):
         res = res.materialize()
         self.gdataframe_equality(res, self.get_query_results("difference_1"))
 
-    def test_map_1(self):
-        """ # map_1
-            D1 = SELECT(region: chr == chr2) Example_Dataset_1;
-            D2 = SELECT(region: chr == chr2) Example_Dataset_2;
-            RES = MAP(avg_score AS AVG(score)) D1 D2;
-            MATERIALIZE RES INTO map_1;
-        """
+#     def test_map_1(self):
+#         """ # map_1
+#             D1 = SELECT(region: chr == chr2) Example_Dataset_1;
+#             D2 = SELECT(region: chr == chr2) Example_Dataset_2;
+#             RES = MAP(avg_score AS AVG(score)) D1 D2;
+#             MATERIALIZE RES INTO map_1;
+#         """
 
-        d1 = gl.get_example_dataset("Example_Dataset_1")
-        d1 = d1.reg_select(d1.chr == 'chr2')
+#         d1 = gl.get_example_dataset("Example_Dataset_1")
+#         d1 = d1.reg_select(d1.chr == 'chr2')
 
-        d2 = gl.get_example_dataset("Example_Dataset_2")
-        d2 = d2.reg_select(d2.chr == 'chr2')
+#         d2 = gl.get_example_dataset("Example_Dataset_2")
+#         d2 = d2.reg_select(d2.chr == 'chr2')
 
-        res = d1.map(d2, new_reg_fields={'avg_score': gl.AVG("score")}, refName="D1", expName="D2")
-        res = res.materialize("./tmp")
-        shutil.rmtree("./tmp")
-        self.gdataframe_equality(res, self.get_query_results("map_1"))
+#         res = d1.map(d2, new_reg_fields={'avg_score': gl.AVG("score")}, refName="D1", expName="D2")
+#         res = res.materialize("./tmp")
+#         shutil.rmtree("./tmp")
+#         self.gdataframe_equality(res, self.get_query_results("map_1"))
 
     def test_join_1(self):
         """ # join_1
