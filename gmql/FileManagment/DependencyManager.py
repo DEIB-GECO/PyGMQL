@@ -27,6 +27,7 @@ class DependencyManager:
             backend_jar_path = os.path.join(get_user_dir(), BACKEND_URL.split("/")[-1])
             self.download_from_location(BACKEND_URL, backend_jar_path)
             self.backend_jar_path = backend_jar_path
+        return self.backend_jar_path
 
     @staticmethod
     def download_from_location(location, output_path):
